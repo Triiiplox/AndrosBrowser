@@ -34,7 +34,26 @@ o comportamento precisa ser validado com a central real, de preferência com o c
 
 ## Instalação
 
-1. Baixar o APK do último run "Build APK" na aba Actions e instalar no celular.
+### Caminho A — installer = Play Store (recomendado, técnica do AAAD)
+
+O [AAAD](https://github.com/shmykelsa/AAAD) faz apps de terceiros aparecerem no Android Auto
+sem "Fontes desconhecidas" instalando o APK com a **Play Store registrada como installer**
+(`com.android.vending`). O Android Auto usa essa origem para decidir se o app é confiável.
+O AAAD faz isso no próprio celular (Shizuku no Android 14+); aqui, como o celular da atração
+é um só e fica sob nosso controle, fazemos o mesmo via ADB a partir de um PC.
+
+1. Baixar o APK do último run "Build APK" na aba Actions.
+2. No celular: Opções do desenvolvedor > **Depuração USB** ligada; conectar no PC.
+3. Rodar `scripts/install-as-play-store.sh <apk>` (ou `.ps1` no Windows).
+4. Conferir em Configurações > Experimental > **Install source** = `com.android.vending` (verde).
+5. Conectar o celular na central via USB e abrir o AndrosBrowser no Android Auto.
+
+Toda atualização do APK precisa passar pelo script de novo — instalar pelo gerenciador de
+arquivos troca o installer e o app volta a depender do Caminho B.
+
+### Caminho B — Fontes desconhecidas (fallback)
+
+1. Instalar o APK normalmente no celular.
 2. No celular: Android Auto > tocar 10x em "Versão" > menu ⋮ > Configurações do desenvolvedor > **Fontes desconhecidas**.
 3. Conectar o celular na central via USB e abrir o AndrosBrowser no Android Auto.
 

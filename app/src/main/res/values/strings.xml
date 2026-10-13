@@ -110,6 +110,8 @@
     <string name="settings_motion_status_bypassed">Active (Bypassed)</string>
     <string name="settings_motion_status_restricted">Restricted (Motion)</string>
     <string name="settings_motion_status_idle">Active (Idle)</string>
+    <string name="settings_install_source_label">Install source:</string>
+    <string name="settings_install_source_unknown">unknown (sideload)</string>
 
     <string name="kododake_name">kododake (Lead)</string>
     

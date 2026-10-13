@@ -33,6 +33,8 @@ import com.kododake.aabrowser.data.BrowserPreferences
 import com.kododake.aabrowser.model.UserAgentProfile
 
 object SettingsViews {
+    private const val PLAY_STORE_PACKAGE = "com.android.vending"
+
     fun createSettingsContent(context: Context, includeDragHandle: Boolean = true, onClose: () -> Unit = {}): View {
         fun dp(v: Int): Int = (v * context.resources.displayMetrics.density).toInt()
 
@@ -428,6 +430,31 @@ object SettingsViews {
         }
 
         updateStatus()
+
+        // Android Auto trata apps instalados pela Play Store (installer = com.android.vending)
+        // como "confiáveis". Mostra a origem atual para validar a instalação via scripts/install-as-play-store.*
+        val installerRow = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(8), 0, 0)
+        }
+        installerRow.addView(TextView(context).apply {
+            text = context.getString(R.string.settings_install_source_label)
+            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
+            setTextColor(onSurfaceColor)
+            setPadding(0, 0, dp(8), 0)
+        })
+        val installer = try {
+            context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
+        } catch (_: PackageManager.NameNotFoundException) {
+            null
+        }
+        installerRow.addView(TextView(context).apply {
+            text = installer ?: context.getString(R.string.settings_install_source_unknown)
+            typeface = Typeface.DEFAULT_BOLD
+            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
+            setTextColor(Color.parseColor(if (installer == PLAY_STORE_PACKAGE) "#4CAF50" else "#FF9800"))
+        })
+        experimentalInner.addView(installerRow)
 
         experimentalCard.addView(experimentalInner)
         container.addView(experimentalCard)
