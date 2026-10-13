@@ -27,7 +27,6 @@ import android.webkit.WebChromeClient
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
-import com.kododake.aabrowser.analytics.UmamiTracker
 import com.google.android.material.color.DynamicColors
 import androidx.activity.addCallback
 import androidx.core.app.ActivityCompat
@@ -86,7 +85,6 @@ class MainActivity : AppCompatActivity() {
     private var isShowingCleartextDialog: Boolean = false
     private var isShowingMicrophoneDialog: Boolean = false
     private var latestReleaseUrl: String = "https://github.com/kododake/AABrowser/releases"
-    private val umamiTracker: UmamiTracker by lazy { UmamiTracker(applicationContext) }
     private var pendingPermissionRequest: android.webkit.PermissionRequest? = null
     private var speechBridge: com.kododake.aabrowser.web.SpeechRecognitionBridge? = null
     private var carInstance: Any? = null
@@ -97,8 +95,8 @@ class MainActivity : AppCompatActivity() {
         DynamicColors.applyToActivityIfAvailable(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        umamiTracker.trackEvent("app_open")
+        // Mockup: tela nunca apaga, independente de estar em fullscreen.
+        binding.root.keepScreenOn = true
 
         val disp = this.display
         val best = disp?.supportedModes?.maxWithOrNull(compareBy({ it.refreshRate }, { it.physicalWidth.toLong() * it.physicalHeight }))
