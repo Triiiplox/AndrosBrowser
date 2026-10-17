@@ -113,6 +113,7 @@ public class FermataChromeClient extends WebChromeClient {
 			}
 		}
 
+		Log.i("Full screen on");
 		customView = view;
 		customViewCallback = callback;
 		addCustomView(view);
@@ -131,6 +132,7 @@ public class FermataChromeClient extends WebChromeClient {
 	@Override
 	public void onHideCustomView() {
 		if (customViewCallback == null) return;
+		Log.i("Full screen off");
 		touchStamp = 0;
 		MainActivityDelegate a = MainActivityDelegate.get(customView.getContext());
 		removeCustomView(customView);

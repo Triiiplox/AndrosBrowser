@@ -55,6 +55,9 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Abrir o app direto num vídeo (retomada) e apertar voltar: vai para o feed, não fecha o app.
 - [ ] No carro, apertar voltar no YouTube e em outras telas: não sai do Fermata.
 - [ ] Próximo vídeo: troca em ~1 s (antes ~3 s).
+- [ ] No carro, tocar no vídeo que está tocando: abre em tela cheia. Tocar num botão do YouTube (pausar, barra) ou com o vídeo pausado: o YouTube responde, não abre tela cheia.
+- [ ] Em tela cheia: voltar sai da tela cheia (vídeo continua); voltar de novo vai para o feed.
+- [ ] Mandar o `Fermata.log` desse teste: procurar "Full screen on", "Fermata tap" e "fullscreen refused".
 
 ## 4. IPTV
 

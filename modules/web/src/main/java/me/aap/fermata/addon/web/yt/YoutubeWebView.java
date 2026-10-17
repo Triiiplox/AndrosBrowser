@@ -127,6 +127,7 @@ public class YoutubeWebView extends FermataWebView {
 		attachListeners();
 		injectSponsorBlock();
 		injectAdSkip();
+		injectTapFullScreen();
 		addFocusHighlight();
 		CookieManager.getInstance().flush();
 	}
@@ -261,6 +262,43 @@ public class YoutubeWebView extends FermataWebView {
 				  }).observe(document.documentElement,
 				    {subtree: true, childList: true, attributes: true, attributeFilter: ['class']});
 				  skip();
+				})();
+				""", null);
+	}
+
+	// In the car a tap on a playing video opens it in full screen, the small page player is hard to
+	// watch and to hit. The tap is a user gesture, which the browser may require for full screen.
+	// Taps on the player's buttons and on a paused video are left to YouTube.
+	private void injectTapFullScreen() {
+		if (!MainActivityDelegate.get(getContext()).isCarActivity()) return;
+		evaluateJavascript("""
+				(function() {
+				  if (window.__fermataTapFs) return;
+				  window.__fermataTapFs = true;
+				  var x = 0, y = 0, t = 0;
+				  ['fullscreenerror', 'webkitfullscreenerror'].forEach(function(n) {
+				    document.addEventListener(n, function() { console.log('Fermata fullscreen refused: ' + n); });
+				  });
+				  document.addEventListener('touchstart', function(e) {
+				    var p = e.touches[0];
+				    x = p.clientX; y = p.clientY; t = Date.now();
+				  }, {capture: true, passive: true});
+				  document.addEventListener('touchend', function(e) {
+				    if ((e.changedTouches.length !== 1) || (Date.now() - t > 350)) return;
+				    var p = e.changedTouches[0];
+				    if ((Math.abs(p.clientX - x) > 12) || (Math.abs(p.clientY - y) > 12)) return;
+				    if (!/^\\/watch/.test(location.pathname)) return;
+				    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+				    var el = (e.target instanceof Element) ? e.target : null;
+				    var player = el && el.closest('#movie_player, .html5-video-player');
+				    if (!player) return;
+				    if (el.closest('button, a, input, [role="button"], [role="slider"], .ytp-progress-bar, ytm-progress-bar')) return;
+				    var v = player.querySelector('video');
+				    if (!v || v.paused || v.ended) return;
+				    console.log('Fermata tap: full screen');
+				    if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
+				    else if (v.requestFullscreen) v.requestFullscreen();
+				  }, {capture: true, passive: true});
 				})();
 				""", null);
 	}
