@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+    High contrast dark theme with larger touch targets for car screens.
+    All overrides are scoped to this theme, the other themes are not affected.
+    -->
+    <style name="AppTheme.Modern">
+
+        <item name="android:colorBackground">#0E1116</item>
+        <item name="android:editTextColor">#FFFFFF</item>
+
+        <!-- Status bar-->
+        <item name="colorPrimaryDark">#0E1116</item>
+
+        <!-- Tool/Nav bars -->
+        <item name="colorPrimary">#151A21</item>
+        <item name="colorOnPrimary">#E6EAF0</item>
+        <item name="android:textColorPrimary">#E6EAF0</item>
+
+        <!-- List/Media items. The border has the item color, so only the focus ring is visible -->
+        <item name="colorSecondary">#1A2029</item>
+        <item name="colorOnSecondary">#8AB4F8</item>
+        <item name="android:textColorSecondary">#E6EAF0</item>
+        <item name="boxStrokeColor">#1A2029</item>
+
+        <!-- Active media item -->
+        <item name="alpha">1</item>
+        <item name="colorSecondaryVariant">#24406E</item>
+        <item name="android:textColorTertiary">#FFFFFF</item>
+
+        <!-- Popup menu -->
+        <item name="colorSurface">#1E242E</item>
+        <item name="colorOnSurface">#E6EAF0</item>
+        <item name="colorPrimarySurface">#151A21</item>
+        <item name="colorOnPrimarySurface">#E6EAF0</item>
+
+        <item name="colorAccent">#8AB4F8</item>
+        <item name="rippleColor">#558AB4F8</item>
+
+        <item name="android:textColorHint">#9AA3AF</item>
+
+        <item name="colorControlNormal">#9AA3AF</item>
+        <item name="colorControlActivated">#8AB4F8</item>
+
+        <!-- Shape and focus -->
+        <item name="cornerRadius">10dp</item>
+        <item name="boxStrokeWidth">2dp</item>
+
+        <!-- Sizes -->
+        <item name="toolbarStyle">@style/AppTheme.Modern.ToolBarStyle</item>
+        <item name="bottomNavigationStyle">@style/AppTheme.Modern.NavBarStyle</item>
+        <item name="appControlPanelStyle">@style/AppTheme.Modern.ControlPanelStyle</item>
+        <item name="appMediaItemStyle">@style/AppTheme.Modern.MediaItemStyle</item>
+
+    </style>
+
+    <style name="AppTheme.Modern.ToolBarStyle" parent="Theme.Utils.Base.ToolBarStyle">
+        <item name="size">48dp</item>
+    </style>
+
+    <style name="AppTheme.Modern.NavBarStyle" parent="Theme.Utils.Base.NavBarStyle">
+        <item name="size">48dp</item>
+    </style>
+
+    <style name="AppTheme.Modern.ControlPanelStyle" parent="AppTheme.ControlPanelStyle">
+        <item name="size">84dp</item>
+    </style>
+
+    <style name="AppTheme.Modern.MediaItemStyle" parent="AppTheme.MediaItemStyle">
+        <item name="hintColor">#81C995</item>
+        <item name="elevation">1dp</item>
+    </style>
+
+</resources>

@@ -54,6 +54,7 @@
     <string name="theme_star_wars">Guerra das Estrelas</string>
     <string name="theme_purple">Roxo</string>
     <string name="theme_classic">Clássico</string>
+    <string name="theme_modern">Moderno</string>
 
     <string name="nav_bar_pos">Posição da Barra de Navegação</string>
     <string name="nav_bar_pos_sub">Posição Atual: %1$s</string>

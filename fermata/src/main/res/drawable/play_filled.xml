@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Same rounded square as pause/stop, with the play triangle cut out -->
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M8.018,4L15.982,4A4.018,4 0,0 1,20 8L20,16A4.018,4 0,0 1,15.982 20L8.018,20A4.018,4 0,0 1,4 16L4,8A4.018,4 0,0 1,8.018 4z M10,8.2L10,15.8Q10,16.8 10.85,16.3L16.2,12.85Q17.1,12 16.2,11.15L10.85,7.7Q10,7.2 10,8.2z" />
+</vector>
