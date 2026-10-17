@@ -252,30 +252,59 @@ public class YoutubeWebView extends FermataWebView {
 				""", null);
 	}
 
-	// YouTube starts a video it plays by itself (no tap on the page: autoplay, next video, Android
-	// Auto) muted, behind "Tap to unmute". Unmutes it once per video; done as soon as it plays with
-	// sound, so a mute by the user afterwards is left alone.
+	// YouTube starts a video it plays by itself (no tap on the page: autoplay, the next video, a feed
+	// preview opened, Android Auto) muted, behind "Tap to unmute", and may mute it again later (after
+	// an ad, on a quality switch). Watches the player for as long as the page lives and unmutes it
+	// whenever it gets muted. Only a mute right after a touch, of a video already heard, is the
+	// user's: it is left alone until the next video.
 	private void unmute() {
 		evaluateJavascript("""
 				(function() {
-				  var id = new URLSearchParams(location.search).get('v') || location.pathname;
-				  if (window.__fermataUnmute === id) return;
-				  window.__fermataUnmute = id;
-				  var tries = 0;
-				  (function check() {
-				    if (window.__fermataUnmute !== id) return;
+				  window.__fermataUnmute = new URLSearchParams(location.search).get('v') || location.pathname;
+				  if (window.__fermataUnmuteFix) { window.__fermataUnmuteFix(); return; }
+				  var touch = 0, heard = null, userMuted = null;
+				  ['touchstart', 'mousedown', 'keydown'].forEach(function(n) {
+				    document.addEventListener(n, function() { touch = Date.now(); }, {capture: true, passive: true});
+				  });
+				  var label = /^(ativar o som|ativar som|toque para ativar|tap to unmute|unmute)/i;
+				  function fix() {
+				    var id = window.__fermataUnmute;
+				    if (!/^\\/(watch|shorts)/.test(location.pathname) || (userMuted === id)) return;
 				    var p = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
 				    var v = p && p.querySelector('video');
-				    if (v && !v.paused && !v.muted) return;
-				    if (v && v.muted) {
-				      console.log('Fermata unmute: ' + id);
-				      if (typeof p.unMute === 'function') p.unMute();
-				      v.muted = false;
-				      var b = document.querySelector('.ytp-unmute, .ytmUnmuteButton, .ytp-unmute-button');
-				      if (b) b.click();
+				    if (!v) return;
+				    var muted = v.muted || (v.volume === 0) || ((typeof p.isMuted === 'function') && p.isMuted());
+				    if (!muted) {
+				      if (!v.paused) heard = id;
+				      return;
 				    }
-				    if (++tries < 30) setTimeout(check, 500);
-				  })();
+				    if ((heard === id) && (Date.now() - touch < 1500)) {
+				      console.log('Fermata unmute: muted by the user: ' + id);
+				      userMuted = id;
+				      return;
+				    }
+				    console.log('Fermata unmute: ' + id);
+				    if (typeof p.unMute === 'function') p.unMute();
+				    if ((typeof p.getVolume === 'function') && (p.getVolume() === 0) &&
+				      (typeof p.setVolume === 'function')) p.setVolume(100);
+				    v.muted = false;
+				    if (v.volume === 0) v.volume = 1;
+				    if (!v.muted) return;
+				    var b = Array.from(document.querySelectorAll('.ytp-unmute, .ytmUnmuteButton, .ytp-unmute-button, ' +
+				      'button, [role="button"]')).find(function(x) {
+				      return x.classList.contains('ytp-unmute') || x.classList.contains('ytmUnmuteButton') ||
+				        x.classList.contains('ytp-unmute-button') ||
+				        label.test((x.getAttribute('aria-label') || x.textContent || '').trim());
+				    });
+				    if (b) b.click();
+				  }
+				  window.__fermataUnmuteFix = fix;
+				  // Media events do not bubble, a capturing listener on the document still gets them
+				  ['volumechange', 'playing', 'loadeddata'].forEach(function(n) {
+				    document.addEventListener(n, fix, true);
+				  });
+				  setInterval(fix, 1000);
+				  fix();
 				})();
 				""", null);
 	}

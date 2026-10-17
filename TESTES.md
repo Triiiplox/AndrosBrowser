@@ -49,6 +49,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Login do Google (navegador e YouTube): entra sem "navegador não seguro"?
 - [ ] Tocar num vídeo do feed: começa a tocar sozinho (sem dar play).
 - [ ] O vídeo começa **com som** (sem "Toque para ativar o som"), no celular e no carro.
+- [ ] Som de novo: abrir vídeo pelo feed (prévia muda), pelo próximo/anterior, depois de um anúncio: sempre com som, sem tocar em nada. Silenciar pelo YouTube: fica mudo até o próximo vídeo. Log: "Fermata unmute".
 - [ ] Vídeo acaba: passa sozinho para o próximo (com a reprodução automática do YouTube ligada ou não).
 - [ ] Fechar o app com vídeo tocando (sair do AA / desligar o carro) e abrir de novo: volta no mesmo vídeo, perto de onde parou, tocando.
 - [ ] Voltar para o feed e fechar: ao abrir, fica no feed (não retoma).
@@ -105,4 +106,4 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Ícone novo (emblema H) no celular e no launcher do AA; card de mídia do AA sem capa mostra o emblema.
 - [ ] Logo antigo sumiu: ícone da notificação (barra de status e AA) é o H; ícones Espelhar / Início / Voltar no launcher do AA com o fundo escuro novo.
 - [ ] Vídeo/áudio sem capa na lista: emblema no card (não o ícone genérico); vídeo com capa continua com a foto.
-- [ ] Ao abrir um vídeo/canal: emblema enchendo no centro da tela enquanto carrega, some quando começa.
+- [ ] Ao carregar (YouTube, vídeo, canal): emblema "respirando" com um brilho passando no cromo, sem esticar; some quando carrega.

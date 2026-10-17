@@ -58,6 +58,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -122,6 +123,7 @@ import me.aap.fermata.ui.fragment.SettingsFragment;
 import me.aap.fermata.ui.fragment.SubtitlesFragment;
 import me.aap.fermata.ui.view.BodyLayout;
 import me.aap.fermata.ui.view.ControlPanelView;
+import me.aap.fermata.ui.view.LogoLoadingDrawable;
 import me.aap.fermata.ui.view.VideoView;
 import me.aap.utils.app.App;
 import me.aap.utils.async.FutureSupplier;
@@ -1031,6 +1033,9 @@ public class MainActivityDelegate extends ActivityDelegate
 		a.setContentView(getLayout());
 		toolBar = a.findViewById(R.id.tool_bar);
 		progressBar = a.findViewById(R.id.content_loading_progress);
+		TypedValue logo = new TypedValue();
+		if (a.getTheme().resolveAttribute(R.attr.appContentLoadingLogo, logo, true) && (logo.data != 0))
+			progressBar.setIndeterminateDrawable(new LogoLoadingDrawable(progressBar.getContext()));
 		navBar = a.findViewById(R.id.nav_bar);
 		body = a.findViewById(R.id.body_layout);
 		controlPanel = a.findViewById(R.id.control_panel);

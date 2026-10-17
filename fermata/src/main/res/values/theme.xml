@@ -12,6 +12,8 @@
     <!-- Optional, the video title background. Black when not set -->
     <attr name="videoInfoBackground" format="reference" />
     <attr name="appContentLoadingStyle" format="reference" />
+    <!-- Optional, true to show the animated emblem as the content loading progress -->
+    <attr name="appContentLoadingLogo" format="boolean" />
 
     <style name="AppTheme" parent="Theme.Utils.Base">
         <item name="android:forceDarkAllowed" tools:targetApi="q">true</item>
