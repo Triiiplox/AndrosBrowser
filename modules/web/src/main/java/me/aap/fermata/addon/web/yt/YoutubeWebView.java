@@ -172,9 +172,10 @@ public class YoutubeWebView extends FermataWebView {
 				"function findVideo() {\n" +
 				"  var video = document.querySelectorAll('video');" +
 				"  video.forEach(attachVideoListeners);\n" +
-				"   setTimeout(findVideo, 1000);\n" +
+				"   setTimeout(findVideo, 500);\n" +
 				"}\n" +
-				"findVideo();");
+				// The page can report loaded again without a reload: keep a single loop
+				"if (!window.__fermataFindVideo) { window.__fermataFindVideo = true; findVideo(); }");
 	}
 
 	// A video page opened in the car may stay paused: the page can be considered hidden, and YouTube
@@ -284,8 +285,10 @@ public class YoutubeWebView extends FermataWebView {
 				  p[fn]();
 				  // Outside a playlist nextVideo() does nothing when YouTube's own autoplay is off:
 				  // open the first related video instead
-				  if ((fn === 'nextVideo') && before) setTimeout(() => {
+				  // Poll instead of waiting the worst case
+				  if ((fn === 'nextVideo') && before) (function wait(n) {
 				    if (id() !== before) return;
+				    if (n < 6) { setTimeout(wait, 200, n + 1); return; }
 				    const other = a => {
 				      try { return new URL(a.href).searchParams.get('v') !== before; } catch (e) { return false; }
 				    };
@@ -296,7 +299,7 @@ public class YoutubeWebView extends FermataWebView {
 				      const a = Array.from(document.querySelectorAll(q)).find(other);
 				      if (a) { a.click(); return; }
 				    }
-				  }, 2500);
+				  })(0);
 				  return true;
 				})();
 				""".formatted(next ? "nextVideo" : "previousVideo"), r -> {

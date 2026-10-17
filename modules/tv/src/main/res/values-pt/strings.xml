@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="add_tv_source">Adicionar lista IPTV (M3U)</string>
+    <string name="manage_tv_sources">Gerenciar listas IPTV</string>
+    <string name="delete_tv_source">Excluir lista IPTV</string>
+    <string name="delete_tv_source_question">Excluir \"%1$s\" e os canais dela? O arquivo da lista não é apagado.</string>
+    <string name="default_tv_source_name">Canais abertos do Brasil (iptv-org)</string>
+    <string name="err_failed_to_add_tv_source">Não foi possível adicionar a lista: %1$s</string>
+</resources>

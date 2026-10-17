@@ -47,9 +47,18 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Voltar para o feed e fechar: ao abrir, fica no feed (não retoma).
 - [ ] Capa do vídeo do YouTube no painel do Fermata e no card de mídia do AA (miniatura, não o H).
 - [ ] Desligar Configurações → YouTube → Reprodução automática: nada disso acontece sozinho.
+- [ ] Abrir o app direto num vídeo (retomada) e apertar voltar: vai para o feed, não fecha o app.
+- [ ] No carro, apertar voltar no YouTube e em outras telas: não sai do Fermata.
+- [ ] Próximo vídeo: troca em ~1 s (antes ~3 s).
 
 ## 4. IPTV
 
+- [ ] Abrir TV pela 1ª vez com internet: aparece "Canais abertos do Brasil (iptv-org)" ao lado da sua lista; abrir 3 canais.
+- [ ] Menu do trilho, na TV: "Adicionar lista IPTV (M3U)" e "Gerenciar listas IPTV" → lista → Editar / Excluir (pede confirmação).
+- [ ] Adicionar lista: entrar em EPG ou Conexão e apertar voltar: volta para o formulário (não fecha). Voltar no formulário: volta para a TV.
+- [ ] Adicionar uma 2ª lista: o formulário abre vazio (não vem com a anterior).
+- [ ] Arrastar uma lista para mudar a ordem, sair e voltar: a ordem fica.
+- [ ] Pastas: "Remover pasta" pede confirmação.
 - [ ] Importar a playlist M3U (a que dava "sem entradas" deve funcionar — #839).
 - [ ] Abrir canal; trocar de canal pela lista e pelo volante.
 - [ ] Guia (EPG) aparece, se configurado.

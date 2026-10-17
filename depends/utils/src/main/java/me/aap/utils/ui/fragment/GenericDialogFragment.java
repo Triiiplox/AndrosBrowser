@@ -83,6 +83,7 @@ public class GenericDialogFragment extends GenericFragment {
 		BooleanConsumer c = consumer;
 		consumer = null;
 		validator = null;
+		backHandler = null;
 		if (c != null) c.accept(ok);
 	}
 

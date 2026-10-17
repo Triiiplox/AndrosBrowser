@@ -155,8 +155,11 @@ public abstract class VfsProviderBase implements VfsProvider {
 		});
 		f.setDialogValidator(() -> validate(ps));
 		f.setBackHandler(() -> {
+			// A sub-page goes back to its parent page, only the main page cancels the form.
+			// Cancelling first closed the whole form from any page.
+			if (onBackPressed(adapter)) return true;
 			promise.cancel();
-			return (a.getActiveFragment() != f) || onBackPressed(adapter);
+			return a.getActiveFragment() != f;
 		});
 
 		ps.addBroadcastListener(prefsListener = (s, p) ->

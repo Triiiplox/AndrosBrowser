@@ -296,6 +296,15 @@ class YoutubeMediaEngine implements MediaEngine, OverlayMenu.SelectionHandler {
 			return true;
 		}
 
+		// The page provides the metadata of the current video (see Current). The prev/next/end
+		// placeholders have none: the default lookup opened their fake URL over the network and
+		// delayed every skip.
+		@NonNull
+		@Override
+		protected FutureSupplier<MediaMetadataCompat> loadMeta() {
+			return completed(new MediaMetadataCompat.Builder().build());
+		}
+
 		@Override
 		public boolean isVideo() {
 			return true;

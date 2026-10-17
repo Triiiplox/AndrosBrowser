@@ -4,12 +4,14 @@ import static java.util.Objects.requireNonNull;
 import static me.aap.utils.async.Completed.completed;
 import static me.aap.utils.function.ResultConsumer.Cancel.isCancellation;
 
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import androidx.annotation.NonNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 
 import me.aap.fermata.addon.AddonManager;
@@ -41,7 +43,11 @@ public class TvFragment extends MediaLibFragment {
 
 	@Override
 	protected ListAdapter createAdapter(FermataServiceUiBinder b) {
-		return new TvAdapter(getMainActivity(), getRootItem());
+		TvRootItem root = getRootItem();
+		root.addDefaultSources().onSuccess(added -> {
+			if (added && isRootItem()) getAdapter().setParent(root);
+		});
+		return new TvAdapter(getMainActivity(), root);
 	}
 
 	@Override
@@ -115,16 +121,27 @@ public class TvFragment extends MediaLibFragment {
 						if ((ok != null) && ok) i.refresh().thenRun(this::refresh);
 					});
 		} else if (id == me.aap.fermata.R.id.delete) {
-			TvRootItem root = getRootItem();
-			root.removeItem(item.getData()).onSuccess(v -> getAdapter().setParent(root));
+			deleteSource(item.getData());
 		}
 		return true;
+	}
+
+	private void deleteSource(TvM3uItem i) {
+		String name = i.getResource().getName();
+		UiUtils.showQuestion(getContext(), getString(R.string.delete_tv_source),
+				getString(R.string.delete_tv_source_question, name), null).onSuccess(v -> {
+			TvRootItem root = getRootItem();
+			root.removeItem(i).onSuccess(r -> getAdapter().setParent(root));
+		});
 	}
 
 	@Override
 	public void contributeToNavBarMenu(OverlayMenu.Builder builder) {
 		super.contributeToNavBarMenu(builder);
-		if (isRootItem()) return;
+		if (isRootItem()) {
+			contributeSourcesMenu(builder);
+			return;
+		}
 		TvAdapter a = getAdapter();
 
 		if (a.getListView().isSelectionActive() && a.hasSelectable() && a.hasSelected()) {
@@ -133,6 +150,30 @@ public class TvFragment extends MediaLibFragment {
 					me.aap.fermata.R.string.favorites_add);
 			getMainActivity().addPlaylistMenu(b, completed(a.getSelectedItems()));
 		}
+	}
+
+	// The sources can be edited and removed from the long-press menu too, but it is easy to miss
+	private void contributeSourcesMenu(OverlayMenu.Builder builder) {
+		builder.addItem(R.id.tv_add_source, R.drawable.tv_add, R.string.add_tv_source)
+				.setHandler(i -> {
+					addSource();
+					return true;
+				});
+		// The root is the page on screen, its children are loaded
+		List<Item> children = getRootItem().<Item>getUnsortedChildren().peek();
+		if ((children == null) || children.isEmpty()) return;
+		builder.addItem(R.id.tv_manage_sources, me.aap.fermata.R.drawable.edit,
+				R.string.manage_tv_sources).setSubmenu(b -> {
+			for (Item c : children) {
+				if (!(c instanceof TvM3uItem src)) continue;
+				b.addItem(View.generateViewId(), src.getResource().getName()).setSubmenu(sb -> {
+					sb.addItem(me.aap.fermata.R.id.edit, me.aap.fermata.R.drawable.edit,
+							me.aap.fermata.R.string.edit).setData(src).setHandler(this::contextMenuItemSelected);
+					sb.addItem(me.aap.fermata.R.id.delete, me.aap.fermata.R.drawable.delete,
+							me.aap.fermata.R.string.delete).setData(src).setHandler(this::contextMenuItemSelected);
+				});
+			}
+		});
 	}
 
 	@Override
@@ -194,7 +235,7 @@ public class TvFragment extends MediaLibFragment {
 		@Override
 		protected boolean onItemMove(int fromPosition, int toPosition) {
 			BrowsableItem i = getAdapter().getParent();
-			if (i instanceof MediaLib.Folders) ((MediaLib.Folders) i).moveItem(fromPosition, toPosition);
+			if (i instanceof TvRootItem r) r.moveItem(fromPosition, toPosition);
 			return super.onItemMove(fromPosition, toPosition);
 		}
 

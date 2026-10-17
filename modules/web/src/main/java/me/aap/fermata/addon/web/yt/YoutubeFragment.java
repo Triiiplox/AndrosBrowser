@@ -111,6 +111,19 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 	}
 
 	@Override
+	public boolean onBackPressed() {
+		if (super.onBackPressed()) return true;
+		// A video opened on start (autoplay) or from Android Auto has no feed in the history:
+		// Back goes to the feed instead of leaving the app
+		FermataWebView v = getWebView();
+		String url = (v == null) ? null : v.getUrl();
+		String path = (url == null) ? null : Uri.parse(url).getPath();
+		if ((path == null) || !(path.startsWith("/watch") || path.startsWith("/shorts"))) return false;
+		v.loadUrl(DEFAULT_URL);
+		return true;
+	}
+
+	@Override
 	public void onSaveInstanceState(@NonNull Bundle state) {
 		super.onSaveInstanceState(state);
 		String url = getUrl();

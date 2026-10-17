@@ -24,4 +24,8 @@
     <string name="connection_settings">Connection settings</string>
 
     <string name="err_failed_to_add_tv_source">Failed to add source: %1$s</string>
+    <string name="manage_tv_sources">Manage IPTV sources</string>
+    <string name="delete_tv_source">Delete IPTV source</string>
+    <string name="delete_tv_source_question">Delete \"%1$s\" and its channels from the list? The playlist itself is not affected.</string>
+    <string name="default_tv_source_name">Free channels of Brazil (iptv-org)</string>
 </resources>

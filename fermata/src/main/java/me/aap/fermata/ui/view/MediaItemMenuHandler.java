@@ -512,7 +512,10 @@ public class MediaItemMenuHandler implements OverlayMenu.SelectionHandler {
 
 		if (id == R.id.folders_remove) {
 			Folders folders = item.getLib().getFolders();
-			folders.removeItem(item);
+			Context ctx = getContext();
+			UiUtils.showQuestion(ctx, ctx.getString(R.string.remove_folder),
+					ctx.getString(R.string.remove_folder_question, item.getName()), null)
+					.onSuccess(v -> folders.removeItem(item));
 		} else if (id == R.id.programme_guide) {
 			ActivityFragment af = getMainActivity().getActiveFragment();
 			if (af instanceof MediaLibFragment)

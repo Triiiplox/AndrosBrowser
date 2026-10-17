@@ -281,6 +281,7 @@
     <string name="delete">Apagar</string>
     <string name="delete_confirm">Apagar %1$s?</string>
     <string name="delete_file_title">Apagar ficheiro</string>
+    <string name="remove_folder_question">Remover \"%1$s\" da lista? Os arquivos não são apagados.</string>
     <string name="delete_file_question">Tem a certeza de que pretende eliminar o ficheiro?</string>
     <string name="delete_file_failed">Erro ao eliminar o ficheiro %1$s</string>
     <string name="loading">A carregar…</string>

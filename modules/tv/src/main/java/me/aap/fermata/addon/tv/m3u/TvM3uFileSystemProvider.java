@@ -47,7 +47,19 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 		return requestPrefs(a, ps).thenRun(ps::removeBroadcastListeners).then(ok -> {
 			if (!ok) return completedNull();
 			return load(ps, TvM3uFileSystem.getInstance()).cast();
-		});
+		}).onSuccess(m3u -> {
+			// The values are kept for a retry after a failure, not for the next source
+			if (m3u != null) PrefsHolder.instance = new PrefsHolder();
+		}).cast();
+	}
+
+	public static FutureSupplier<TvM3uFile> create(String name, String url) {
+		BasicPreferenceStore ps = new BasicPreferenceStore();
+		try (PreferenceStore.Edit e = ps.editPreferenceStore()) {
+			e.setStringPref(NAME, name);
+			e.setStringPref(URL, url);
+		}
+		return new TvM3uFileSystemProvider().load(ps, TvM3uFileSystem.getInstance()).cast();
 	}
 
 	public FutureSupplier<Boolean> edit(MainActivityDelegate a, TvM3uFile f) {
@@ -227,6 +239,6 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 	}
 
 	private static final class PrefsHolder extends BasicPreferenceStore {
-		static final PrefsHolder instance = new PrefsHolder();
+		static PrefsHolder instance = new PrefsHolder();
 	}
 }

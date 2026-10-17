@@ -20,6 +20,7 @@ import me.aap.fermata.media.lib.MediaLib;
 import me.aap.fermata.media.lib.MediaLib.Item;
 import me.aap.utils.async.FutureSupplier;
 import me.aap.utils.collection.CollectionUtils;
+import me.aap.utils.function.BooleanSupplier;
 import me.aap.utils.function.IntSupplier;
 import me.aap.utils.function.Supplier;
 import me.aap.utils.log.Log;
@@ -37,7 +38,12 @@ public class TvRootItem extends ItemContainer<TvM3uItem> implements TvItem {
 	public static final String ID = "TV";
 	private static final Pref<IntSupplier> SOURCE_COUNTER = Pref.i("SOURCE_COUNTER", 0).withInheritance(false);
 	private static final Pref<Supplier<int[]>> SOURCE_IDS = Pref.ia("SOURCE_IDS", () -> new int[0]).withInheritance(false);
+	private static final Pref<BooleanSupplier> DEFAULT_SOURCES_ADDED =
+			Pref.b("DEFAULT_SOURCES_ADDED", false).withInheritance(false);
+	// Free-to-air channels of Brazil, maintained by iptv-org (dead streams are removed daily)
+	private static final String DEFAULT_SOURCE_URL = "https://iptv-org.github.io/iptv/countries/br.m3u";
 	private final DefaultMediaLib lib;
+	private boolean addingDefaultSources;
 
 	public TvRootItem(DefaultMediaLib lib) {
 		super(ID, null, null);
@@ -137,6 +143,23 @@ public class TvRootItem extends ItemContainer<TvM3uItem> implements TvItem {
 		return id.startsWith(TvM3uTrackItem.SCHEME)
 				|| id.startsWith(TvM3uGroupItem.SCHEME)
 				|| id.startsWith(TvM3uItem.SCHEME);
+	}
+
+	// Once per install, next to the user's own sources. Retried on the next visit if it fails
+	// (e.g. offline); once added, removing it is final.
+	public FutureSupplier<Boolean> addDefaultSources() {
+		if (addingDefaultSources || getBooleanPref(DEFAULT_SOURCES_ADDED)) return completed(false);
+		addingDefaultSources = true;
+		String name = getLib().getContext().getString(R.string.default_tv_source_name);
+		return TvM3uFileSystemProvider.create(name, DEFAULT_SOURCE_URL).main().map(m3u -> {
+			if (m3u == null) return false;
+			applyBooleanPref(DEFAULT_SOURCES_ADDED, true);
+			addSource(m3u);
+			return true;
+		}).onCompletion((added, err) -> {
+			addingDefaultSources = false;
+			if (err != null) Log.e(err, "Failed to add the default TV source");
+		});
 	}
 
 	public void addSource(TvM3uFile m3u) {

@@ -271,7 +271,10 @@ public class MainCarActivity extends CarActivity implements FermataActivity {
 			}
 		}
 
-		return d.onKeyUp(keyCode, keyEvent, super::onKeyDown);
+		boolean handled = d.onKeyUp(keyCode, keyEvent, super::onKeyDown);
+		// Back is handled on key down and never leaves Fermata in the car (exitOnBackPressed()):
+		// reported as not handled, the car host left the app on every Back
+		return handled || (keyCode == KEYCODE_BACK);
 	}
 
 	@Override
