@@ -312,7 +312,10 @@ public class FermataChromeClient extends WebChromeClient {
 
 	@Override
 	public boolean onConsoleMessage(ConsoleMessage m) {
-		Log.d("[JS:", m.lineNumber(), "] ", m.message());
+		String msg = m.message();
+		// Our own scripts' messages also go to the release log, the page's only in debug builds
+		if ((msg != null) && msg.startsWith("Fermata")) Log.i("[JS] ", msg);
+		else Log.d("[JS:", m.lineNumber(), "] ", msg);
 		return true;
 	}
 }

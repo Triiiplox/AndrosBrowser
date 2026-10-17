@@ -194,6 +194,7 @@ public class YoutubeWebView extends FermataWebView {
 				    var v = p && p.querySelector('video');
 				    if (v && !v.paused) return;
 				    if (v && (v.readyState > 0) && !v.ended) {
+				      console.log('Fermata autoplay: starting ' + id);
 				      if (typeof p.playVideo === 'function') p.playVideo(); else v.play();
 				    }
 				    if (++tries < 20) setTimeout(check, 500);
@@ -217,9 +218,10 @@ public class YoutubeWebView extends FermataWebView {
 				    if (!p || !p.classList.contains('ad-showing')) return;
 				    var b = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, ' +
 				      '.ytp-skip-ad-button, .ytp-ad-skip-button-slot button, button[class*="skip-ad"]');
-				    if (b) { b.click(); return; }
+				    if (b) { console.log('Fermata ad skip: skip button'); b.click(); return; }
 				    var v = p.querySelector('video');
 				    if (v && isFinite(v.duration) && (v.duration > 0) && (v.currentTime < v.duration)) {
+				      console.log('Fermata ad skip: seek to the end of a ' + v.duration + 's ad');
 				      v.currentTime = v.duration;
 				    }
 				  }

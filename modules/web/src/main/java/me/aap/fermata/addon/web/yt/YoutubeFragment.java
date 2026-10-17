@@ -27,6 +27,8 @@ import me.aap.fermata.media.service.FermataServiceUiBinder;
 import me.aap.fermata.media.service.MediaSessionCallback;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
 import me.aap.fermata.ui.view.VideoView;
+import me.aap.utils.async.FutureSupplier;
+import me.aap.utils.log.Log;
 import me.aap.utils.function.LongSupplier;
 import me.aap.utils.pref.PreferenceStore;
 import me.aap.utils.pref.PreferenceStore.Pref;
@@ -107,7 +109,9 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 		for (String name : u.getQueryParameterNames()) {
 			if (!"t".equals(name)) b.appendQueryParameter(name, u.getQueryParameter(name));
 		}
-		return b.appendQueryParameter("t", (pos / 1000) + "s").build().toString();
+		url = b.appendQueryParameter("t", (pos / 1000) + "s").build().toString();
+		Log.i("YouTube start: resuming ", url);
+		return url;
 	}
 
 	@Override
@@ -187,9 +191,14 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 		MainActivityDelegate a = MainActivityDelegate.getActivityDelegate(getContext()).peek();
 		if (a == null) return;
 		MediaEngine eng = a.getMediaSessionCallback().getEngine();
-		if (eng instanceof YoutubeMediaEngine) {
-			eng.getPosition().onSuccess(pos -> addon.getPreferenceStore().applyLongPref(RESUME_POS, pos));
-		}
+		if (!(eng instanceof YoutubeMediaEngine)) return;
+		FutureSupplier<Long> getDur = eng.getDuration();
+		eng.getPosition().onSuccess(pos -> getDur.onSuccess(dur -> {
+			// Near the end, the next start opens the video from the beginning instead of ended
+			if ((dur > 0) && (pos > dur - 15000L)) addon.getPreferenceStore().removePref(RESUME_POS);
+			else addon.getPreferenceStore().applyLongPref(RESUME_POS, pos);
+			Log.i("YouTube resume position saved: ", pos, " of ", dur);
+		}));
 	}
 
 	@Override

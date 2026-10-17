@@ -38,15 +38,15 @@ public class YoutubeJsInterface extends FermataJsInterface {
 				Log.d("Video found");
 				break;
 			case JS_VIDEO_PLAYING:
-				Log.d("Video playing");
+				Log.i("YouTube video playing: ", data);
 				engine.playing(data);
 				break;
 			case JS_VIDEO_PAUSED:
-				Log.d("Video paused");
+				Log.i("YouTube video paused");
 				engine.paused();
 				break;
 			case JS_VIDEO_ENDED:
-				Log.d("Video ended");
+				Log.i("YouTube video ended");
 				engine.ended();
 				break;
 			case JS_VIDEO_QUALITIES:
