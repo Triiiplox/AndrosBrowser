@@ -165,7 +165,16 @@ public final class XtreamRepo {
 	public FutureSupplier<Snapshot> snapshot(Account a) {
 		Catalog c = catalog(a);
 		Snapshot s = c.peek();
-		return (s != null) ? completed(s) : run(c::snapshot);
+		if (s != null) return completed(s);
+		return run(() -> {
+			long start = System.currentTimeMillis();
+			Snapshot snap = c.snapshot();
+			Log.i("Xtream: catalog of ", a, " loaded in ", System.currentTimeMillis() - start,
+					" ms: ", snap.size(com.triiiplox.iptv.model.Entry.Kind.LIVE), " channels, ",
+					snap.size(com.triiiplox.iptv.model.Entry.Kind.MOVIE), " movies, ",
+					snap.size(com.triiiplox.iptv.model.Entry.Kind.SERIES), " series");
+			return snap;
+		});
 	}
 
 	/** Runs a blocking task on the Xtream threads. */

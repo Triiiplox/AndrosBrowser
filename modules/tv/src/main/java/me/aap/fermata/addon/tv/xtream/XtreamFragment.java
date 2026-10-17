@@ -447,6 +447,7 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 	}
 
 	private void play(PlayableItem i) {
+		Log.i("Xtream: play ", i.getId(), " (engine ", i.getPrefs().getVideoEnginePref(), ")");
 		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
 		a.getBody().playItem(i);
 	}

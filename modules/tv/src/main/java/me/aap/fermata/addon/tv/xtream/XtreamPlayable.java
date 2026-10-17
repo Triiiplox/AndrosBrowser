@@ -121,6 +121,16 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 		return HttpTransport.PLAYER_AGENT;
 	}
 
+	/**
+	 * VLC unless chosen otherwise for this item: the panels refuse the streams to a client that does
+	 * not say it is a player, and of the app's engines only VLC sends the user agent (the Android
+	 * player and ExoPlayer send their own). VLC also copes best with live MPEG-TS.
+	 */
+	@Override
+	public int getVideoEnginePref() {
+		return hasPref(VIDEO_ENGINE, false) ? super.getVideoEnginePref() : MEDIA_ENG_VLC;
+	}
+
 	@Override
 	public String getOrigId() {
 		return getId();
