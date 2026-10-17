@@ -81,6 +81,11 @@ itens + "Mais" com pílula e texto sempre visível (hoje encolhe e esconde o res
 mini-player flutuante, tela "Tocando agora" com capa grande, play 84dp e aleatório / repetir /
 velocidade / timer à vista, sem o botão flutuante cobrindo a página.
 
+v2 (feedback do Andro "diminua os menus, botões ruins, YouTube de cara"): barra inferior compacta
+64dp (ícones 20dp, pílula 48×26, texto 11sp), **YouTube como 1º item e tela inicial** (ligar
+`YT_OPEN_ON_START` por padrão — `YoutubeAddon.java:42` — e mudar a ordem padrão da barra),
+mini-player 56dp, botões do topo 38dp, aleatório/repetir/velocidade/timer como botões de ícone.
+
 ## Backlog — técnico
 
 - Validação local do checksum do `gradle-wrapper.jar` (o proxy da sessão bloqueia
