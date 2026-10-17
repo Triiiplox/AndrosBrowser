@@ -221,7 +221,7 @@
     <string name="cancel">Cancelar</string>
     <string name="got_to_current">Faixa atual</string>
 
-    <string name="view">Visualizar</string>
+    <string name="view">Visualização</string>
     <string name="title">Título</string>
     <string name="subtitle">Subtítulo</string>
     <string name="seq_num">Número de sequência</string>
@@ -236,6 +236,14 @@
 
     <string name="sort_by">Ordenar por</string>
     <string name="do_not_sort">Não ordenar</string>
+
+    <string name="back">Voltar</string>
+    <string name="sort">Ordenar</string>
+    <string name="grid_or_list">Grade / lista</string>
+    <string name="prev_page">Página anterior</string>
+    <string name="next_page">Próxima página</string>
+    <string name="forward">Avançar</string>
+    <string name="clear">Limpar</string>
 
     <string name="play">Reproduzir</string>
     <string name="pause">Pausar</string>

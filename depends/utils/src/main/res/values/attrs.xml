@@ -55,6 +55,12 @@
     <declare-styleable name="OverlayMenuView">
         <attr name="colorPrimarySurface" />
         <attr name="android:colorBackground" />
+        <!-- Optional: a floating panel. The background replaces android:colorBackground and the
+             menu is clipped to its outline (e.g. a rounded shape). The defaults keep a plain
+             rectangle, attached to the screen edges -->
+        <attr name="overlayMenuBackground" format="reference" />
+        <attr name="overlayMenuPadding" format="dimension" />
+        <attr name="overlayMenuMargin" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="OverlayMenuItemView">

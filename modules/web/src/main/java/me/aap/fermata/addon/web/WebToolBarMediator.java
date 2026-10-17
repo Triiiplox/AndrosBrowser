@@ -39,13 +39,17 @@ public class WebToolBarMediator implements ToolBarView.Mediator {
 		String url = b.getUrl();
 		if (url != null) t.setText(url);
 		addView(tb, t, R.id.browser_addr, LEFT);
-		addButton(tb, R.drawable.forward, v ->
-				requireNonNull(b.getWebView()).goForward(), R.id.browser_forward, LEFT);
-		addButton(tb, me.aap.utils.R.drawable.back, v ->
-				requireNonNull(b.getWebView()).goBack(), me.aap.utils.R.id.tool_bar_back_button, LEFT);
-		addButton(tb, R.drawable.clear, v -> t.setText(""), R.id.browser_addr_clear);
-		addButton(tb, me.aap.fermata.R.drawable.bookmark_filled, v ->
-				onBookmarksButtonClick(b), me.aap.fermata.R.id.bookmarks);
+		setLabel(addButton(tb, R.drawable.forward, v ->
+				requireNonNull(b.getWebView()).goForward(), R.id.browser_forward, LEFT),
+				me.aap.fermata.R.string.forward);
+		setLabel(addButton(tb, me.aap.utils.R.drawable.back, v ->
+				requireNonNull(b.getWebView()).goBack(), me.aap.utils.R.id.tool_bar_back_button, LEFT),
+				me.aap.fermata.R.string.back);
+		setLabel(addButton(tb, R.drawable.clear, v -> t.setText(""), R.id.browser_addr_clear),
+				me.aap.fermata.R.string.clear);
+		setLabel(addButton(tb, me.aap.fermata.R.drawable.bookmark_filled, v ->
+				onBookmarksButtonClick(b), me.aap.fermata.R.id.bookmarks),
+				me.aap.fermata.R.string.bookmarks);
 		FermataWebView wv = b.getWebView();
 		setButtonsVisibility(tb, (wv != null) && wv.canGoBack(), (wv != null) && wv.canGoForward());
 		ToolBarView.Mediator.super.enable(tb, f);

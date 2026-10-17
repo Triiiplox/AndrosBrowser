@@ -5,12 +5,18 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static java.util.Objects.requireNonNull;
 import static me.aap.utils.R.styleable.OverlayMenuView_android_colorBackground;
 import static me.aap.utils.R.styleable.OverlayMenuView_colorPrimarySurface;
+import static me.aap.utils.R.styleable.OverlayMenuView_overlayMenuBackground;
+import static me.aap.utils.R.styleable.OverlayMenuView_overlayMenuMargin;
+import static me.aap.utils.R.styleable.OverlayMenuView_overlayMenuPadding;
 import static me.aap.utils.ui.UiUtils.toPx;
 
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -22,6 +28,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.textview.MaterialTextView;
 
@@ -40,6 +47,9 @@ import me.aap.utils.ui.activity.ActivityDelegate;
 public class OverlayMenuView extends ScrollView implements OverlayMenu {
 	@ColorInt
 	private final int headerColor;
+	// The header corners, when the menu is a rounded panel
+	private final float headerRadius;
+	private final int margin;
 
 	@Nullable
 	MenuBuilder builder;
@@ -51,8 +61,45 @@ public class OverlayMenuView extends ScrollView implements OverlayMenu {
 				androidx.appcompat.R.attr.popupMenuStyle,
 				R.style.Theme_Utils_Base_PopupMenuStyle);
 		headerColor = ta.getColor(OverlayMenuView_colorPrimarySurface, Color.TRANSPARENT);
-		setBackgroundColor(ta.getColor(OverlayMenuView_android_colorBackground, Color.TRANSPARENT));
+		Drawable bg = ta.getDrawable(OverlayMenuView_overlayMenuBackground);
+		int padding = ta.getDimensionPixelSize(OverlayMenuView_overlayMenuPadding, 0);
+		margin = ta.getDimensionPixelSize(OverlayMenuView_overlayMenuMargin, 0);
+
+		if (bg == null) {
+			headerRadius = 0;
+			setBackgroundColor(ta.getColor(OverlayMenuView_android_colorBackground, Color.TRANSPARENT));
+		} else {
+			// Mutate, the color may be changed by setBackgroundColor()
+			bg = bg.mutate();
+			headerRadius = ((VERSION.SDK_INT >= VERSION_CODES.N) && (bg instanceof GradientDrawable g)) ?
+					Math.max(0, g.getCornerRadius() - padding) : 0;
+			setBackground(bg);
+			// The default outline provider takes the rounded shape from the background
+			setClipToOutline(true);
+			setPadding(padding, padding, padding, padding);
+		}
+
 		ta.recycle();
+	}
+
+	@Override
+	public void setBackgroundColor(@ColorInt int color) {
+		// Keep the panel shape if the color is changed, e.g. by the nav bar menu
+		if (getBackground() instanceof GradientDrawable g) g.setColor(color);
+		else super.setBackgroundColor(color);
+	}
+
+	@Override
+	public void setLayoutParams(ViewGroup.LayoutParams params) {
+		// A gap between the floating panel and the screen edges or the bars
+		if ((margin != 0) && (params instanceof MarginLayoutParams mp)) {
+			mp.setMargins(margin, margin, margin, margin);
+			// A tall menu must still fit between the constraints, margins included
+			if (params instanceof ConstraintLayout.LayoutParams clp) {
+				clp.constrainedWidth = clp.constrainedHeight = true;
+			}
+		}
+		super.setLayoutParams(params);
 	}
 
 	@Override
@@ -309,7 +356,14 @@ public class OverlayMenuView extends ScrollView implements OverlayMenu {
 			v.setLayoutParams(p);
 			v.setElevation(elevation);
 			v.setTranslationZ(elevation);
-			v.setBackgroundColor(headerColor);
+			if (headerRadius == 0) {
+				v.setBackgroundColor(headerColor);
+			} else {
+				GradientDrawable bg = new GradientDrawable();
+				bg.setColor(headerColor);
+				bg.setCornerRadius(headerRadius);
+				v.setBackground(bg);
+			}
 			v.setPadding(0, padding, 0, padding);
 			view.addView(v, 0);
 			v.setVisibility(VISIBLE);

@@ -36,7 +36,9 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.annotation.StyleRes;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.textview.MaterialTextView;
@@ -304,6 +306,16 @@ public class ToolBarView extends ConstraintLayout implements ActivityListener,
 			if (onClick != null) b.setOnClickListener(onClick);
 			setButtonPadding(b);
 			return b;
+		}
+
+		/**
+		 * Sets the content description and the tooltip, shown on long press.
+		 */
+		default <V extends View> V setLabel(V v, @StringRes int label) {
+			CharSequence text = v.getContext().getText(label);
+			v.setContentDescription(text);
+			TooltipCompat.setTooltipText(v, text);
+			return v;
 		}
 
 		default ConstraintLayout.LayoutParams setLayoutParams(View v, int width, int height) {

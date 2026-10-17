@@ -2,6 +2,8 @@ package me.aap.utils.ui.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -51,6 +53,12 @@ public class ImageButton extends AppCompatImageButton implements OnLongClickList
 
 	@Override
 	public boolean onLongClick(View v) {
+		// Not handled, so that the view shows the tooltip
+		if ((longClickListener == null) && (VERSION.SDK_INT >= VERSION_CODES.O) &&
+				(getTooltipText() != null)) {
+			return false;
+		}
+
 		setScaleX(1.5f);
 		setScaleY(1.5f);
 		if (longClickListener != null) longClickListener.onLongClick(v);

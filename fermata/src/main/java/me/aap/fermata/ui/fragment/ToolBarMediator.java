@@ -52,18 +52,25 @@ public class ToolBarMediator implements ToolBarView.Mediator.BackTitleFilter {
 	public void enable(ToolBarView tb, ActivityFragment f) {
 		ToolBarView.Mediator.BackTitleFilter.super.enable(tb, f);
 		MainActivityDelegate a = MainActivityDelegate.get(tb.getContext());
-		addButton(tb, R.drawable.title, ToolBarMediator::onViewButtonClick, R.id.tool_view);
-		addButton(tb, R.drawable.sort, ToolBarMediator::onSortButtonClick, R.id.tool_sort);
+		setLabel(tb.findViewById(getBackButtonId()), R.string.back);
+		setLabel(tb.findViewById(getFilterButtonId()), R.string.filter);
+		setLabel(addButton(tb, R.drawable.title, ToolBarMediator::onViewButtonClick, R.id.tool_view),
+				R.string.view);
+		setLabel(addButton(tb, R.drawable.sort, ToolBarMediator::onSortButtonClick, R.id.tool_sort),
+				R.string.sort);
 
 		if ((f instanceof MediaLibFragment) && ((MediaLibFragment) f).isGridSupported() &&
 				!((MediaLibFragment) f).isGridForced()) {
 			int gridIcon = a.isGridView() ? R.drawable.view_list : R.drawable.view_grid;
-			addButton(tb, gridIcon, ToolBarMediator::onGridButtonClick, R.id.tool_grid);
+			setLabel(addButton(tb, gridIcon, ToolBarMediator::onGridButtonClick, R.id.tool_grid),
+					R.string.grid_or_list);
 		}
 
 		if ((f instanceof MediaLibFragment) && a.getPrefs().getShowPgUpDownPref(a)) {
-			addButton(tb, R.drawable.pg_down, ToolBarMediator::onPgUpDownButtonClick, R.id.tool_pg_down, LEFT);
-			addButton(tb, R.drawable.pg_up, ToolBarMediator::onPgUpDownButtonClick, R.id.tool_pg_up, LEFT);
+			setLabel(addButton(tb, R.drawable.pg_down, ToolBarMediator::onPgUpDownButtonClick,
+					R.id.tool_pg_down, LEFT), R.string.next_page);
+			setLabel(addButton(tb, R.drawable.pg_up, ToolBarMediator::onPgUpDownButtonClick,
+					R.id.tool_pg_up, LEFT), R.string.prev_page);
 		} else {
 			tb.findViewById(me.aap.utils.R.id.tool_bar_back_button);
 		}

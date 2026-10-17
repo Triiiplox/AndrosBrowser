@@ -238,6 +238,15 @@
     <string name="sort_by">Sort by</string>
     <string name="do_not_sort">Do not sort</string>
 
+    <!-- Tool bar buttons: content descriptions and tooltips -->
+    <string name="back">Back</string>
+    <string name="sort">Sort</string>
+    <string name="grid_or_list">Grid / list</string>
+    <string name="prev_page">Previous page</string>
+    <string name="next_page">Next page</string>
+    <string name="forward">Forward</string>
+    <string name="clear">Clear</string>
+
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="stop">Stop</string>

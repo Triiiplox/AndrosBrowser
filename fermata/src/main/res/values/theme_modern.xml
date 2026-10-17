@@ -62,11 +62,17 @@
 
     </style>
 
-    <!-- Menu items sized for a finger in the car: ~48dp tall, larger and brighter text -->
+    <!-- Menu items sized for a finger in the car: ~48dp tall, larger and brighter text.
+         The menu is a floating rounded panel with a small gap to the screen edges -->
     <style name="AppTheme.Modern.PopupMenuStyle" parent="Theme.Utils.Base.PopupMenuStyle">
         <item name="itemPadding">14dp</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="android:textAppearance">?attr/textAppearanceSubtitle1</item>
+        <item name="overlayMenuBackground">@drawable/overlay_menu_bg_modern</item>
+        <item name="overlayMenuPadding">6dp</item>
+        <item name="overlayMenuMargin">6dp</item>
+        <!-- The submenu title: a tonal strip, a bit lighter than the panel -->
+        <item name="colorPrimarySurface">#242B36</item>
     </style>
 
     <!-- The tool bar blends with the window, the buttons carry their own tonal background -->
