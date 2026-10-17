@@ -52,7 +52,9 @@ public interface MainActivityPrefs
 	Pref<DoubleSupplier> L_SPLIT_PERCENT = Pref.f("L_SPLIT_PERCENT", 0.4f);
 	Pref<DoubleSupplier> P_SPLIT_PERCENT_SUB = Pref.f("P_SPLIT_PERCENT_SUB", 0.5f);
 	Pref<DoubleSupplier> L_SPLIT_PERCENT_SUB = Pref.f("L_SPLIT_PERCENT_SUB", 0.5f);
-	Pref<Supplier<String>> SHOW_ADDON_ON_START = Pref.s("SHOW_ADDON_ON_START", (String) null);
+	// YouTube is the start screen by default; the app falls back to the library if it is not installed
+	Pref<Supplier<String>> SHOW_ADDON_ON_START =
+			Pref.s("SHOW_ADDON_ON_START", "me.aap.fermata.addon.web.yt.YoutubeAddon");
 	Pref<BooleanSupplier> CHECK_UPDATES = Pref.b("CHECK_UPDATES", true);
 	Pref<LongSupplier> CHECK_UPDATES_STAMP = Pref.l("CHECK_UPDATES_STAMP", 0);
 	Pref<BooleanSupplier> SYS_BARS_ON_VIDEO_TOUCH = Pref.b("SYS_BARS_ON_VIDEO_TOUCH", false);
@@ -95,11 +97,13 @@ public interface MainActivityPrefs
 
 	@Nullable
 	default String getShowAddonOnStartPref() {
-		return getStringPref(SHOW_ADDON_ON_START);
+		String v = getStringPref(SHOW_ADDON_ON_START);
+		return ((v == null) || v.isEmpty()) ? null : v;
 	}
 
+	// None is stored as "": a null value removes the pref, which would bring back the default
 	default void setShowAddonOnStartPref(@Nullable String className) {
-		applyStringPref(SHOW_ADDON_ON_START, className);
+		applyStringPref(SHOW_ADDON_ON_START, (className == null) ? "" : className);
 	}
 
 	default boolean getCheckUpdatesPref() {

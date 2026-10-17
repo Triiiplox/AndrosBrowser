@@ -29,9 +29,11 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.webkit.UserAgentMetadata;
 import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewFeature;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -92,6 +94,7 @@ public class FermataWebView extends WebView
 		s.setJavaScriptEnabled(true);
 		s.setMediaPlaybackRequiresUserGesture(false);
 		s.setJavaScriptCanOpenWindowsAutomatically(true);
+		hideWebViewBrand(s);
 
 		addJavascriptInterface(createJsInterface(), FermataJsInterface.NAME);
 		CookieManager.getInstance().setAcceptThirdPartyCookies(this, true);
@@ -101,6 +104,34 @@ public class FermataWebView extends WebView
 
 		setDesktopMode(addon, false);
 		setForceDark(addon, false);
+	}
+
+	// Google refuses to sign in to browsers whose user-agent client hints (Sec-CH-UA,
+	// navigator.userAgentData) carry the "Android WebView" brand. The user agent string already
+	// has no WebView marker, so report the same brand as Chrome in the hints too.
+	private static void hideWebViewBrand(WebSettings s) {
+		if (!WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) return;
+
+		try {
+			UserAgentMetadata md = WebSettingsCompat.getUserAgentMetadata(s);
+			List<UserAgentMetadata.BrandVersion> brands = new ArrayList<>();
+			boolean changed = false;
+
+			for (UserAgentMetadata.BrandVersion b : md.getBrandVersionList()) {
+				if ("Android WebView".equals(b.getBrand())) {
+					b = new UserAgentMetadata.BrandVersion.Builder(b).setBrand("Google Chrome").build();
+					changed = true;
+				}
+				brands.add(b);
+			}
+
+			if (changed) {
+				WebSettingsCompat.setUserAgentMetadata(s,
+						new UserAgentMetadata.Builder(md).setBrandVersionList(brands).build());
+			}
+		} catch (Exception ex) {
+			Log.e(ex, "Failed to set the user agent metadata");
+		}
 	}
 
 	@Override

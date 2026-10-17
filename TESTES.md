@@ -38,7 +38,9 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Rolar o feed: prévias mudas não tomam o painel (#844).
 - [ ] Título no painel = vídeo atual, não o anterior (#844).
 - [ ] Sair do AA com o YouTube aberto e voltar: não fica travado.
-- [ ] Anúncio: aparece? é pulado?
+- [ ] Anúncio: aparece? é pulado (inclusive no meio do vídeo)?
+- [ ] App abre direto no YouTube; desligar "Abrir ao iniciar" no YouTube e reabrir: abre na biblioteca.
+- [ ] Login do Google (navegador e YouTube): entra sem "navegador não seguro"?
 
 ## 4. IPTV
 

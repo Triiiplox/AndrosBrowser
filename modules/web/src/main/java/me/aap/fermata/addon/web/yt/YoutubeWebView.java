@@ -116,6 +116,7 @@ public class YoutubeWebView extends FermataWebView {
 	protected void pageLoaded(String uri) {
 		attachListeners();
 		injectSponsorBlock();
+		injectAdSkip();
 		addFocusHighlight();
 		CookieManager.getInstance().flush();
 	}
@@ -165,6 +166,38 @@ public class YoutubeWebView extends FermataWebView {
 				"   setTimeout(findVideo, 1000);\n" +
 				"}\n" +
 				"findVideo();");
+	}
+
+	// Watches the player for as long as the page lives: an ad can start at any time, not only when
+	// the playback starts. Clicks the skip button when there is one, else jumps to the end of the ad.
+	private void injectAdSkip() {
+		if (!BuildConfig.AUTO || !getAddon().skipAd()) return;
+		evaluateJavascript("""
+				(function() {
+				  if (window.__fermataAdSkip) return;
+				  window.__fermataAdSkip = true;
+				  var pending = false;
+				  function skip() {
+				    pending = false;
+				    var p = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+				    if (!p || !p.classList.contains('ad-showing')) return;
+				    var b = document.querySelector('.ytp-ad-skip-button, .ytp-ad-skip-button-modern, ' +
+				      '.ytp-skip-ad-button, .ytp-ad-skip-button-slot button, button[class*="skip-ad"]');
+				    if (b) { b.click(); return; }
+				    var v = p.querySelector('video');
+				    if (v && isFinite(v.duration) && (v.duration > 0) && (v.currentTime < v.duration)) {
+				      v.currentTime = v.duration;
+				    }
+				  }
+				  new MutationObserver(function() {
+				    if (pending) return;
+				    pending = true;
+				    requestAnimationFrame(skip);
+				  }).observe(document.documentElement,
+				    {subtree: true, childList: true, attributes: true, attributeFilter: ['class']});
+				  skip();
+				})();
+				""", null);
 	}
 
 	private void injectSponsorBlock() {

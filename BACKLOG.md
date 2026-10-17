@@ -53,19 +53,18 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 
 ## Backlog — bugs
 
-- **Login do Google no navegador interno: "Esse navegador ou app pode não ser seguro"** (print do
-  Andro no celular). O Google bloqueia login em WebView embutida; detecta pelo user agent e pelo
-  cabeçalho `X-Requested-With` (nome do pacote), que o Fermata não trata. Tentar: remover o
-  cabeçalho (`WebSettingsCompat.setRequestedWithHeaderOriginAllowList`, androidx.webkit 1.17) e
-  user agent sem marca de WebView só em `accounts.google.com`. Sem garantia: o Google muda isso.
-  Afeta também o login do YouTube (Premium).
+- **Login do Google no navegador interno** ("Esse navegador ou app pode não ser seguro"): em teste.
+  O `X-Requested-With` já foi descontinuado pela WebView (fonte do androidx.webkit) — a hipótese
+  inicial estava errada. O sinal que sobra são os client hints (`Sec-CH-UA`,
+  `navigator.userAgentData`) com a marca "Android WebView": agora reportados como "Google Chrome"
+  (`FermataWebView.hideWebViewBrand`). Contorna a checagem do Google; pode parar de funcionar.
 - Botão flutuante semitransparente cobre o conteúdo no celular (no print, em cima de "Termos").
 
 - Crashes de navegação fora do YouTube ("voltando/indo/mudando") — **aguardando `Fermata.log`**
   do Andro (Configurações → Abrir log) com o passo a passo de antes do crash.
-- Pular anúncio do YouTube frágil: roda uma vez só no início (`YoutubeMediaEngine.java:77`).
-  Trocar por `MutationObserver` + clicar em "Pular". Testar antes o user agent do AndrosBrowser
-  (hipótese de por que lá não aparece anúncio).
+- Pular anúncio do YouTube: em teste — `MutationObserver` que vigia o player a página toda, clica
+  em "Pular" ou avança o anúncio (`YoutubeWebView.injectAdSkip`). Ainda vale testar o user agent
+  do AndrosBrowser (hipótese de por que lá não aparece anúncio).
 - Limiar de swipe em px fixo (`GestureListener.java:43`, 5000 px/s): converter para dp usando a
   densidade da tela do carro, não a do celular.
 - Atraso de 300ms no toque de canal de stream (`MediaLibFragment.java:587`) para distinguir do
