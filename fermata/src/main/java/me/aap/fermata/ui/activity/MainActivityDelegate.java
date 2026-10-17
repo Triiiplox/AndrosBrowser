@@ -251,12 +251,16 @@ public class MainActivityDelegate extends ActivityDelegate
 		}
 
 		String[] perms = getRequiredPermissions();
-		a.checkPermissions(perms).onCompletion((result, fail) -> {
+		// Ask once: a permission the user denied must not bring the dialog back on every start
+		boolean ask = !getPrefs().getBooleanPref(MainActivityPrefs.PERMISSIONS_REQUESTED);
+		FutureSupplier<int[]> check = ask ? a.checkPermissions(perms) : completed(new int[0]);
+		check.onCompletion((result, fail) -> {
 			if (fail != null) {
 				if (!isCarActivityNotMirror()) Log.e(fail);
 			} else {
 				Log.d("Requested permissions: ", Arrays.toString(perms),
 						". Result: " + Arrays.toString(result));
+				if (ask) getPrefs().applyBooleanPref(MainActivityPrefs.PERMISSIONS_REQUESTED, true);
 			}
 
 			if (fragmentId != ID_NULL) {
@@ -1021,22 +1025,17 @@ public class MainActivityDelegate extends ActivityDelegate
 		};
 	}
 
+	// Only the permissions a dialog can grant on this Android version. FOREGROUND_SERVICE* are
+	// granted at install and USE_FULL_SCREEN_INTENT is a special access, and from Android 13 the
+	// system never grants READ_EXTERNAL_STORAGE: one of them always reported as denied made
+	// checkPermissions() request the whole list again.
 	private static String[] getRequiredPermissions() {
 		List<String> perms = new ArrayList<>();
-		perms.add(permission.READ_EXTERNAL_STORAGE);
-		if (VERSION.SDK_INT >= VERSION_CODES.P) {
-			perms.add(permission.FOREGROUND_SERVICE);
-		}
-		if (VERSION.SDK_INT >= VERSION_CODES.Q) {
-			perms.add(permission.ACCESS_MEDIA_LOCATION);
-			perms.add(permission.USE_FULL_SCREEN_INTENT);
-		}
-		if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
-			perms.add(permission.USE_FULL_SCREEN_INTENT);
+		if (VERSION.SDK_INT < VERSION_CODES.TIRAMISU) {
+			perms.add(permission.READ_EXTERNAL_STORAGE);
+			if (VERSION.SDK_INT >= VERSION_CODES.Q) perms.add(permission.ACCESS_MEDIA_LOCATION);
+		} else {
 			perms.add(permission.POST_NOTIFICATIONS);
-		}
-		if (VERSION.SDK_INT >= VERSION_CODES.UPSIDE_DOWN_CAKE) {
-			perms.add(permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK);
 		}
 		return perms.toArray(new String[0]);
 	}

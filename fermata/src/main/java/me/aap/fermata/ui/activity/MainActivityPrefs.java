@@ -56,6 +56,7 @@ public interface MainActivityPrefs
 	Pref<Supplier<String>> SHOW_ADDON_ON_START =
 			Pref.s("SHOW_ADDON_ON_START", "me.aap.fermata.addon.web.yt.YoutubeAddon");
 	Pref<BooleanSupplier> CHECK_UPDATES = Pref.b("CHECK_UPDATES", true);
+	Pref<BooleanSupplier> PERMISSIONS_REQUESTED = Pref.b("PERMISSIONS_REQUESTED", false);
 	Pref<LongSupplier> CHECK_UPDATES_STAMP = Pref.l("CHECK_UPDATES_STAMP", 0);
 	Pref<BooleanSupplier> SYS_BARS_ON_VIDEO_TOUCH = Pref.b("SYS_BARS_ON_VIDEO_TOUCH", false);
 	Pref<BooleanSupplier> LANDSCAPE_VIDEO = Pref.b("LANDSCAPE_VIDEO", false);
