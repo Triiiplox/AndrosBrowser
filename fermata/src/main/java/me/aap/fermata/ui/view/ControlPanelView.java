@@ -91,7 +91,9 @@ public class ControlPanelView extends ConstraintLayout
 				R.attr.appControlPanelStyle, R.style.AppTheme_ControlPanelStyle);
 		size = ta.getLayoutDimension(R.styleable.ControlPanelView_size, 0);
 		textAppearance = ta.getResourceId(R.styleable.ControlPanelView_textAppearance, 0);
-		setBackgroundColor(ta.getColor(R.styleable.ControlPanelView_android_colorBackground, 0));
+		int bg = ta.getResourceId(R.styleable.ControlPanelView_controlPanelBackground, 0);
+		if (bg != 0) setBackgroundResource(bg);
+		else setBackgroundColor(ta.getColor(R.styleable.ControlPanelView_android_colorBackground, 0));
 		ta.recycle();
 
 		MainActivityDelegate a = getActivity();

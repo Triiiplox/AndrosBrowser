@@ -50,6 +50,9 @@ public class NavBarView extends LinearLayoutCompat implements ActivityListener {
 	final int textAppearance;
 	@ColorInt
 	private final int bgColor;
+	final int iconSize;
+	final int selectedBackground;
+	final boolean alwaysShowLabels;
 	private int position;
 	private Mediator mediator;
 
@@ -67,6 +70,9 @@ public class NavBarView extends LinearLayoutCompat implements ActivityListener {
 		textAppearance = ta.getResourceId(R.styleable.NavBarView_textAppearance, 0);
 		position = ta.getInt(R.styleable.NavBarView_position, POSITION_BOTTOM);
 		bgColor = ta.getColor(R.styleable.NavBarView_android_colorBackground, Color.TRANSPARENT);
+		iconSize = ta.getDimensionPixelSize(R.styleable.NavBarView_navIconSize, 0);
+		selectedBackground = ta.getResourceId(R.styleable.NavBarView_navSelectedBackground, 0);
+		alwaysShowLabels = ta.getBoolean(R.styleable.NavBarView_navAlwaysShowLabels, false);
 		ta.recycle();
 		setBackgroundColor(bgColor);
 		if (position != POSITION_BOTTOM) setOrientation(VERTICAL);

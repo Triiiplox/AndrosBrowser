@@ -19,5 +19,7 @@
         <attr name="size" />
         <attr name="textAppearance" />
         <attr name="android:colorBackground" />
+        <!-- Optional drawable used instead of the plain background color -->
+        <attr name="controlPanelBackground" format="reference" />
     </declare-styleable>
 </resources>

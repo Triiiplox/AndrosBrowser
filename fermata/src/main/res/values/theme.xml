@@ -8,6 +8,7 @@
     <attr name="appStreamProgressStyle" format="reference" />
     <attr name="appVideoInfoStyle" format="reference" />
     <attr name="mediaItemMargin" format="dimension" />
+    <attr name="controlPanelMargin" format="dimension" />
 
     <style name="AppTheme" parent="Theme.Utils.Base">
         <item name="android:forceDarkAllowed" tools:targetApi="q">true</item>
@@ -22,6 +23,7 @@
         <item name="appVideoInfoStyle">@style/AppTheme.VideoInfoStyle</item>
         <item name="cornerRadius">5dp</item>
         <item name="mediaItemMargin">1dp</item>
+        <item name="controlPanelMargin">0dp</item>
     </style>
 
     <style name="AppTheme.MediaItemStyle">

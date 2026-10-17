@@ -14,6 +14,7 @@ import android.graphics.Canvas;
 import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.widget.ImageView;
@@ -48,8 +49,18 @@ public class NavButtonView extends LinearLayoutCompat {
 		boolean bottom = (navBar.getPosition() == POSITION_BOTTOM);
 		LayoutParams lp = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
 		pad = toIntPx(ctx, 2);
-		img.setPadding(0, pad, 0, pad);
-		lp.weight = 1;
+		if (navBar.iconSize > 0) {
+			// A fixed size icon in a pill shaped area, the pill is drawn when selected
+			int s = navBar.iconSize;
+			int w = s * 12 / 5;
+			int h = s * 13 / 10;
+			lp = new LayoutParams(w, h);
+			img.setPadding((w - s) / 2, (h - s) / 2, (w - s) / 2, (h - s) / 2);
+			setGravity(Gravity.CENTER);
+		} else {
+			img.setPadding(0, pad, 0, pad);
+			lp.weight = 1;
+		}
 		lp.gravity = Gravity.CENTER;
 		img.setLayoutParams(lp);
 		img.setAlpha(0.5f);
@@ -62,7 +73,7 @@ public class NavButtonView extends LinearLayoutCompat {
 			lp.gravity = Gravity.CENTER;
 			t.setLayoutParams(lp);
 			t.setTextAppearance(navBar.textAppearance);
-			t.setVisibility(GONE);
+			t.setVisibility(navBar.alwaysShowLabels ? VISIBLE : GONE);
 			addView(t);
 		}
 	}
@@ -72,7 +83,13 @@ public class NavButtonView extends LinearLayoutCompat {
 		super.setSelected(selected);
 		ImageView i = getIcon();
 
-		if (selected) {
+		if (navBar.iconSize > 0) {
+			i.setAlpha(selected ? 1f : 0.6f);
+			if (navBar.selectedBackground != 0) {
+				if (selected) i.setBackgroundResource(navBar.selectedBackground);
+				else i.setBackground(null);
+			}
+		} else if (selected) {
 			i.setAlpha(1f);
 			i.setPadding(0, 0, 0, 0);
 		} else {
@@ -80,7 +97,15 @@ public class NavButtonView extends LinearLayoutCompat {
 			i.setPadding(0, pad, 0, pad);
 		}
 		TextView t = getText();
-		if (t != null) t.setVisibility(selected ? VISIBLE : GONE);
+		if (t != null) {
+			if (navBar.alwaysShowLabels) {
+				t.setVisibility(VISIBLE);
+				t.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
+				t.setAlpha(selected ? 1f : 0.7f);
+			} else {
+				t.setVisibility(selected ? VISIBLE : GONE);
+			}
+		}
 	}
 
 	public void setIcon(Drawable icon) {

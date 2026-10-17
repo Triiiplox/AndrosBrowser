@@ -48,6 +48,8 @@
         <item name="boxStrokeWidth">2dp</item>
         <!-- Cards: 6dp between list items -->
         <item name="mediaItemMargin">3dp</item>
+        <!-- The control panel floats: rounded, with a gap around it -->
+        <item name="controlPanelMargin">8dp</item>
         <item name="toolBarButtonBackground">@drawable/tool_bar_button_modern</item>
 
         <!-- Sizes -->
@@ -64,12 +66,22 @@
         <item name="android:colorBackground">?android:attr/colorBackground</item>
     </style>
 
+    <!-- Compact bar: a 22dp icon in a pill (53x28) when selected, labels on all bottom items -->
     <style name="AppTheme.Modern.NavBarStyle" parent="Theme.Utils.Base.NavBarStyle">
-        <item name="size">48dp</item>
+        <item name="size">64dp</item>
+        <item name="navIconSize">22dp</item>
+        <item name="navSelectedBackground">@drawable/nav_pill_modern</item>
+        <item name="navAlwaysShowLabels">true</item>
+        <item name="textAppearance">@style/AppTheme.Modern.NavBarText</item>
+    </style>
+
+    <style name="AppTheme.Modern.NavBarText" parent="Theme.Utils.Base.NavBarTextAppearance">
+        <item name="android:textSize">11sp</item>
     </style>
 
     <style name="AppTheme.Modern.ControlPanelStyle" parent="AppTheme.ControlPanelStyle">
         <item name="size">84dp</item>
+        <item name="controlPanelBackground">@drawable/control_panel_bg_modern</item>
     </style>
 
     <style name="AppTheme.Modern.MediaItemStyle" parent="AppTheme.MediaItemStyle">

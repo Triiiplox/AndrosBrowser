@@ -26,6 +26,12 @@
         <attr name="size" />
         <attr name="textAppearance" />
         <attr name="android:colorBackground" />
+        <!-- Optional: a fixed icon size with a pill behind the selected item, and labels shown on
+             all bottom items. The defaults keep the icon filling the button and only the selected
+             label visible -->
+        <attr name="navIconSize" format="dimension" />
+        <attr name="navSelectedBackground" format="reference" />
+        <attr name="navAlwaysShowLabels" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="FloatingButton">

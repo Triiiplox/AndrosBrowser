@@ -321,7 +321,10 @@ public class NavBarMediator extends PrefNavBarMediator
 		Set<String> names = newLinkedHashSet(BuildConfig.ADDONS.length + 4);
 		String[] pref = getPreferenceStore(nb).getStringArrayPref(getPref(nb));
 		CollectionUtils.addAll(names, pref);
+		// Default order, unless saved by the user: YouTube, library, TV, favorites
+		addAddon(amgr, names, "me.aap.fermata.addon.web.yt.YoutubeAddon");
 		names.add("folders");
+		addAddon(amgr, names, "me.aap.fermata.addon.tv.TvAddon");
 		names.add("favorites");
 		names.add("playlists");
 		for (AddonInfo ai : BuildConfig.ADDONS) {
@@ -330,6 +333,10 @@ public class NavBarMediator extends PrefNavBarMediator
 		}
 		names.add("menu");
 		return names;
+	}
+
+	private static void addAddon(AddonManager amgr, Set<String> names, String className) {
+		if (amgr.getAddon(className) instanceof FermataFragmentAddon) names.add(className);
 	}
 
 	private static String idToName(@IdRes int id) {
