@@ -9,16 +9,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import me.aap.utils.concurrent.HandlerExecutor;
 import me.aap.utils.function.BiConsumer;
 import me.aap.utils.function.Cancellable;
 import me.aap.utils.function.IntConsumer;
+import me.aap.utils.function.LongSupplier;
 
 /**
  * @author Andrey Pavlenko
@@ -107,7 +105,7 @@ Multi line
 	}
 
 	@Test
-	public void testScheduler() throws Exception {
+	public void testScheduler() throws IOException {
 		StringBuilder sb = new StringBuilder();
 		IntConsumer itos = i -> {
 			if (i < 10) {
@@ -137,47 +135,56 @@ Multi line
 		}
 
 		var sg = FileSubtitles.load(new ByteArrayInputStream(sb.toString().getBytes()));
-		var exec = new HandlerExecutor() {
-			final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-			@Override
-			public synchronized Cancellable schedule(@NonNull Runnable task, long delay) {
-				var f = scheduler.schedule(task, delay, TimeUnit.MILLISECONDS);
-				return new Cancellable() {
-					@Override
-					public boolean cancel() {
-						return f.cancel(false);
-					}
-				};
-			}
-		};
-		Semaphore sem = new Semaphore(0);
+		// Virtual time: the 10ms subtitles are shorter than a busy CI runner takes to start a
+		// thread, so a real clock made the test skip a subtitle and wait forever.
+		var exec = new VirtualTimeExecutor();
 		BiConsumer<SubGrid.Position, Subtitles.Text> consumer = (p, t) -> {
-			if (t == null) return;
-			received.add(t.getText());
-			if (expect.size() == received.size()) sem.release();
+			if (t != null) received.add(t.getText());
 		};
-		SubScheduler sched = new SubScheduler(exec, sg, consumer);
-		sched.start(0, 0, 1);
-		sem.acquire();
-		assertArrayEquals(expect.toArray(), received.toArray());
+		SubScheduler sched = new SubScheduler(exec, sg, consumer, exec);
+		float[][] runs = {{0, 1}, {10, 1}, {10, 2}, {10, 0.5f}, {0, 1.5f}, {7, 3}, {3, 0.7f}};
 
-		sched.stop(false);
-		received.clear();
-		sched.start(0, 10, 1);
-		sem.acquire();
-		assertArrayEquals(expect.toArray(), received.toArray());
+		for (var r : runs) {
+			received.clear();
+			sched.start(0, (int) r[0], r[1]);
+			exec.runAll();
+			assertArrayEquals("delay " + r[0] + ", speed " + r[1], expect.toArray(),
+					received.toArray());
+			sched.stop(false);
+		}
+	}
 
-		sched.stop(false);
-		received.clear();
-		sched.start(0, 10, 2);
-		sem.acquire();
-		assertArrayEquals(expect.toArray(), received.toArray());
+	private static final class VirtualTimeExecutor extends HandlerExecutor implements LongSupplier {
+		private final PriorityQueue<Task> queue = new PriorityQueue<>();
+		private long now;
+		private long seq;
 
-		sched.stop(false);
-		received.clear();
-		sched.start(0, 10, 0.5f);
-		sem.acquire();
-		assertArrayEquals(expect.toArray(), received.toArray());
+		@Override
+		public synchronized Cancellable schedule(@NonNull Runnable task, long delay) {
+			var t = new Task(now + delay, seq++, task);
+			queue.add(t);
+			return () -> queue.remove(t);
+		}
+
+		@Override
+		public long getAsLong() {
+			return now;
+		}
+
+		void runAll() {
+			for (int i = 0; !queue.isEmpty(); i++) {
+				assertTrue("Scheduler does not stop", i < 100000);
+				var t = queue.poll();
+				now = Math.max(now, t.time);
+				t.task.run();
+			}
+		}
+
+		private record Task(long time, long seq, Runnable task) implements Comparable<Task> {
+			@Override
+			public int compareTo(Task o) {
+				return (time != o.time) ? Long.compare(time, o.time) : Long.compare(seq, o.seq);
+			}
+		}
 	}
 }

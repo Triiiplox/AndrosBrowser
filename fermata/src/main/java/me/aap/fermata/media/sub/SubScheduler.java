@@ -81,7 +81,7 @@ public class SubScheduler {
 		private final Position pos;
 		private final Subtitles subtitles;
 		private Cancellable sched = CANCELED;
-
+		private Subtitles.Text shown;
 
 		Worker(Position pos, Subtitles subtitles) {
 			this.pos = pos;
@@ -103,10 +103,15 @@ public class SubScheduler {
 			long delay = text.getTime() - time;
 
 			if (delay > 500) {
+				shown = null;
 				consumer.accept(pos, null);
 				sched(delay);
 			} else {
-				consumer.accept(pos, text);
+				// Woken up before the end of the shown text (clock rounding): wait, don't show it again
+				if (text != shown) {
+					shown = text;
+					consumer.accept(pos, text);
+				}
 				sched(text.getDuration() + delay);
 			}
 		}
@@ -120,6 +125,7 @@ public class SubScheduler {
 			if (!pause) consumer.accept(pos, null);
 			sched.cancel();
 			sched = CANCELED;
+			shown = null;
 		}
 
 		boolean isStarted() {
@@ -132,11 +138,9 @@ public class SubScheduler {
 
 		private void sched(long delay) {
 			if (!started) return;
-			delay /= speed;
-			// When late (a busy device, or a short delay divided by the speed), catch up right away.
-			// Cancelling here stopped the track: no more subtitles until the next sync.
-			if (delay > 0) sched = executor.schedule(this, delay);
-			else sched = executor.submit(this);
+			// Round up: waking up early finds the same text again. At least 1ms, so that a late
+			// worker catches up without spinning, instead of stopping the track until the next sync.
+			sched = executor.schedule(this, Math.max(1, (long) Math.ceil(delay / speed)));
 		}
 	}
 }

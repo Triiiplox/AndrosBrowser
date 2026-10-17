@@ -17,6 +17,7 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 | `87339db` | PR upstream #844: sessão de mídia do YouTube em sincronia (voltar, prévias do feed, sair do AA, título) |
 | `285fb55` | PR upstream #839: download de playlist IPTV (chunked e close-delimited) |
 | `853f308` | Crash de build do fork não manda email para o autor upstream (fica no `Fermata.log`) |
+| — | Ícone do app (celular e AA): emblema H + play enviado pelo Andro, fundo escuro do tema; versão monocromática para ícones temáticos |
 
 ## Em teste
 
@@ -53,9 +54,12 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 
 ## Backlog — bugs
 
-- **Legenda parava de aparecer** quando o agendador acordava atrasado (aparelho ocupado, ou
-  velocidade 2x): `SubScheduler.sched` cancelava o worker em vez de alcançar. Corrigido; o
-  `SubtitlesTest.testScheduler` é a prova (travava no CI).
+- **Legenda parava de aparecer** em velocidade fracionada (1,5x, 0,7x...): o atraso dividido pela
+  velocidade arredondava para baixo, o agendador acordava 1ms antes do fim da legenda e cancelava
+  o worker. O 1º fix (`98bdf02`) trocou o cancelamento por "rodar já" e virou busy loop na mesma
+  legenda. Corrigido de vez: atraso arredondado para cima (mín. 1ms) e a legenda que já está na
+  tela não é reentregue. `SubtitlesTest.testScheduler` agora roda em relógio virtual (determinístico,
+  sem travar o CI) com 7 combinações de atraso/velocidade; falha nas duas versões antigas.
 - **Permissão pedida a cada abertura:** corrigido em `f435a84` (pedia permissões que o sistema
   não concede mais, e repetia a lista inteira).
 
@@ -107,7 +111,6 @@ mini-player 56dp, botões do topo 38dp, aleatório/repetir/velocidade/timer como
 
 ## Aguardando o Andro
 
-- Criar o secret `FERMATA_SIGNING_SEED` no repositório e avisar (dispara um build assinado).
 - Instalar o APK arm64 e mandar fotos da biblioteca, do vídeo tocando e do YouTube no Civic.
 - `Fermata.log` de um crash, com o que foi feito antes.
 - O M3U tem `tvg-logo`? Usa EPG (XMLTV)?
