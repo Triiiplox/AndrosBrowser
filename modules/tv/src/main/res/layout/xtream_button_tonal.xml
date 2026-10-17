@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="44dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/xtream_button_tonal"
+    android:clickable="true"
+    android:drawablePadding="6dp"
+    android:focusable="true"
+    android:gravity="center"
+    android:paddingStart="14dp"
+    android:paddingEnd="18dp"
+    android:text="@string/xtream_my_list_add"
+    android:textColor="#FFFFFF"
+    android:textSize="15sp"
+    android:textStyle="bold"
+    app:drawableStartCompat="@drawable/xtream_add" />

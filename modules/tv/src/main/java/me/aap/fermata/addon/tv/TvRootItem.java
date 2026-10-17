@@ -127,6 +127,26 @@ public class TvRootItem extends ItemContainer<TvM3uItem> implements TvItem {
 		}, idList).map(v -> children);
 	}
 
+	/**
+	 * The URLs of the sources, read from their settings: no list is downloaded or parsed, which a
+	 * big IPTV panel would not survive in memory.
+	 */
+	public FutureSupplier<List<String>> getSourceUrls() {
+		int[] ids = getIntArrayPref(SOURCE_IDS);
+		List<Integer> idList = new ArrayList<>(ids.length);
+		for (int i : ids) idList.add(i);
+		List<String> urls = java.util.Collections.synchronizedList(new ArrayList<>(ids.length));
+		TvM3uFileSystem fs = TvM3uFileSystem.getInstance();
+		return forEach(id -> {
+			String m3uId = getStringPref(Pref.s("M3UID#" + id));
+			if (m3uId == null) return completedVoid();
+			return fs.getResource(fs.toRid(m3uId)).onSuccess(f -> {
+				String url = (f != null) ? f.getUrl() : null;
+				if (url != null) urls.add(url);
+			}).ifFail(err -> null);
+		}, idList).map(v -> new ArrayList<>(urls));
+	}
+
 	@Override
 	protected String getScheme() {
 		return TvM3uItem.SCHEME;

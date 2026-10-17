@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A tab or a season: tonal, light when selected, ringed when focused -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape>
+            <solid android:color="#F2F4F7" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="?attr/colorSurface" />
+            <stroke android:width="2dp" android:color="?attr/colorAccent" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="?attr/colorSurface" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+</selector>

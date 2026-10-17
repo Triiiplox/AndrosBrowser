@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The main action (Play): a light pill, like Netflix -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="#FFFFFF" />
+            <stroke android:width="3dp" android:color="?attr/colorAccent" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="#C9CED6" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="#F2F4F7" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</selector>

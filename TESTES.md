@@ -93,6 +93,21 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Abrir a lista não fecha o app (antes: falta de memória com a lista inteira).
 - [ ] TV: os cards mostram nome e ícone, sem a caixinha de seleção (antes: cards vazios com caixinha).
 
+## 4b. IPTV (Netflix)
+
+- [ ] Barra de navegação: aparece **IPTV** ao lado do YouTube.
+- [ ] Abrir IPTV: as listas get.php da TV (bestway / nanoignite) viram contas sozinhas, sem digitar. Sem nenhuma: "Adicionar conta" (link get.php, ou servidor + usuário + senha), com a conta conferida no painel.
+- [ ] 1ª vez: emblema + "Carregando o catálogo…" (alguns segundos). Depois: abre na hora, mesmo sem internet.
+- [ ] Abas Início / Ao vivo / Filmes / Séries: destaque no topo, fileiras que deslizam para o lado (Filmes novos, Mais bem avaliados, uma por categoria).
+- [ ] Canal: um toque e toca. Próximo/anterior no volante troca de canal na mesma categoria.
+- [ ] Filme: abre os detalhes (capa, sinopse, nota, duração, elenco) → Assistir. Sair no meio → aparece em "Continuar assistindo" com a barrinha vermelha; tocar ali continua de onde parou. "Do início" recomeça.
+- [ ] Série: temporadas e episódios; o botão diz "Assistir T1 E1" ou "Continuar T2 E3". Fim do episódio passa para o próximo.
+- [ ] Minha lista: botão nos detalhes, ou toque longo num card. Aparece no Início.
+- [ ] Buscar (lupa): "compadecida", "cidade invisivel" sem acento acham.
+- [ ] Conta (ícone de pessoa): trocar de conta, atualizar o catálogo, remover; mostra o vencimento.
+- [ ] No carro (Android Auto, navegação de mídia): IPTV → conta → Ao vivo / Filmes / Séries → categorias.
+- [ ] Mandar o Fermata.log: "Xtream" mostra importação, carga e erros (sem senha).
+
 ## 5. Vídeo + Waze (atração)
 
 - [ ] Espelhamento do Fermata em paisagem + tela dividida do celular (Waze | YouTube).

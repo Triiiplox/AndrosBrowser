@@ -78,13 +78,21 @@ public class FermataApplication extends NetSplitCompatApp {
 	private static void applyForkDefaults(PreferenceStore ps) {
 		var version = PreferenceStore.Pref.i("FORK_DEFAULTS_VERSION", 0);
 		int v = ps.getIntPref(version);
-		if (v >= 2) return;
+		if (v >= 3) return;
 		try (PreferenceStore.Edit e = ps.editPreferenceStore()) {
 			if (v < 1) applyForkDefaults1(e);
-			// 2: the folders show videos as cards, like the TV
-			e.setBooleanPref(MainActivityPrefs.GRID_VIEW, true);
-			if (BuildConfig.AUTO) e.setBooleanPref(MainActivityPrefs.GRID_VIEW_AA, true);
-			e.setIntPref(version, 2);
+			if (v < 2) {
+				// 2: the folders show videos as cards, like the TV
+				e.setBooleanPref(MainActivityPrefs.GRID_VIEW, true);
+				if (BuildConfig.AUTO) e.setBooleanPref(MainActivityPrefs.GRID_VIEW_AA, true);
+			}
+			// 3: IPTV (Xtream) in the nav bar, next to YouTube: the saved order would put it last
+			e.removePref(PreferenceStore.Pref.sa("NAV_BAR_ITEMS_B", (String[]) null));
+			e.removePref(PreferenceStore.Pref.sa("NAV_BAR_ITEMS_L", (String[]) null));
+			e.removePref(PreferenceStore.Pref.sa("NAV_BAR_ITEMS_R", (String[]) null));
+			e.setBooleanPref(PreferenceStore.Pref.b(
+					"me.aap.fermata.addon.tv.xtream.XtreamAddon_enabled", true), true);
+			e.setIntPref(version, 3);
 		}
 	}
 

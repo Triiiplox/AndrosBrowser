@@ -13,6 +13,12 @@ ext {
                     icon : 'tv',
                     class: 'me.aap.fermata.addon.tv.TvAddon',
                     order: 1
+            ],
+            [
+                    name : 'xtream',
+                    icon : 'iptv',
+                    class: 'me.aap.fermata.addon.tv.xtream.XtreamAddon',
+                    order: 1
             ]
     ]
 }

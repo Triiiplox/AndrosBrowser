@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The highlight of a page: a wide picture fading into the window, the title and two actions -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/xtream_hero_height"
+    android:layout_marginBottom="4dp">
+
+    <ImageView
+        android:id="@+id/xtream_hero_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/xtream_scrim_left" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/xtream_scrim_bottom" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/xtream_gutter"
+        android:paddingEnd="@dimen/xtream_gutter"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/xtream_hero_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxWidth="520dp"
+            android:maxLines="2"
+            android:shadowColor="#CC000000"
+            android:shadowDy="1"
+            android:shadowRadius="4"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/xtream_hero_meta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:shadowColor="#CC000000"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:textColor="#D0D5DD"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <include
+                android:id="@+id/xtream_hero_play"
+                layout="@layout/xtream_button_play" />
+
+            <include
+                android:id="@+id/xtream_hero_info"
+                layout="@layout/xtream_button_tonal" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

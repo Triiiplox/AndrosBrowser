@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A secondary action (My list): translucent over pictures and the window -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="#3DFFFFFF" />
+            <stroke android:width="3dp" android:color="?attr/colorAccent" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="#52FFFFFF" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="#2EFFFFFF" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</selector>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sized for the 800x480 car screen with the side rail, still fine on a phone -->
+    <dimen name="xtream_poster_width">104dp</dimen>
+    <dimen name="xtream_poster_height">156dp</dimen>
+    <dimen name="xtream_channel_width">152dp</dimen>
+    <dimen name="xtream_channel_height">86dp</dimen>
+    <dimen name="xtream_wide_width">184dp</dimen>
+    <dimen name="xtream_wide_height">104dp</dimen>
+    <dimen name="xtream_hero_height">210dp</dimen>
+    <dimen name="xtream_backdrop_height">230dp</dimen>
+    <dimen name="xtream_gutter">16dp</dimen>
+</resources>

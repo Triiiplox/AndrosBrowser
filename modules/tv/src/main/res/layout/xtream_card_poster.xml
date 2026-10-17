@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A movie or a series: the poster alone; the title shows when there is no poster -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/xtream_poster_width"
+    android:layout_height="@dimen/xtream_poster_height"
+    android:layout_margin="4dp"
+    android:background="@drawable/xtream_card_bg"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/xtream_focus">
+
+    <TextView
+        android:id="@+id/xtream_card_title"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="4"
+        android:padding="8dp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/xtream_card_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <ProgressBar
+        android:id="@+id/xtream_card_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_gravity="bottom"
+        android:max="1000"
+        android:progressDrawable="@drawable/xtream_progress"
+        android:visibility="gone" />
+</FrameLayout>
