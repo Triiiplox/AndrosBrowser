@@ -35,6 +35,7 @@ import me.aap.utils.ui.fragment.ActivityFragment;
 import me.aap.utils.ui.menu.OverlayMenu;
 import me.aap.utils.ui.menu.OverlayMenuItem;
 import me.aap.utils.ui.view.FloatingButton;
+import me.aap.utils.ui.view.ToolBarView;
 
 /**
  * @author Andrey Pavlenko
@@ -58,6 +59,11 @@ public class TvFragment extends MediaLibFragment {
 	@Override
 	public int getFragmentId() {
 		return me.aap.fermata.R.id.tv_fragment;
+	}
+
+	@Override
+	public ToolBarView.Mediator getToolBarMediator() {
+		return TvToolBarMediator.instance;
 	}
 
 	@Override
@@ -154,6 +160,7 @@ public class TvFragment extends MediaLibFragment {
 			contributeSourcesMenu(builder);
 			return;
 		}
+		addSourceMenuItem(builder);
 		TvAdapter a = getAdapter();
 
 		if (a.getListView().isSelectionActive() && a.hasSelectable() && a.hasSelected()) {
@@ -166,11 +173,7 @@ public class TvFragment extends MediaLibFragment {
 
 	// The sources can be edited and removed from the long-press menu too, but it is easy to miss
 	private void contributeSourcesMenu(OverlayMenu.Builder builder) {
-		builder.addItem(R.id.tv_add_source, R.drawable.tv_add, R.string.add_tv_source)
-				.setHandler(i -> {
-					addSource();
-					return true;
-				});
+		addSourceMenuItem(builder);
 		// The root is the page on screen, its children are loaded
 		List<Item> children = getRootItem().<Item>getUnsortedChildren().peek();
 		if ((children == null) || children.isEmpty()) return;
@@ -186,6 +189,15 @@ public class TvFragment extends MediaLibFragment {
 				});
 			}
 		});
+	}
+
+	// Inside a list or a group too: a new list can be added from anywhere in the TV section
+	private void addSourceMenuItem(OverlayMenu.Builder builder) {
+		builder.addItem(R.id.tv_add_source, R.drawable.tv_add, R.string.add_tv_source)
+				.setHandler(i -> {
+					addSource();
+					return true;
+				});
 	}
 
 	@Override
