@@ -54,6 +54,9 @@ android {
     testOptions {
         unitTests.all {
             it.useJUnitPlatform()
+            // NetHandlerTest.testTimeout writes a buffer of half the max heap: the default test
+            // heap (512m) runs out of memory and takes down the whole test executor
+            it.maxHeapSize = '2g'
         }
     }
 }

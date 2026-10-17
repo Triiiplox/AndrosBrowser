@@ -112,6 +112,10 @@ subprojects {
 
         testOptions {
             unitTests.returnDefaultValues = true
+            // A hanging test fails its task (and is named in the report) instead of holding CI
+            unitTests.all {
+                it.timeout = java.time.Duration.ofMinutes(10)
+            }
         }
 
         dependencies {
