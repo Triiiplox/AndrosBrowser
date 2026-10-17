@@ -108,12 +108,19 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] No carro (Android Auto, navegação de mídia): IPTV → conta → Ao vivo / Filmes / Séries → categorias.
 - [ ] Mandar o Fermata.log: "Xtream" mostra importação, carga e erros (sem senha).
 
+- [ ] Abas Início / Ao vivo / Filmes / Séries inteiras no celular e no carro (nada cortado pela lupa ou pelo perfil).
+- [ ] Barra de navegação: só um botão de IPTV (o "TV" saiu). Comando de voz "TV" abre o IPTV.
+- [ ] Em ligação (WhatsApp ou normal), tocar num canal: aviso "o vídeo começa quando ela terminar"; ao desligar, o canal começa sozinho.
+- [ ] Primeira carga de um painel novo: anotar o tempo da linha "Xtream: catalog … loaded in" do log.
+
 ## 5. Vídeo + Waze (atração)
 
 - [ ] Espelhamento do Fermata em paisagem + tela dividida do celular (Waze | YouTube).
 - [ ] Toque nas duas metades cai no lugar certo (#796).
 
 ## 6. Visual
+
+- [ ] Pastas → adicionar pasta: lista "Armazenamento interno", cartão SD/USB (se tiver), Downloads, Filmes, Músicas, Câmera. Sem "0", "mnt" ou "me.aap.fermata…".
 
 - [ ] Formulário de lista IPTV: só Nome, Localização e "Avançado" (EPG, Catchup, Logos e Conexão dentro dele). Voltar dentro de Avançado volta ao formulário.
 - [ ] Menus (Menu do trilho, toque longo num item): itens maiores (~48dp), texto mais claro, fácil de acertar no carro.

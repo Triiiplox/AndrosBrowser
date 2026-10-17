@@ -2,6 +2,9 @@ package me.aap.utils.vfs.local;
 
 import static me.aap.utils.async.Completed.failed;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,13 +21,28 @@ import me.aap.utils.vfs.VirtualResource;
  * @author Andrey Pavlenko
  */
 class LocalFolder extends LocalResource implements VirtualFolder {
+	@Nullable
+	private final String name;
 
 	LocalFolder(File file) {
 		super(file);
+		name = null;
 	}
 
 	LocalFolder(File file, VirtualFolder parent) {
+		this(file, parent, null);
+	}
+
+	/** A folder shown under a name of its own, e.g. a storage volume as "Internal storage". */
+	LocalFolder(File file, VirtualFolder parent, @Nullable String name) {
 		super(file, parent);
+		this.name = name;
+	}
+
+	@NonNull
+	@Override
+	public String getName() {
+		return (name != null) ? name : super.getName();
 	}
 
 	@Override

@@ -223,7 +223,11 @@ class VoiceCommandHandler {
 			else if (matches(lPlaylists, location)) fid = R.id.playlists_fragment;
 
 			if (fid == ID_NULL) {
-				if (amgr.hasAddon(R.id.tv_fragment) && matches(lTV, location)) fid = R.id.tv_fragment;
+				// "TV" opens IPTV, which plays the Xtream panels of the TV sources
+				if (matches(lTV, location) && amgr.hasAddon(R.id.xtream_fragment))
+					fid = R.id.xtream_fragment;
+				else if (amgr.hasAddon(R.id.tv_fragment) && matches(lTV, location))
+					fid = R.id.tv_fragment;
 				else if (amgr.hasAddon(R.id.youtube_fragment) && matches(lYoutube, location))
 					fid = R.id.youtube_fragment;
 				else if (amgr.hasAddon(R.id.web_browser_fragment) && matches(lBrowser, location))

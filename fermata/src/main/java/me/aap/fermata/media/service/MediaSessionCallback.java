@@ -71,6 +71,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.audiofx.BassBoost;
 import android.media.audiofx.Equalizer;
@@ -87,6 +89,7 @@ import android.support.v4.media.session.MediaSessionCompat.QueueItem;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -182,6 +185,11 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 	private MediaEngine engine;
 	private boolean playOnPrepared;
 	private boolean playOnAudioFocus;
+	private static final int FOCUS_GRANTED = 0;
+	private static final int FOCUS_DELAYED = 1;
+	private static final int FOCUS_FAILED = 2;
+	private AudioFocusRequest delayedFocusReq;
+	private boolean waitingForFocus;
 	private boolean isMuted;
 	private boolean tryAnotherEngine;
 	@NonNull
@@ -477,7 +485,7 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 				MediaEngine eng = getEngine();
 				assert (eng != null);
 				assert (eng.getSource() != null);
-				if (!requestAudioFocus(eng)) return completedVoid();
+				if (requestAudioFocus(eng) != FOCUS_GRANTED) return completedVoid();
 				long pos = state.getPosition();
 				float speed = getSpeed(engine.getSource());
 				state =
@@ -542,6 +550,7 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 
 	@Override
 	public void onPause() {
+		cancelDelayedFocus();
 		PlayableItem i;
 		MediaEngine eng = getEngine();
 		if ((eng == null) || ((i = eng.getSource()) == null)) return;
@@ -582,6 +591,7 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 
 	private FutureSupplier<?> onStop(MediaEngine eng, long pos) {
 		boolean external = false;
+		cancelDelayedFocus();
 
 		if (eng != null) {
 			PlayableItem i = eng.getSource();
@@ -1254,10 +1264,11 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 
 		if (i.isVideo() && (videoView != null)) engine.setVideoView(getVideoView());
 
-		playOnPrepared = true;
 		tryAnotherEngine = true;
-
-		if (!requestAudioFocus(eng)) return;
+		int focus = requestAudioFocus(eng);
+		if (focus == FOCUS_FAILED) return;
+		// While a call holds the audio the item is made ready and starts when the call ends
+		playOnPrepared = (focus == FOCUS_GRANTED);
 
 		eng.prepare(i);
 
@@ -1269,12 +1280,17 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 	}
 
 	/**
-	 * Requests the audio focus for the engine. When Android refuses it, during a call for example,
-	 * the playback ends in an error that says why, instead of staying in the connecting state with
-	 * nothing on screen telling the user what happened.
+	 * Requests the audio focus for the engine. During a call Android refuses it: the focus is then
+	 * asked again as a delayed gain, which Android grants when the call ends, and the playback
+	 * starts then. Refused for another reason, the playback ends in an error that says why,
+	 * instead of staying in the connecting state with nothing telling the user what happened.
 	 */
-	private boolean requestAudioFocus(MediaEngine eng) {
-		if (eng.requestAudioFocus(audioManager, audioFocusReq)) return true;
+	private int requestAudioFocus(MediaEngine eng) {
+		if (eng.requestAudioFocus(audioManager, audioFocusReq)) {
+			cancelDelayedFocus();
+			return FOCUS_GRANTED;
+		}
+
 		int mode = (audioManager == null) ? -1 : audioManager.getMode();
 		ActivityManager.RunningAppProcessInfo proc = new ActivityManager.RunningAppProcessInfo();
 		ActivityManager.getMyMemoryState(proc);
@@ -1282,12 +1298,60 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 				proc.importance);
 		boolean call = (mode == AudioManager.MODE_IN_CALL) ||
 				(mode == AudioManager.MODE_IN_COMMUNICATION) || (mode == AudioManager.MODE_RINGTONE);
-		String msg = lib.getContext().getResources()
+		Context ctx = lib.getContext();
+
+		if (call && requestDelayedFocus()) {
+			Log.i("Audio focus delayed until the call ends");
+			Toast.makeText(ctx, R.string.audio_focus_after_call, Toast.LENGTH_LONG).show();
+			return FOCUS_DELAYED;
+		}
+
+		String msg = ctx.getResources()
 				.getString(call ? R.string.err_audio_focus_call : R.string.err_audio_focus);
 		setPlaybackState(new PlaybackStateCompat.Builder().setActions(SUPPORTED_ACTIONS)
 				.setState(STATE_ERROR, 0, 1.0f)
 				.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, msg).build());
-		return false;
+		return FOCUS_FAILED;
+	}
+
+	private boolean requestDelayedFocus() {
+		if (audioManager == null) return false;
+		if (delayedFocusReq == null) {
+			AudioAttributes attrs = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+					.setContentType(AudioAttributes.CONTENT_TYPE_MOVIE).build();
+			delayedFocusReq = new AudioFocusRequest.Builder(AUDIOFOCUS_GAIN).setAudioAttributes(attrs)
+					.setAcceptsDelayedFocusGain(true).setWillPauseWhenDucked(false)
+					.setOnAudioFocusChangeListener(this::onDelayedFocusChange).build();
+		}
+		int r = audioManager.requestAudioFocus(delayedFocusReq);
+		waitingForFocus = (r == AudioManager.AUDIOFOCUS_REQUEST_DELAYED);
+		if (!waitingForFocus) audioManager.abandonAudioFocusRequest(delayedFocusReq);
+		return waitingForFocus;
+	}
+
+	private void onDelayedFocusChange(int focusChange) {
+		if (!waitingForFocus) return;
+		Log.i("Delayed audio focus event received: ", focusChange);
+		if (focusChange == AUDIOFOCUS_GAIN) {
+			cancelDelayedFocus();
+			if (getPlaybackState().getState() == STATE_PAUSED) {
+				onPlay();
+				return;
+			}
+			// Still preparing: it starts once prepared
+			MediaEngine eng = getEngine();
+			if ((eng != null) && eng.requestAudioFocus(audioManager, audioFocusReq)) {
+				playOnPrepared = true;
+			}
+		} else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+			cancelDelayedFocus();
+		}
+	}
+
+	private void cancelDelayedFocus() {
+		if (!waitingForFocus) return;
+		waitingForFocus = false;
+		if (audioManager != null) audioManager.abandonAudioFocusRequest(delayedFocusReq);
 	}
 
 	private PlaybackStateCompat createPlayingState(PlayableItem i, boolean pause, long qid,

@@ -21,20 +21,13 @@
             android:paddingStart="12dp"
             android:paddingEnd="8dp">
 
-            <HorizontalScrollView
+            <me.aap.fermata.addon.tv.xtream.XtreamTabStrip
+                android:id="@+id/xtream_tabs"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:fillViewport="false"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/xtream_tabs"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal" />
-            </HorizontalScrollView>
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
 
             <ImageButton
                 android:id="@+id/xtream_search_button"

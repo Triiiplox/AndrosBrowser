@@ -4,4 +4,8 @@
     <string name="move_right" />
     <string name="move_up" />
     <string name="move_down" />
+    <string name="local_downloads">Downloads</string>
+    <string name="local_movies">Movies</string>
+    <string name="local_music">Music</string>
+    <string name="local_camera">Camera</string>
 </resources>

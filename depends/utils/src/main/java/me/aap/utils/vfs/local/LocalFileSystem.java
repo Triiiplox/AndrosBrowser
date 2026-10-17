@@ -22,13 +22,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import me.aap.utils.R;
 import me.aap.utils.app.App;
 import me.aap.utils.async.Completed;
 import me.aap.utils.async.FutureSupplier;
 import me.aap.utils.collection.CacheMap;
+import me.aap.utils.function.Function;
 import me.aap.utils.function.Supplier;
 import me.aap.utils.io.IoUtils;
 import me.aap.utils.io.RandomAccessChannel;
@@ -43,12 +46,18 @@ import me.aap.utils.vfs.VirtualResource;
 
 public class LocalFileSystem implements VirtualFileSystem {
 	private static final LocalFileSystem instance =
-			new LocalFileSystem(LocalFileSystem::androidRoots);
+			new LocalFileSystem(LocalFileSystem::androidRoots, LocalFileSystem::placeName);
 	private final Supplier<Collection<File>> roots;
+	private final Function<File, String> names;
 	private final CacheMap<File, CachedFileChannel> fileCache = new CacheMap<>(60);
 
 	LocalFileSystem(Supplier<Collection<File>> roots) {
+		this(roots, f -> null);
+	}
+
+	private LocalFileSystem(Supplier<Collection<File>> roots, Function<File, String> names) {
 		this.roots = roots;
+		this.names = names;
 	}
 
 	public static LocalFileSystem getInstance() {
@@ -102,17 +111,93 @@ public class LocalFileSystem implements VirtualFileSystem {
 
 		List<VirtualFolder> folders = new ArrayList<>(size);
 		for (File f : roots) {
-			folders.add(new LocalFolder(f, null));
+			String name = names.apply(f);
+			folders.add((name == null) ? new LocalFolder(f, null) : new LocalFolder(f, null, name));
 		}
 		return completed(folders);
 	}
 
-	@SuppressWarnings("JavaReflectionMemberAccess")
-	@SuppressLint({"DiscouragedPrivateApi", "SdCardPath"})
+	/**
+	 * The places to pick a folder from: the storage volumes (internal storage, SD card, USB drive),
+	 * then the usual media folders of the internal storage. The app's own folders and the
+	 * system mount points are left out: they hold nothing to play and show as cryptic names.
+	 * Without any readable volume, the ancestors of the known folders are listed, as before.
+	 */
 	public static Collection<File> androidRoots() {
 		Context ctx = App.get();
 		if (ctx == null) return Collections.emptyList();
 
+		Set<File> files = new LinkedHashSet<>();
+		for (File v : volumes(ctx)) if (v.isDirectory() && v.canRead()) files.add(v);
+
+		for (String type : MEDIA_DIRS) {
+			File dir = Environment.getExternalStoragePublicDirectory(type);
+			if ((dir != null) && dir.isDirectory() && dir.canRead()) files.add(dir);
+		}
+
+		return files.isEmpty() ? legacyRoots(ctx) : files;
+	}
+
+	private static final String[] MEDIA_DIRS = {Environment.DIRECTORY_DOWNLOADS,
+			Environment.DIRECTORY_MOVIES, Environment.DIRECTORY_MUSIC, Environment.DIRECTORY_DCIM};
+
+	/** The name of a place returned by {@link #androidRoots()}, or null for its file name. */
+	@Nullable
+	private static String placeName(File f) {
+		Context ctx = App.get();
+		if (ctx == null) return null;
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			StorageManager sm = (StorageManager) ctx.getSystemService(Context.STORAGE_SERVICE);
+			if (sm != null) {
+				for (StorageVolume v : sm.getStorageVolumes()) {
+					if (f.equals(v.getDirectory())) return v.getDescription(ctx);
+				}
+			}
+		}
+
+		int[] labels = {R.string.local_downloads, R.string.local_movies, R.string.local_music,
+				R.string.local_camera};
+		for (int i = 0; i < MEDIA_DIRS.length; i++) {
+			if (f.equals(Environment.getExternalStoragePublicDirectory(MEDIA_DIRS[i]))) {
+				return ctx.getString(labels[i]);
+			}
+		}
+
+		return null;
+	}
+
+	@SuppressWarnings("JavaReflectionMemberAccess")
+	@SuppressLint("DiscouragedPrivateApi")
+	private static List<File> volumes(Context ctx) {
+		StorageManager sm = (StorageManager) ctx.getSystemService(Context.STORAGE_SERVICE);
+		if (sm == null) return Collections.emptyList();
+		List<File> dirs = new ArrayList<>();
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			for (StorageVolume v : sm.getStorageVolumes()) {
+				File d = v.getDirectory();
+				if (d != null) dirs.add(d);
+			}
+		} else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+			try {
+				Method m = StorageVolume.class.getDeclaredMethod("getPathFile");
+				m.setAccessible(true);
+				for (StorageVolume v : sm.getStorageVolumes()) {
+					File d = (File) m.invoke(v);
+					if (d != null) dirs.add(d);
+				}
+			} catch (Throwable ex) {
+				Log.e(ex, "StorageVolume.getPathFile() failed");
+			}
+		}
+
+		return dirs;
+	}
+
+	@SuppressWarnings("JavaReflectionMemberAccess")
+	@SuppressLint({"DiscouragedPrivateApi", "SdCardPath"})
+	private static Collection<File> legacyRoots(Context ctx) {
 		Set<File> files = new HashSet<>();
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

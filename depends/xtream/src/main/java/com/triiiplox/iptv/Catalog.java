@@ -10,10 +10,15 @@ import com.triiiplox.iptv.net.Transport;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * The catalog of an account, cached on disk. The first {@link #snapshot()} reads the cached
@@ -87,31 +92,73 @@ public final class Catalog {
 		snapshot = null;
 	}
 
+	/**
+	 * Loads the three kinds at once: on a first load the lists are big downloads from a slow panel,
+	 * and one after the other they add up. A kind that fails is empty; all failing is an error.
+	 */
 	private static Snapshot load(XtreamClient c) throws IOException {
+		Kind[] kinds = {Kind.LIVE, Kind.MOVIE, Kind.SERIES};
+		ExecutorService exec = Executors.newFixedThreadPool(kinds.length, r -> {
+			Thread t = new Thread(r, "Xtream catalog");
+			t.setDaemon(true);
+			return t;
+		});
+		Map<Kind, Future<Part>> parts = new EnumMap<>(Kind.class);
+		for (Kind k : kinds) parts.put(k, exec.submit(() -> loadKind(c, k)));
+		exec.shutdown();
+
 		Map<Kind, List<Category>> cats = new EnumMap<>(Kind.class);
 		Map<Kind, List<? extends Entry>> entries = new EnumMap<>(Kind.class);
 		IOException failure = null;
 		int loaded = 0;
 
-		for (Kind k : new Kind[]{Kind.LIVE, Kind.MOVIE, Kind.SERIES}) {
+		for (Kind k : kinds) {
+			Part p;
 			try {
-				cats.put(k, c.categories(k));
-				entries.put(k, switch (k) {
-					case LIVE -> c.liveChannels();
-					case MOVIE -> c.movies();
-					default -> c.series();
-				});
+				p = parts.get(k).get();
 				loaded++;
-			} catch (IOException ex) {
-				if (failure == null) failure = ex;
-				cats.put(k, new ArrayList<>());
-				entries.put(k, new ArrayList<>());
+			} catch (InterruptedException ex) {
+				exec.shutdownNow();
+				Thread.currentThread().interrupt();
+				throw new InterruptedIOException("Catalog load interrupted");
+			} catch (ExecutionException ex) {
+				Throwable cause = ex.getCause();
+				if (cause instanceof IOException io) {
+					if (failure == null) failure = io;
+					p = new Part(new ArrayList<>(), new ArrayList<>());
+				} else if (cause instanceof RuntimeException re) {
+					throw re;
+				} else {
+					throw new IllegalStateException(cause);
+				}
 			}
+			cats.put(k, p.categories);
+			entries.put(k, p.entries);
 		}
 
 		// Nothing at all: the panel refused or cannot be reached, and nothing is cached
 		if (loaded == 0) throw failure;
 		return new Snapshot(cats, entries, System.currentTimeMillis());
+	}
+
+	private static Part loadKind(XtreamClient c, Kind k) throws IOException {
+		List<Category> cats = c.categories(k);
+		List<? extends Entry> entries = switch (k) {
+			case LIVE -> c.liveChannels();
+			case MOVIE -> c.movies();
+			default -> c.series();
+		};
+		return new Part(cats, entries);
+	}
+
+	private static final class Part {
+		final List<Category> categories;
+		final List<? extends Entry> entries;
+
+		Part(List<Category> categories, List<? extends Entry> entries) {
+			this.categories = categories;
+			this.entries = entries;
+		}
 	}
 
 	private static long ttl(String url) {

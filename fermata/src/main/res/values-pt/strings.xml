@@ -395,6 +395,7 @@
     <string name="err_unsupported_source_type">Tipo de fonte não suportado: %s</string>
     <string name="err_audio_focus">O Android não liberou o áudio para o Fermata agora. Toque em play para tentar de novo.</string>
     <string name="err_audio_focus_call">Uma ligação está usando o áudio. Toque em play quando ela terminar.</string>
+    <string name="audio_focus_after_call">Uma ligação está usando o áudio: o vídeo começa quando ela terminar.</string>
     <string name="err_playlist_exists">A playlist já existe: %1$s</string>
     <string name="err_invalid_playlist_name">Nome de playlist inválido: %1$s</string>
     <string name="err_failed_add_folder">Falha ao adicionar a pasta: %1$s</string>

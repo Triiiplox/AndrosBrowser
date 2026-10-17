@@ -69,6 +69,7 @@ public class NavBarMediator extends PrefNavBarMediator
 			Pref.sa("NAV_BAR_ITEMS_L", (String[]) null);
 	private static final Pref<Supplier<String[]>> PREF_R =
 			Pref.sa("NAV_BAR_ITEMS_R", (String[]) null);
+	private static final String TV_ADDON = "me.aap.fermata.addon.tv.TvAddon";
 
 	@Override
 	protected Collection<NavBarItem> getItems(NavBarView nb) {
@@ -321,17 +322,20 @@ public class NavBarMediator extends PrefNavBarMediator
 		Set<String> names = newLinkedHashSet(BuildConfig.ADDONS.length + 4);
 		String[] pref = getPreferenceStore(nb).getStringArrayPref(getPref(nb));
 		CollectionUtils.addAll(names, pref);
-		// Default order, unless saved by the user: YouTube, IPTV, library, favorites, then the M3U TV
-		// (IPTV replaces it for Xtream panels; it stays for plain M3U lists)
+		// The M3U TV is not in the bar: IPTV plays the Xtream panels, which its sources are imported
+		// from, and two buttons for the same lists only confuse
+		names.remove(TV_ADDON);
+		// Default order, unless saved by the user: YouTube, IPTV, library, favorites
 		addAddon(amgr, names, "me.aap.fermata.addon.web.yt.YoutubeAddon");
 		addAddon(amgr, names, "me.aap.fermata.addon.tv.xtream.XtreamAddon");
 		names.add("folders");
 		names.add("favorites");
-		addAddon(amgr, names, "me.aap.fermata.addon.tv.TvAddon");
 		names.add("playlists");
 		for (AddonInfo ai : BuildConfig.ADDONS) {
 			FermataAddon a = amgr.getAddon(ai.className);
-			if (a instanceof FermataFragmentAddon) names.add(ai.className);
+			if ((a instanceof FermataFragmentAddon) && !TV_ADDON.equals(ai.className)) {
+				names.add(ai.className);
+			}
 		}
 		names.add("menu");
 		return names;
