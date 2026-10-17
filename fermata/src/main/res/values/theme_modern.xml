@@ -49,7 +49,7 @@
         <!-- Cards: 6dp between list items -->
         <item name="mediaItemMargin">3dp</item>
         <!-- The control panel floats: rounded, with a gap around it -->
-        <item name="controlPanelMargin">8dp</item>
+        <item name="controlPanelMargin">4dp</item>
         <item name="toolBarButtonBackground">@drawable/tool_bar_button_modern</item>
 
         <!-- Sizes -->
@@ -91,7 +91,8 @@
     </style>
 
     <style name="AppTheme.Modern.ControlPanelStyle" parent="AppTheme.ControlPanelStyle">
-        <item name="size">84dp</item>
+        <!-- Compact for the 7" car screen: the panel covered a quarter of the video -->
+        <item name="size">64dp</item>
         <item name="controlPanelBackground">@drawable/control_panel_bg_modern</item>
     </style>
 
