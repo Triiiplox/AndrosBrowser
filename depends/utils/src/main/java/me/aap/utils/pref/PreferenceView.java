@@ -34,6 +34,7 @@ import android.util.AttributeSet;
 import android.util.Pair;
 import android.view.View;
 import android.widget.CheckBox;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -334,7 +335,13 @@ public class PreferenceView extends ConstraintLayout {
 			runPicker.run();
 		};
 
-		setOnClickListener(onClick);
+		// A typed URL is the common case: the row only focuses the text, the icon opens the picker
+		setOnClickListener(v -> {
+			t.requestFocus();
+			InputMethodManager imm =
+					(InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+			if (imm != null) imm.showSoftInput(t, InputMethodManager.SHOW_IMPLICIT);
+		});
 		img.setOnClickListener(onClick);
 	}
 

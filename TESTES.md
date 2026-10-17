@@ -65,6 +65,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Menu do trilho, na TV: "Adicionar lista IPTV (M3U)" e "Gerenciar listas IPTV" → lista → Editar / Excluir (pede confirmação).
 - [ ] Adicionar lista: entrar em EPG ou Conexão e apertar voltar: volta para o formulário (não fecha). Voltar no formulário: volta para a TV.
 - [ ] Adicionar uma 2ª lista: o formulário abre vazio (não vem com a anterior).
+- [ ] Formulário de lista: tocar na linha do link só abre o teclado; só o ícone de pasta abre o seletor de arquivos. Colar um link http e confirmar: a lista entra.
 - [ ] Arrastar uma lista para mudar a ordem, sair e voltar: a ordem fica.
 - [ ] Pastas: "Remover pasta" pede confirmação.
 - [ ] Importar a playlist M3U (a que dava "sem entradas" deve funcionar — #839).
