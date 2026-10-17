@@ -108,6 +108,7 @@ public class YoutubeWebView extends FermataWebView {
 		// even though YouTube keeps playing it as a muted preview
 		String path = Uri.parse(url).getPath();
 		if ((path != null) && (path.startsWith("/watch") || path.startsWith("/shorts"))) {
+			unmute();
 			YoutubeAddon addon = getAddon();
 			if ((addon != null) && addon.autoplay()) {
 				addon.setLastVideo(url);
@@ -198,6 +199,34 @@ public class YoutubeWebView extends FermataWebView {
 				      if (typeof p.playVideo === 'function') p.playVideo(); else v.play();
 				    }
 				    if (++tries < 20) setTimeout(check, 500);
+				  })();
+				})();
+				""", null);
+	}
+
+	// YouTube starts a video it plays by itself (no tap on the page: autoplay, next video, Android
+	// Auto) muted, behind "Tap to unmute". Unmutes it once per video; done as soon as it plays with
+	// sound, so a mute by the user afterwards is left alone.
+	private void unmute() {
+		evaluateJavascript("""
+				(function() {
+				  var id = new URLSearchParams(location.search).get('v') || location.pathname;
+				  if (window.__fermataUnmute === id) return;
+				  window.__fermataUnmute = id;
+				  var tries = 0;
+				  (function check() {
+				    if (window.__fermataUnmute !== id) return;
+				    var p = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+				    var v = p && p.querySelector('video');
+				    if (v && !v.paused && !v.muted) return;
+				    if (v && v.muted) {
+				      console.log('Fermata unmute: ' + id);
+				      if (typeof p.unMute === 'function') p.unMute();
+				      v.muted = false;
+				      var b = document.querySelector('.ytp-unmute, .ytmUnmuteButton, .ytp-unmute-button');
+				      if (b) b.click();
+				    }
+				    if (++tries < 30) setTimeout(check, 500);
 				  })();
 				})();
 				""", null);

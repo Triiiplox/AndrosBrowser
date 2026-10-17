@@ -43,6 +43,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] App abre direto no YouTube; desligar "Abrir ao iniciar" no YouTube e reabrir: abre na biblioteca.
 - [ ] Login do Google (navegador e YouTube): entra sem "navegador não seguro"?
 - [ ] Tocar num vídeo do feed: começa a tocar sozinho (sem dar play).
+- [ ] O vídeo começa **com som** (sem "Toque para ativar o som"), no celular e no carro.
 - [ ] Vídeo acaba: passa sozinho para o próximo (com a reprodução automática do YouTube ligada ou não).
 - [ ] Fechar o app com vídeo tocando (sair do AA / desligar o carro) e abrir de novo: volta no mesmo vídeo, perto de onde parou, tocando.
 - [ ] Voltar para o feed e fechar: ao abrir, fica no feed (não retoma).
