@@ -53,6 +53,14 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 
 ## Backlog — bugs
 
+- **Login do Google no navegador interno: "Esse navegador ou app pode não ser seguro"** (print do
+  Andro no celular). O Google bloqueia login em WebView embutida; detecta pelo user agent e pelo
+  cabeçalho `X-Requested-With` (nome do pacote), que o Fermata não trata. Tentar: remover o
+  cabeçalho (`WebSettingsCompat.setRequestedWithHeaderOriginAllowList`, androidx.webkit 1.17) e
+  user agent sem marca de WebView só em `accounts.google.com`. Sem garantia: o Google muda isso.
+  Afeta também o login do YouTube (Premium).
+- Botão flutuante semitransparente cobre o conteúdo no celular (no print, em cima de "Termos").
+
 - Crashes de navegação fora do YouTube ("voltando/indo/mudando") — **aguardando `Fermata.log`**
   do Andro (Configurações → Abrir log) com o passo a passo de antes do crash.
 - Pular anúncio do YouTube frágil: roda uma vez só no início (`YoutubeMediaEngine.java:77`).
@@ -65,6 +73,13 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 - Upstream #803 (canal IPTV abre como pasta no AA) e #812 (TV ao vivo se perde no AA): verificar
   depois do #839 com a playlist do Andro.
 - Remover pasta/playlist sem confirmação; "Excluir" é o primeiro item do menu e o foco vai no OK.
+
+## Backlog — celular (retrato)
+
+Proposta aprovada para desenhar (simulação enviada): título grande na tela, barra inferior com 5
+itens + "Mais" com pílula e texto sempre visível (hoje encolhe e esconde o resto atrás de "›"),
+mini-player flutuante, tela "Tocando agora" com capa grande, play 84dp e aleatório / repetir /
+velocidade / timer à vista, sem o botão flutuante cobrindo a página.
 
 ## Backlog — técnico
 
