@@ -58,6 +58,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] No carro, tocar no vídeo que está tocando: abre em tela cheia. Tocar num botão do YouTube (pausar, barra) ou com o vídeo pausado: o YouTube responde, não abre tela cheia.
 - [ ] Em tela cheia: voltar sai da tela cheia (vídeo continua); voltar de novo vai para o feed.
 - [ ] Mandar o `Fermata.log` desse teste: procurar "Full screen on", "Fermata tap" e "fullscreen refused".
+- [ ] Num vídeo, tocar de novo em **YouTube** no trilho: vai para a home do YouTube (como a aba Início do app). Na home, tocar de novo: volta ao topo. Em tela cheia: o 1º toque sai da tela cheia, o 2º vai para a home.
 
 ## 4. IPTV
 

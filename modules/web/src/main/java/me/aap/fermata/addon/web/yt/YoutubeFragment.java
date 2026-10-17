@@ -127,6 +127,23 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 		return true;
 	}
 
+	// Like the Home tab of the YouTube app: the YouTube item of the nav bar, tapped again, shows the
+	// home feed (or its top, when it is already shown) from a video or any other page
+	@Override
+	public void navBarItemReselected(int itemId) {
+		FermataWebView v = getWebView();
+		if (v == null) return;
+		FermataChromeClient chrome = v.getWebChromeClient();
+		if ((chrome != null) && chrome.isFullScreen()) chrome.exitFullScreen();
+		if (DEFAULT_URLS.contains(v.getUrl())) {
+			Log.i("YouTube home: scrolling to the top");
+			v.evaluateJavascript("window.scrollTo(0, 0);", null);
+		} else {
+			Log.i("YouTube home");
+			v.loadUrl(DEFAULT_URL);
+		}
+	}
+
 	@Override
 	public void onSaveInstanceState(@NonNull Bundle state) {
 		super.onSaveInstanceState(state);
