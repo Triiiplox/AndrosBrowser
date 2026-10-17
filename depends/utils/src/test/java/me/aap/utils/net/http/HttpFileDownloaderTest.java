@@ -61,7 +61,7 @@ public class HttpFileDownloaderTest extends Assertions {
 		assertEquals(2, agents.size());
 		assertFalse(agents.get(0).startsWith("VLC/"));
 		assertTrue(agents.get(1).startsWith("VLC/"));
-		assertEquals(M3U, Files.readString(dst.toPath()));
+		assertEquals(M3U, new String(Files.readAllBytes(dst.toPath()), US_ASCII));
 		assertTrue(dst.delete());
 	}
 
