@@ -23,6 +23,9 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Sair do Fermata para o Waze/tela inicial do AA e voltar — repetir com vídeo tocando.
 - [ ] Desconectar e reconectar o USB com o Fermata aberto.
 
+- [ ] Vídeo do YouTube em tela cheia no carro → ir para TV/Pastas: o trilho lateral aparece (não some).
+- [ ] Na raiz de TV ou Pastas, apertar voltar (tela ou botão BACK do carro): vai para o YouTube.
+
 ## 2. Vídeo local
 
 - [ ] Abrir vídeo; play/pause; avançar/voltar; arrastar a barra.

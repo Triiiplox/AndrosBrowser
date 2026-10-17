@@ -226,6 +226,11 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 		getAppActivity().finish();
 	}
 
+	// Back on the root of a section that is not the start one: show the start section
+	protected boolean backToStart() {
+		return false;
+	}
+
 	protected String resName(int id) {
 		if (id == ID_NULL) return "none";
 		try {
@@ -482,6 +487,7 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 			}
 		}
 
+		if (backToStart()) return;
 		Log.i("Back not handled, exit on Back: ", exitOnBackPressed());
 		if (exitOnBackPressed()) {
 			backPressed = true;

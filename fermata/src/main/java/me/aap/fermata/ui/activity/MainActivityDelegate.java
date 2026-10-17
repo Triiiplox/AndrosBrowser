@@ -710,7 +710,31 @@ public class MainActivityDelegate extends ActivityDelegate
 	public ActivityFragment showFragment(int id, Object input) {
 		BodyLayout b = getBody();
 		if (b.isVideoMode()) b.setMode(BodyLayout.Mode.BOTH);
-		return super.showFragment(id, input);
+		boolean switching = id != getActiveFragmentId();
+		ActivityFragment f = super.showFragment(id, input);
+		// The bars hidden for a full screen video stayed hidden in the next section: without the nav
+		// bar there was no way back (e.g. TV after a YouTube video in the car)
+		if (switching && isBarsHidden() && !getPrefs().getHideBarsPref(this)) {
+			Log.i("Showing the bars hidden by the previous screen");
+			setBarsHidden(false);
+		}
+		return f;
+	}
+
+	@Override
+	protected boolean backToStart() {
+		int start = getStartFragmentId();
+		if ((start == ID_NULL) || (start == getActiveFragmentId())) return false;
+		Log.i("Back on a section root: back to the start section");
+		showFragment(start);
+		return true;
+	}
+
+	private int getStartFragmentId() {
+		String showAddon = getPrefs().getShowAddonOnStartPref();
+		if (showAddon == null) return R.id.folders_fragment;
+		FermataAddon addon = AddonManager.get().getAddon(showAddon);
+		return (addon instanceof FermataFragmentAddon fa) ? fa.getFragmentId() : R.id.folders_fragment;
 	}
 
 	protected ActivityFragment createFragment(int id) {
