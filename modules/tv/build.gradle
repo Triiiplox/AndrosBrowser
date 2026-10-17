@@ -19,6 +19,7 @@ ext {
 
 dependencies {
     implementation project(':utils')
+    implementation project(':xtream')
     implementation project(':fermata')
     implementation libs.androidxMedia
     implementation libs.androidxAppcompat

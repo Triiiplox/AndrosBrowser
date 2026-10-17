@@ -51,7 +51,7 @@ jobs:
           NO_GS: true
         run: |
           chmod +x gradlew
-          ./gradlew :utils:testDebugUnitTest :fermata:testAutoDebugUnitTest -PABI=arm64-v8a --continue
+          ./gradlew :utils:testDebugUnitTest :xtream:testDebugUnitTest :fermata:testAutoDebugUnitTest -PABI=arm64-v8a --continue
 
       - name: Upload test reports
         if: always()
@@ -60,6 +60,7 @@ jobs:
           name: unit-test-reports
           path: |
             depends/utils/build/reports/tests/
+            depends/xtream/build/reports/tests/
             fermata/build/reports/tests/
           retention-days: 14
           if-no-files-found: ignore

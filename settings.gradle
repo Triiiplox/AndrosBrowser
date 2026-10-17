@@ -28,6 +28,8 @@ rootProject.name = 'Fermata Music Player'
 include ':fermata'
 include ':utils'
 project(':utils').projectDir = file('depends/utils')
+include ':xtream'
+project(':xtream').projectDir = file('depends/xtream')
 
 file('modules').eachDir {
     def name = ':' + it.name

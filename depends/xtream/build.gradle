@@ -1,0 +1,9 @@
+// The IPTV core: plain Java (no Android API), so it can move to another app as it is and its
+// tests run on any JVM. The root build applies the Android library plugin to every project.
+android {
+    namespace = "com.triiiplox.iptv"
+}
+
+dependencies {
+    testImplementation libs.junit4
+}
