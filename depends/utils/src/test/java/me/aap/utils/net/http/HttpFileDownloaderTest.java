@@ -53,7 +53,7 @@ public class HttpFileDownloaderTest extends Assertions {
 		assertTrue(dst.delete());
 
 		try (ServerSocket server = new ServerSocket(0)) {
-			Thread t = serve(server, 2, agents, ua -> ua.startsWith("VLC/") ? ok(M3U) : status(403));
+			Thread t = serve(server, 2, agents, req -> agent(req).startsWith("VLC/") ? ok(M3U) : status(403));
 			download(server, dst).get(10, TimeUnit.SECONDS);
 			t.join(5000);
 		}
@@ -72,7 +72,7 @@ public class HttpFileDownloaderTest extends Assertions {
 		assertTrue(dst.delete());
 
 		try (ServerSocket server = new ServerSocket(0)) {
-			Thread t = serve(server, 2, agents, ua -> status(403));
+			Thread t = serve(server, 2, agents, req -> status(403));
 			ExecutionException ex = assertThrows(ExecutionException.class,
 					() -> download(server, dst).get(10, TimeUnit.SECONDS));
 			assertTrue(ex.getCause().getMessage().contains("HTTP 403"), ex.getCause().getMessage());
@@ -83,6 +83,24 @@ public class HttpFileDownloaderTest extends Assertions {
 		assertFalse(dst.exists());
 	}
 
+	// A panel that refuses requests without an Accept header, as browsers and players send one
+	@Test
+	public void testAcceptHeaderSent() throws Exception {
+		List<String> agents = new CopyOnWriteArrayList<>();
+		File dst = File.createTempFile("list", ".m3u");
+		assertTrue(dst.delete());
+
+		try (ServerSocket server = new ServerSocket(0)) {
+			Thread t = serve(server, 1, agents, req -> req.toLowerCase().contains("\r\naccept: ") ? ok(M3U) : status(403));
+			download(server, dst).get(10, TimeUnit.SECONDS);
+			t.join(5000);
+		}
+
+		assertEquals(1, agents.size());
+		assertEquals(M3U, new String(Files.readAllBytes(dst.toPath()), US_ASCII));
+		assertTrue(dst.delete());
+	}
+
 	@Test
 	public void testNoRetryOn404() throws Exception {
 		List<String> agents = new CopyOnWriteArrayList<>();
@@ -90,7 +108,7 @@ public class HttpFileDownloaderTest extends Assertions {
 		assertTrue(dst.delete());
 
 		try (ServerSocket server = new ServerSocket(0)) {
-			Thread t = serve(server, 1, agents, ua -> status(404));
+			Thread t = serve(server, 1, agents, req -> status(404));
 			ExecutionException ex = assertThrows(ExecutionException.class,
 					() -> download(server, dst).get(10, TimeUnit.SECONDS));
 			assertTrue(ex.getCause().getMessage().contains("HTTP 404"), ex.getCause().getMessage());
@@ -108,6 +126,13 @@ public class HttpFileDownloaderTest extends Assertions {
 		return d.download("http://localhost:" + server.getLocalPort() + "/get.php?type=m3u", dst);
 	}
 
+	private static String agent(String req) {
+		for (String l : req.split("\r\n")) {
+			if (l.regionMatches(true, 0, "User-Agent:", 0, 11)) return l.substring(11).trim();
+		}
+		return "";
+	}
+
 	private static String ok(String body) {
 		return "HTTP/1.1 200 OK\r\nContent-Type: audio/x-mpegurl\r\nContent-Length: " + body.length() +
 				"\r\nConnection: close\r\n\r\n" + body;
@@ -119,7 +144,7 @@ public class HttpFileDownloaderTest extends Assertions {
 				body.length() + "\r\nConnection: close\r\n\r\n" + body;
 	}
 
-	// Answers n requests, one per connection, by the User-Agent of each
+	// Answers n requests, one per connection, by the request line and headers
 	private static Thread serve(ServerSocket server, int n, List<String> agents,
 															Function<String, String> response) {
 		Thread t = new Thread(() -> {
@@ -133,13 +158,9 @@ public class HttpFileDownloaderTest extends Assertions {
 						if (len < 0) break;
 						req.append(new String(buf, 0, len, US_ASCII));
 					}
-					String ua = "";
-					for (String l : req.toString().split("\r\n")) {
-						if (l.regionMatches(true, 0, "User-Agent:", 0, 11)) ua = l.substring(11).trim();
-					}
-					agents.add(ua);
+					agents.add(agent(req.toString()));
 					OutputStream out = s.getOutputStream();
-					out.write(response.apply(ua).getBytes(US_ASCII));
+					out.write(response.apply(req.toString()).getBytes(US_ASCII));
 					out.flush();
 				} catch (Exception ex) {
 					ex.printStackTrace();

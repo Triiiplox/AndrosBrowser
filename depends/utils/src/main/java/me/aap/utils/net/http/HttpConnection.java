@@ -2,6 +2,7 @@ package me.aap.utils.net.http;
 
 import static me.aap.utils.async.Completed.completedVoid;
 import static me.aap.utils.async.Completed.failed;
+import static me.aap.utils.net.http.HttpHeader.ACCEPT;
 import static me.aap.utils.net.http.HttpHeader.ACCEPT_ENCODING;
 import static me.aap.utils.net.http.HttpHeader.CONNECTION;
 import static me.aap.utils.net.http.HttpHeader.IF_NONE_MATCH;
@@ -332,6 +333,8 @@ public class HttpConnection extends HttpResponseEncoder implements HttpResponseH
 					if (o.userAgent.equals(USER_AGENT.getDefaultValue())) b.addHeader(USER_AGENT);
 					else if (!o.userAgent.isEmpty()) b.addHeader(USER_AGENT, o.userAgent);
 				}
+				// Like browsers and players: some servers (IPTV panels) refuse a request without it
+				b.addHeader(ACCEPT);
 				if (o.acceptEncoding != null) {
 					if (o.acceptEncoding.equals(ACCEPT_ENCODING.getDefaultValue()))
 						b.addHeader(ACCEPT_ENCODING);
