@@ -51,6 +51,7 @@ public class FermataApplication extends NetSplitCompatApp {
 	@Override
 	protected void attachBaseContext(Context ctx) {
 		var ps = SharedPreferenceStore.create(ctx.getSharedPreferences("fermata", MODE_PRIVATE));
+		applyForkDefaults(ps);
 		if (ps.hasPref(LOCALE)) {
 			var loc = MainActivityPrefs.Lang.get(ps.getIntPref(LOCALE)).locale;
 			var cfg = ctx.getResources().getConfiguration();
@@ -61,6 +62,27 @@ public class FermataApplication extends NetSplitCompatApp {
 			preferenceStore = ps;
 		}
 		super.attachBaseContext(ctx);
+	}
+
+	// The fork's defaults (Modern theme, side rail, YouTube first and on start) only apply to the
+	// prefs that were never saved: values saved by an earlier build kept the old look, without
+	// YouTube in the nav bar when its addon had been disabled. They are reset once.
+	private static void applyForkDefaults(PreferenceStore ps) {
+		var version = PreferenceStore.Pref.i("FORK_DEFAULTS_VERSION", 0);
+		if (ps.getIntPref(version) >= 1) return;
+		try (PreferenceStore.Edit e = ps.editPreferenceStore()) {
+			e.removePref(MainActivityPrefs.THEME_MAIN);
+			e.removePref(MainActivityPrefs.THEME_AA);
+			if (BuildConfig.AUTO) e.removePref(MainActivityPrefs.NAV_BAR_POS_AA);
+			e.removePref(MainActivityPrefs.SHOW_ADDON_ON_START);
+			e.removePref(PreferenceStore.Pref.sa("NAV_BAR_ITEMS_B", (String[]) null));
+			e.removePref(PreferenceStore.Pref.sa("NAV_BAR_ITEMS_L", (String[]) null));
+			e.removePref(PreferenceStore.Pref.sa("NAV_BAR_ITEMS_R", (String[]) null));
+			e.setBooleanPref(PreferenceStore.Pref.b("me.aap.fermata.addon.web.yt.YoutubeAddon_enabled",
+					true), true);
+			e.setBooleanPref(PreferenceStore.Pref.b("me.aap.fermata.addon.tv.TvAddon_enabled", true), true);
+			e.setIntPref(version, 1);
+		}
 	}
 
 	public boolean isConnectedToAuto() {
@@ -83,6 +105,7 @@ public class FermataApplication extends NetSplitCompatApp {
 				if ((ps = preferenceStore) == null) {
 					preferenceStore =
 							ps = SharedPreferenceStore.create(getSharedPreferences("fermata", MODE_PRIVATE));
+					applyForkDefaults(ps);
 				}
 			}
 		}

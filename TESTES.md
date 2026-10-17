@@ -12,6 +12,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
       (se pedir para desinstalar, a assinatura mudou — avisar).
 - [ ] App aparece no AA (Fontes desconhecidas ligado) e abre sem travar.
 - [ ] Tema Moderno ativo por padrão; trilho lateral à esquerda.
+- [ ] Depois de instalar por cima: tema Moderno, trilho à esquerda, YouTube como 1º item e abrindo sozinho (os ajustes antigos são reaplicados uma vez).
 
 ## 1. Navegação (o "voltando / indo / mudando")
 
