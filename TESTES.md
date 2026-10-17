@@ -72,6 +72,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Adicionar uma 2ª lista: o formulário abre vazio (não vem com a anterior).
 - [ ] Botão **+** na barra de cima da TV (em qualquer tela da TV) abre "Adicionar lista IPTV"; o item também está no Menu dentro de listas e grupos.
 - [ ] Adicionar lista só colando o link (Nome vazio): o ✓ aparece em cima à direita; a lista entra com o nome do servidor. Link colado com espaço antes/depois também funciona.
+- [ ] Lista de painel que dá 403 no link M3U (get.php com usuário e senha): o app monta a lista pela API Xtream do painel — canais com as categorias do painel, filmes em "Filmes | categoria"; o guia (EPG) do painel é ligado sozinho. Séries ainda não. Log: "Xtream API list: N channels, M movies".
 - [ ] Formulário de lista: tocar na linha do link só abre o teclado; só o ícone de pasta abre o seletor de arquivos. Colar um link http e confirmar: a lista entra.
 - [ ] Arrastar uma lista para mudar a ordem, sair e voltar: a ordem fica.
 - [ ] Pastas: "Remover pasta" pede confirmação.
