@@ -65,6 +65,7 @@ public class M3uItem extends BrowsableItemBase {
 	}
 
 	private Data parse() {
+		long parseStart = System.currentTimeMillis();
 		String id = getId();
 		VirtualFile m3uFile = (VirtualFile) getResource();
 		VirtualFolder dir = m3uFile.getParent().peek();
@@ -310,6 +311,13 @@ public class M3uItem extends BrowsableItemBase {
 
 		String title = (m3uName == null) ? m3uFile.getName() : m3uName;
 		String subtitle = createSubtitle(ngroups, ntracks);
+		// Big IPTV lists are parsed in memory: their size, time and memory tell how the app copes
+		int entries = ntracks;
+		for (M3uGroupItem g : groups.values()) entries += g.tracks.size();
+		Runtime rt = Runtime.getRuntime();
+		Log.i("M3U parsed: ", title, ": ", entries, " entries, ", ngroups, " groups in ",
+				System.currentTimeMillis() - parseStart, " ms, memory ",
+				(rt.totalMemory() - rt.freeMemory()) >> 20, " of ", rt.maxMemory() >> 20, " MB");
 		return new Data(title, subtitle, children, uriToTrack, cover);
 	}
 
