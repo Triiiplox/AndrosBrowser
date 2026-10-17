@@ -124,7 +124,9 @@ public class FermataApplication extends NetSplitCompatApp {
 	@Nullable
 	@Override
 	public String getCrashReportEmail() {
-		return "andrey.a.pavlenko@gmail.com";
+		// Crashes of builds with a custom APP_ID_SFX (forks) are not reported upstream, see the log file
+		return "me.aap.fermata.auto".equals(BuildConfig.APPLICATION_ID) ||
+				"me.aap.fermata".equals(BuildConfig.APPLICATION_ID) ? "andrey.a.pavlenko@gmail.com" : null;
 	}
 
 	public boolean isMirroringMode() {
