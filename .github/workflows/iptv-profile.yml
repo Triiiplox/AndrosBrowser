@@ -1,0 +1,26 @@
+name: IPTV profile
+
+# Profiles the private playlist in the IPTV_PRIVATE_URL secret. Only counts, groups and titles
+# reach the summary: the playlist and its stream URLs hold the account's password.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/iptv_profile.py'
+      - '.github/workflows/iptv-profile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Profile the private playlist
+        env:
+          IPTV_PRIVATE_URL: ${{ secrets.IPTV_PRIVATE_URL }}
+        run: |
+          python3 scripts/iptv_profile.py report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"

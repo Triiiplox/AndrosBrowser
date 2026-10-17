@@ -2,6 +2,11 @@ name: Build Fermata APK
 
 on:
   push:
+    # The IPTV check scripts and the notes do not change the APK
+    paths-ignore:
+      - 'scripts/iptv_*'
+      - '.github/workflows/iptv-*.yml'
+      - '*.md'
   pull_request:
   workflow_dispatch:
 
