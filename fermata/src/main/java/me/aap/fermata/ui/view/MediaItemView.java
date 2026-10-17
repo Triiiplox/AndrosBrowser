@@ -93,6 +93,8 @@ public class MediaItemView extends ConstraintLayout
 	private final float iconExtraSize;
 	private final int iconBackground;
 	private final boolean boldTitle;
+	@DrawableRes
+	private final int defaultCover;
 	private boolean wideIcon;
 	@Nullable
 	private MediaItemViewHolder holder;
@@ -119,6 +121,7 @@ public class MediaItemView extends ConstraintLayout
 		iconExtraSize = ta.getDimension(R.styleable.MediaItemView_mediaItemIconExtraSize, toPx(ctx, 10));
 		iconBackground = ta.getResourceId(R.styleable.MediaItemView_mediaItemIconBackground, 0);
 		boldTitle = ta.getBoolean(R.styleable.MediaItemView_mediaItemBoldTitle, false);
+		defaultCover = ta.getResourceId(R.styleable.MediaItemView_mediaItemDefaultCover, 0);
 		ta.recycle();
 		MainActivityDelegate a = getMainActivity();
 		applyLayout(ctx, a.isGridView(), a.getPrefs().getTextIconSizePref(a));
@@ -171,6 +174,18 @@ public class MediaItemView extends ConstraintLayout
 		icon.setImageTintList(null);
 		if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
 		icon.setImageBitmap(bm);
+	}
+
+	// The generic video/audio icon is replaced with the theme's cover, if it has one
+	private void setItemIcon(ImageView icon, Item i) {
+		int res = i.getIcon();
+		if ((defaultCover != 0) && ((res == R.drawable.video) || (res == R.drawable.audiotrack))) {
+			icon.setImageTintList(null);
+			if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			icon.setImageResource(defaultCover);
+		} else {
+			setIconResource(icon, res);
+		}
 	}
 
 	private void setIconResource(ImageView icon, @DrawableRes int res) {
@@ -287,19 +302,19 @@ public class MediaItemView extends ConstraintLayout
 												if (bm != null) {
 													setIconBitmap(icon, bm);
 												} else {
-													setIconResource(icon, i.getIcon());
+													setItemIcon(icon, i);
 												}
 											});
 
 							if (!loadIcon.isDone()) {
 								ImageView icon = getIcon();
 								icon.clearAnimation();
-								setIconResource(icon, i.getIcon());
+								setItemIcon(icon, i);
 							}
 						} else {
 							ImageView icon = getIcon();
 							icon.clearAnimation();
-							setIconResource(icon, i.getIcon());
+							setItemIcon(icon, i);
 							cancelLoading();
 						}
 					}
@@ -339,7 +354,7 @@ public class MediaItemView extends ConstraintLayout
 			getSubtitle().setText(R.string.loading);
 		} else {
 			icon.clearAnimation();
-			setIconResource(icon, i.getIcon());
+			setItemIcon(icon, i);
 			getSubtitle().setText("");
 		}
 	}

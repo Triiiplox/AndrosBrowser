@@ -59,3 +59,6 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Texto e ícones legíveis de dia e à noite.
 - [ ] Botões do painel e do trilho fáceis de acertar.
 - [ ] Nada cortado ou sobreposto em 800×480.
+- [ ] Ícone novo (emblema H) no celular e no launcher do AA; card de mídia do AA sem capa mostra o emblema.
+- [ ] Vídeo/áudio sem capa na lista: emblema no card (não o ícone genérico); vídeo com capa continua com a foto.
+- [ ] Ao abrir um vídeo/canal: emblema enchendo no centro da tela enquanto carrega, some quando começa.

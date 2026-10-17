@@ -57,10 +57,21 @@
         <item name="bottomNavigationStyle">@style/AppTheme.Modern.NavBarStyle</item>
         <item name="appControlPanelStyle">@style/AppTheme.Modern.ControlPanelStyle</item>
         <item name="appMediaItemStyle">@style/AppTheme.Modern.MediaItemStyle</item>
+        <item name="appContentLoadingStyle">@style/AppTheme.Modern.ContentLoading</item>
 
     </style>
 
     <!-- The tool bar blends with the window, the buttons carry their own tonal background -->
+    <style name="AppTheme.Modern.ContentLoading" parent="android:Widget.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/logo_loading</item>
+        <item name="android:indeterminateBehavior">cycle</item>
+        <item name="android:indeterminateDuration">1400</item>
+        <item name="android:minWidth">96dp</item>
+        <item name="android:maxWidth">96dp</item>
+        <item name="android:minHeight">72dp</item>
+        <item name="android:maxHeight">72dp</item>
+    </style>
+
     <style name="AppTheme.Modern.ToolBarStyle" parent="Theme.Utils.Base.ToolBarStyle">
         <item name="size">48dp</item>
         <item name="android:colorBackground">?android:attr/colorBackground</item>
@@ -96,6 +107,7 @@
         <item name="mediaItemIconCornerRadius">10dp</item>
         <item name="mediaItemIconExtraSize">18dp</item>
         <item name="mediaItemIconBackground">@drawable/media_item_icon_bg_modern</item>
+        <item name="mediaItemDefaultCover">@drawable/logo_cover</item>
     </style>
 
     <style name="AppTheme.Modern.MediaItemTitle" parent="TextAppearance.Utils.ListItem">

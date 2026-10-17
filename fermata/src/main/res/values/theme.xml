@@ -9,6 +9,7 @@
     <attr name="appVideoInfoStyle" format="reference" />
     <attr name="mediaItemMargin" format="dimension" />
     <attr name="controlPanelMargin" format="dimension" />
+    <attr name="appContentLoadingStyle" format="reference" />
 
     <style name="AppTheme" parent="Theme.Utils.Base">
         <item name="android:forceDarkAllowed" tools:targetApi="q">true</item>
@@ -24,6 +25,7 @@
         <item name="cornerRadius">5dp</item>
         <item name="mediaItemMargin">1dp</item>
         <item name="controlPanelMargin">0dp</item>
+        <item name="appContentLoadingStyle">@android:style/Widget.Material.ProgressBar.Large</item>
     </style>
 
     <style name="AppTheme.MediaItemStyle">

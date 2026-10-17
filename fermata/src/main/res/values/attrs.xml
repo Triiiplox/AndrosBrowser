@@ -13,6 +13,7 @@
         <attr name="mediaItemIconExtraSize" format="dimension" />
         <attr name="mediaItemIconBackground" format="reference" />
         <attr name="mediaItemBoldTitle" format="boolean" />
+        <attr name="mediaItemDefaultCover" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="ControlPanelView">

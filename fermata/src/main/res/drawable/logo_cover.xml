@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Default cover of a playable item without its own picture (Modern theme) -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/logo_emblem"
+    android:inset="14%" />

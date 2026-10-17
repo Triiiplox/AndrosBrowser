@@ -17,7 +17,8 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 | `87339db` | PR upstream #844: sessão de mídia do YouTube em sincronia (voltar, prévias do feed, sair do AA, título) |
 | `285fb55` | PR upstream #839: download de playlist IPTV (chunked e close-delimited) |
 | `853f308` | Crash de build do fork não manda email para o autor upstream (fica no `Fermata.log`) |
-| — | Ícone do app (celular e AA): emblema H + play enviado pelo Andro, fundo escuro do tema; versão monocromática para ícones temáticos |
+| `45c7b30` | Ícone do app (celular e AA): emblema H + play enviado pelo Andro, fundo escuro do tema; versão monocromática para ícones temáticos |
+| — | Emblema no player: capa padrão de vídeo/áudio sem capa e animação de carregamento (tema Moderno); o card do AA sem capa já usa o ícone do app |
 
 ## Em teste
 
