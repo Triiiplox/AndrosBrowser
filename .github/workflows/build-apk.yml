@@ -14,6 +14,50 @@ env:
   JAVA_DISTRIBUTION: 'temurin'
 
 jobs:
+  # Unit tests of the utils library and the app. A separate job, so a failing test is reported
+  # without holding back the APKs.
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run unit tests
+        env:
+          NO_GS: true
+        run: |
+          chmod +x gradlew
+          ./gradlew :utils:testDebugUnitTest :fermata:testAutoDebugUnitTest -PABI=arm64-v8a --continue
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: |
+            depends/utils/build/reports/tests/
+            fermata/build/reports/tests/
+          retention-days: 14
+          if-no-files-found: ignore
+
   build:
     name: Build Fermata Auto APKs
     runs-on: ubuntu-latest
