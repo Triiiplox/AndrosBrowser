@@ -1,0 +1,28 @@
+name: IPTV check
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/iptv_check.py'
+      - '.github/workflows/iptv-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the Brazilian channels of iptv-org
+        run: |
+          python3 scripts/iptv_check.py https://iptv-org.github.io/iptv/countries/br.m3u br-tested.m3u report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iptv-br-tested
+          path: |
+            br-tested.m3u
+            report.md
