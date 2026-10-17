@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="yt_autoplay">Reprodução automática</string>
+    <string name="yt_autoplay_sub">Toca o vídeo ao abrir e retoma o último quando o app inicia</string>
+</resources>

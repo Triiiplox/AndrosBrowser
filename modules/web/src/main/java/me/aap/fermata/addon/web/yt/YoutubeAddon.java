@@ -3,12 +3,15 @@ package me.aap.fermata.addon.web.yt;
 import static me.aap.fermata.BuildConfig.AUTO;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 import me.aap.fermata.FermataApplication;
 import me.aap.fermata.addon.AddonInfo;
@@ -18,6 +21,7 @@ import me.aap.fermata.addon.web.WebBrowserAddon;
 import me.aap.fermata.ui.activity.MainActivityPrefs;
 import me.aap.utils.function.BooleanSupplier;
 import me.aap.utils.function.IntSupplier;
+import me.aap.utils.function.LongSupplier;
 import me.aap.utils.function.Supplier;
 import me.aap.utils.misc.ChangeableCondition;
 import me.aap.utils.pref.PreferenceSet;
@@ -40,6 +44,9 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 	private static final Pref<Supplier<String[]>> YT_BOOKMARKS = Pref.sa("YT_BOOKMARKS");
 	private static final Pref<Supplier<String>> VIDEO_SCALE = Pref.s("VIDEO_SCALE", VideoScale.CONTAIN::prefName);
 	private static final Pref<BooleanSupplier> YT_OPEN_ON_START = Pref.b("YT_OPEN_ON_START", true);
+	private static final Pref<BooleanSupplier> YT_AUTOPLAY = Pref.b("YT_AUTOPLAY", true);
+	private static final Pref<Supplier<String>> YT_LAST_VIDEO = Pref.s("YT_LAST_VIDEO");
+	static final Pref<LongSupplier> YT_RESUME_POS = Pref.l("YT_RESUME_POS", 0L);
 	private static final Pref<BooleanSupplier> YT_AUTO_HIGHEST_QUALITY =
 			Pref.b("YT_AUTO_HIGHEST_QUALITY", false);
 	private static final Pref<BooleanSupplier> YT_SKIP_ADD = AUTO ? Pref.b("YT_SKIP_ADD", true) : null;
@@ -77,6 +84,33 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 		return YT_BOOKMARKS;
 	}
 
+	boolean autoplay() {
+		return getPreferenceStore().getBooleanPref(YT_AUTOPLAY);
+	}
+
+	// The video page opened last, reopened on start when autoplay is on; null when left for the feed
+	@Nullable
+	String getLastVideo() {
+		return getPreferenceStore().getStringPref(YT_LAST_VIDEO);
+	}
+
+	void setLastVideo(@Nullable String url) {
+		PreferenceStore ps = getPreferenceStore();
+		String last = ps.getStringPref(YT_LAST_VIDEO);
+		if ((url == null) || (last == null) || !Objects.equals(videoId(url), videoId(last))) {
+			ps.removePref(YT_RESUME_POS);
+		}
+		if (url == null) ps.removePref(YT_LAST_VIDEO);
+		else ps.applyStringPref(YT_LAST_VIDEO, url);
+	}
+
+	@Nullable
+	private static String videoId(String url) {
+		Uri u = Uri.parse(url);
+		String v = u.getQueryParameter("v");
+		return (v != null) ? v : u.getPath();
+	}
+
 	boolean skipAd() {
 		return AUTO && getPreferenceStore().getBooleanPref(YT_SKIP_ADD);
 	}
@@ -93,6 +127,13 @@ public class YoutubeAddon extends WebBrowserAddon implements PreferenceStore.Lis
 			o.store = getPreferenceStore();
 			o.pref = YT_OPEN_ON_START;
 			o.title = R.string.open_on_start;
+			o.visibility = visibility;
+		});
+		set.addBooleanPref(o -> {
+			o.store = getPreferenceStore();
+			o.pref = YT_AUTOPLAY;
+			o.title = R.string.yt_autoplay;
+			o.subtitle = R.string.yt_autoplay_sub;
 			o.visibility = visibility;
 		});
 		set.addBooleanPref(o -> {

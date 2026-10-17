@@ -327,12 +327,18 @@ class YoutubeMediaEngine implements MediaEngine, OverlayMenu.SelectionHandler {
 		@Override
 		protected FutureSupplier<MediaMetadataCompat> loadMeta() {
 			FutureSupplier<String> getTitle = web.getVideoTitle();
-			return web.getDuration().then(dur -> getTitle.map(title -> {
+			FutureSupplier<String> getId = web.getVideoId();
+			return web.getDuration().then(dur -> getTitle.then(title -> getId.map(id -> {
 				MediaMetadataCompat.Builder b = new MediaMetadataCompat.Builder();
 				b.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
 				b.putLong(MediaMetadata.METADATA_KEY_DURATION, dur);
+				// YouTube's thumbnail of the video, 16:9 without the black bars of hqdefault
+				if ((id != null) && id.matches("[\\w-]{6,20}")) {
+					b.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI,
+							"https://i.ytimg.com/vi/" + id + "/mqdefault.jpg");
+				}
 				return b.build();
-			}));
+			})));
 		}
 
 		@NonNull

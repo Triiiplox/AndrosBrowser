@@ -1,5 +1,6 @@
 package me.aap.fermata.addon.web.yt;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +41,7 @@ import me.aap.utils.ui.view.ToolBarView;
 public class YoutubeFragment extends WebBrowserFragment implements FermataServiceUiBinder.Listener {
 	private static final String DEFAULT_URL = "https://m.youtube.com";
 	private static final Set<String> DEFAULT_URLS = new HashSet<>(Arrays.asList(DEFAULT_URL, DEFAULT_URL + '/'));
-	private static final Pref<LongSupplier> RESUME_POS = Pref.l("YT_RESUME_POS", 0L);
+	private static final Pref<LongSupplier> RESUME_POS = YoutubeAddon.YT_RESUME_POS;
 	private boolean playOnResume;
 
 	@Override
@@ -66,7 +67,7 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 			url = state.getString("url", DEFAULT_URL);
 			pause = state.getBoolean("pause", false);
 		} else {
-			url = DEFAULT_URL;
+			url = getStartUrl(addon);
 			pause = false;
 		}
 
@@ -90,6 +91,23 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 				}
 			}, 3000L);
 		});
+	}
+
+	// With autoplay, a fresh start goes back to the last video, at the saved position
+	private static String getStartUrl(WebBrowserAddon addon) {
+		if (!(addon instanceof YoutubeAddon yt) || !yt.autoplay()) return DEFAULT_URL;
+		String url = yt.getLastVideo();
+		if (url == null) return DEFAULT_URL;
+		PreferenceStore ps = addon.getPreferenceStore();
+		long pos = ps.getLongPref(RESUME_POS);
+		ps.removePref(RESUME_POS);
+		if (pos < 5000L) return url;
+		Uri.Builder b = Uri.parse(url).buildUpon().clearQuery();
+		Uri u = Uri.parse(url);
+		for (String name : u.getQueryParameterNames()) {
+			if (!"t".equals(name)) b.appendQueryParameter(name, u.getQueryParameter(name));
+		}
+		return b.appendQueryParameter("t", (pos / 1000) + "s").build().toString();
 	}
 
 	@Override
@@ -133,6 +151,7 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 
 	@Override
 	public void onPause() {
+		saveResumePosition();
 		if (!BuildConfig.AUTO) {
 			MainActivityDelegate.getActivityDelegate(getContext()).onSuccess(a -> {
 				FermataServiceUiBinder b = a.getMediaServiceBinder();
@@ -145,6 +164,19 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 			});
 		}
 		super.onPause();
+	}
+
+	// The app may be killed while in the background (the car turned off): keep the position for
+	// the autoplay on the next start
+	private void saveResumePosition() {
+		WebBrowserAddon addon = getAddon();
+		if (!(addon instanceof YoutubeAddon yt) || !yt.autoplay()) return;
+		MainActivityDelegate a = MainActivityDelegate.getActivityDelegate(getContext()).peek();
+		if (a == null) return;
+		MediaEngine eng = a.getMediaSessionCallback().getEngine();
+		if (eng instanceof YoutubeMediaEngine) {
+			eng.getPosition().onSuccess(pos -> addon.getPreferenceStore().applyLongPref(RESUME_POS, pos));
+		}
 	}
 
 	@Override

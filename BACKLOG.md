@@ -18,7 +18,8 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 | `285fb55` | PR upstream #839: download de playlist IPTV (chunked e close-delimited) |
 | `853f308` | Crash de build do fork não manda email para o autor upstream (fica no `Fermata.log`) |
 | `45c7b30` | Ícone do app (celular e AA): emblema H + play enviado pelo Andro, fundo escuro do tema; versão monocromática para ícones temáticos |
-| — | Emblema no player: capa padrão de vídeo/áudio sem capa e animação de carregamento (tema Moderno); o card do AA sem capa já usa o ícone do app |
+| `ab6fb76` | Emblema no player: capa padrão de vídeo/áudio sem capa e animação de carregamento (tema Moderno); o card do AA sem capa já usa o ícone do app |
+| — | YouTube: capa do vídeo (miniatura `i.ytimg.com`) no painel e no AA; reprodução automática ao abrir um vídeo, retomar o último vídeo ao iniciar o app, próximo vídeo no fim mesmo sem o autoplay do YouTube (chave nova, ligada por padrão) |
 
 ## Em teste
 

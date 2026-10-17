@@ -107,7 +107,16 @@ public class YoutubeWebView extends FermataWebView {
 		// Leaving the video within the page (e.g. YouTube's own back button) leaves it like goBack(),
 		// even though YouTube keeps playing it as a muted preview
 		String path = Uri.parse(url).getPath();
-		if ((path != null) && (path.startsWith("/watch") || path.startsWith("/shorts"))) return;
+		if ((path != null) && (path.startsWith("/watch") || path.startsWith("/shorts"))) {
+			YoutubeAddon addon = getAddon();
+			if ((addon != null) && addon.autoplay()) {
+				addon.setLastVideo(url);
+				autoplay();
+			}
+			return;
+		}
+		YoutubeAddon addon = getAddon();
+		if (addon != null) addon.setLastVideo(null);
 		MediaSessionCallback cb = MainActivityDelegate.get(getContext()).getMediaSessionCallback();
 		if (cb.getEngine() instanceof YoutubeMediaEngine) cb.onStop();
 	}
@@ -166,6 +175,30 @@ public class YoutubeWebView extends FermataWebView {
 				"   setTimeout(findVideo, 1000);\n" +
 				"}\n" +
 				"findVideo();");
+	}
+
+	// A video page opened in the car may stay paused: the page can be considered hidden, and YouTube
+	// does not start the playback then. Starts it once per video, and stops trying as soon as it plays,
+	// so a pause by the user is left alone.
+	private void autoplay() {
+		evaluateJavascript("""
+				(function() {
+				  var id = new URLSearchParams(location.search).get('v') || location.pathname;
+				  if (window.__fermataAutoplay === id) return;
+				  window.__fermataAutoplay = id;
+				  var tries = 0;
+				  (function check() {
+				    if (window.__fermataAutoplay !== id) return;
+				    var p = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+				    var v = p && p.querySelector('video');
+				    if (v && !v.paused) return;
+				    if (v && (v.readyState > 0) && !v.ended) {
+				      if (typeof p.playVideo === 'function') p.playVideo(); else v.play();
+				    }
+				    if (++tries < 20) setTimeout(check, 500);
+				  })();
+				})();
+				""", null);
 	}
 
 	// Watches the player for as long as the page lives: an ad can start at any time, not only when
@@ -246,7 +279,24 @@ public class YoutubeWebView extends FermataWebView {
 				  const p = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
 				  const fn = '%s';
 				  if (!p || (typeof p[fn] !== 'function')) return false;
+				  const id = () => new URLSearchParams(location.search).get('v');
+				  const before = id();
 				  p[fn]();
+				  // Outside a playlist nextVideo() does nothing when YouTube's own autoplay is off:
+				  // open the first related video instead
+				  if ((fn === 'nextVideo') && before) setTimeout(() => {
+				    if (id() !== before) return;
+				    const other = a => {
+				      try { return new URL(a.href).searchParams.get('v') !== before; } catch (e) { return false; }
+				    };
+				    const links = ['ytm-item-section-renderer[section-identifier="related-items"] a[href*="/watch?v="]',
+				      'ytm-video-with-context-renderer a[href*="/watch?v="]', 'ytm-compact-video-renderer a[href*="/watch?v="]',
+				      'a[href*="/watch?v="]'];
+				    for (const q of links) {
+				      const a = Array.from(document.querySelectorAll(q)).find(other);
+				      if (a) { a.click(); return; }
+				    }
+				  }, 2500);
 				  return true;
 				})();
 				""".formatted(next ? "nextVideo" : "previousVideo"), r -> {
@@ -438,6 +488,18 @@ public class YoutubeWebView extends FermataWebView {
 				  var p = v && v.closest('#movie_player');
 				  var d = p && p.getVideoData && p.getVideoData();
 				  return (d && d.title) || document.title;
+				})()""", json -> p.complete(jsonString(json)));
+		return p;
+	}
+
+	FutureSupplier<String> getVideoId() {
+		Promise<String> p = new Promise<>();
+		evaluateJavascript("""
+				(function() {
+				  var v = document.querySelector('video');
+				  var p = v && v.closest('#movie_player');
+				  var d = p && p.getVideoData && p.getVideoData();
+				  return (d && d.video_id) || new URLSearchParams(location.search).get('v');
 				})()""", json -> p.complete(jsonString(json)));
 		return p;
 	}
