@@ -29,6 +29,7 @@ import me.aap.utils.function.Supplier;
 import me.aap.utils.io.FileUtils;
 import me.aap.utils.io.IoUtils;
 import me.aap.utils.log.Log;
+import me.aap.utils.net.NetHandler;
 import me.aap.utils.pref.BasicPreferenceStore;
 import me.aap.utils.pref.PreferenceStore;
 import me.aap.utils.pref.PreferenceStore.Pref;
@@ -47,8 +48,10 @@ public class HttpFileDownloader {
 	public static final Pref<LongSupplier> TIMESTAMP = Pref.l("TIMESTAMP", 0);
 	public static final Pref<IntSupplier> MAX_AGE = Pref.i("MAX_AGE", 0);
 	public static final Pref<BooleanSupplier> DECODE = Pref.b("DECODE", false);
+	private static final String PLAYER_AGENT = "VLC/3.0.20 LibVLC/3.0.20";
 	private StatusListener statusListener;
 	private boolean returnExistingOnFail;
+	private NetHandler netHandler;
 
 	public void setStatusListener(StatusListener statusListener) {
 		this.statusListener = statusListener;
@@ -56,6 +59,11 @@ public class HttpFileDownloader {
 
 	public void setReturnExistingOnFail(boolean returnExistingOnFail) {
 		this.returnExistingOnFail = returnExistingOnFail;
+	}
+
+	// The app's handler is used when not set
+	public void setNetHandler(NetHandler netHandler) {
+		this.netHandler = netHandler;
 	}
 
 	public FutureSupplier<Status> download(String src, File dst) {
@@ -110,10 +118,17 @@ public class HttpFileDownloader {
 		p.thenRun(() -> cache.remove(key, p));
 
 		var o = new HttpConnection.Opts();
+		o.handler = netHandler;
 		o.url = src;
 		o.responseTimeout = prefs.getIntPref(RESP_TIMEOUT);
 		o.userAgent = prefs.getStringPref(AGENT);
 		if (exist) o.ifNonMatch = prefs.getStringPref(ETAG);
+		connect(o, src, dst, prefs, p, listener, false);
+		return p;
+	}
+
+	private void connect(HttpConnection.Opts o, URL src, File dst, PreferenceStore prefs,
+											 Promise<Status> p, StatusListener listener, boolean retried) {
 		HttpConnection.connect(o, (resp, err) -> {
 			if (err != null) {
 				completeExceptionally(p, err, new DownloadStatus(src, dst, 0), listener);
@@ -135,6 +150,21 @@ public class HttpFileDownloader {
 				Log.d("File not modified: ", src, ". Returning existing file: ", dst);
 				if (listener != null) listener.onSuccess(status);
 				p.complete(status);
+				return completedVoid();
+			}
+
+			// An error page is not the file: it was saved as the file, e.g. an empty IPTV list
+			int code = resp.getStatusCode();
+			if (code >= 400) {
+				// Some IPTV panels refuse the default Java / Dalvik agent: one more try as a media player
+				if (!retried && ((code == 401) || (code == 403)) && !PLAYER_AGENT.equals(o.userAgent)) {
+					Log.i("HTTP ", code, " for ", src, ", retrying as a media player");
+					o.userAgent = PLAYER_AGENT;
+					connect(o, src, dst, prefs, p, listener, true);
+					return completedVoid();
+				}
+				completeExceptionally(p, new IOException("HTTP " + code + ' ' + resp.getReason()),
+						status, listener);
 				return completedVoid();
 			}
 
@@ -195,9 +225,8 @@ public class HttpFileDownloader {
 				p.complete(status);
 			});
 		});
-
-		return p;
 	}
+
 
 	private void completeExceptionally(Promise<Status> p, Throwable err, DownloadStatus status,
 																		 StatusListener listener) {

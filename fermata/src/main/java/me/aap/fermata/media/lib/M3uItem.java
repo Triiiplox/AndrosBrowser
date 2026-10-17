@@ -100,11 +100,14 @@ public class M3uItem extends BrowsableItemBase {
 		long duration = 0;
 		byte type = M3uTrackItem.TYPE_UNKNOWN;
 		boolean first = true;
+		int nlines = 0;
+		String firstLine = null;
 
 		try (BufferedReader r = new BufferedReader(createReader(m3uFile))) {
 			read:
 			for (String l = r.readLine(); l != null; l = r.readLine()) {
 				l = l.trim();
+				if (!l.isEmpty() && (nlines++ == 0)) firstLine = l;
 
 				if (l.isEmpty()) {
 					continue;
@@ -318,6 +321,9 @@ public class M3uItem extends BrowsableItemBase {
 		Log.i("M3U parsed: ", title, ": ", entries, " entries, ", ngroups, " groups in ",
 				System.currentTimeMillis() - parseStart, " ms, memory ",
 				(rt.totalMemory() - rt.freeMemory()) >> 20, " of ", rt.maxMemory() >> 20, " MB");
+		// An empty list: nothing was received (e.g. an expired account), or it is not an M3U
+		if (entries == 0) Log.w("M3U without entries: ", nlines, " lines, starting with: ",
+				(firstLine == null) ? "(nothing)" : firstLine.substring(0, Math.min(40, firstLine.length())));
 		return new Data(title, subtitle, children, uriToTrack, cover);
 	}
 
