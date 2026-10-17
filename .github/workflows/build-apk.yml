@@ -107,6 +107,24 @@ jobs:
           storePassword=${{ secrets.CI_KEYSTORE_PWD }}
           EOF
 
+      # Without a keystore, settings.gradle derives the key from the public default
+      # password. A secret seed keeps the signature stable across builds and private.
+      - name: Create signing key from seed
+        env:
+          SIGNING_SEED: ${{ secrets.FERMATA_SIGNING_SEED }}
+        run: |
+          [ -f local.properties ] && exit 0
+          if [ -z "$SIGNING_SEED" ]; then
+            echo "::warning::FERMATA_SIGNING_SEED is not set, the APK is signed with the public default key"
+            exit 0
+          fi
+          cat > local.properties <<EOF
+          storeFile=$(pwd)/ci-signing.jks
+          keyAlias=fermata
+          keyPassword=$SIGNING_SEED
+          storePassword=$SIGNING_SEED
+          EOF
+
       - name: Build APKs
         env:
           NO_GS: true
