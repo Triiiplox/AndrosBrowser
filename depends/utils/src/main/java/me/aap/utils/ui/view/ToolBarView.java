@@ -21,6 +21,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -296,7 +297,10 @@ public class ToolBarView extends ConstraintLayout implements ActivityListener,
 			lp.dimensionRatio = "1:1";
 			b.setImageResource(icon);
 			b.setScaleType(ImageView.ScaleType.FIT_CENTER);
-			b.setBackgroundResource(R.drawable.focusable_shape_transparent);
+			TypedValue bg = new TypedValue();
+			boolean themed = b.getContext().getTheme()
+					.resolveAttribute(R.attr.toolBarButtonBackground, bg, true) && (bg.resourceId != 0);
+			b.setBackgroundResource(themed ? bg.resourceId : R.drawable.focusable_shape_transparent);
 			if (onClick != null) b.setOnClickListener(onClick);
 			setButtonPadding(b);
 			return b;

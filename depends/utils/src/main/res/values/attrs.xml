@@ -6,6 +6,8 @@
     <attr name="submenu" format="reference" />
     <attr name="numLabels" format="integer" />
     <attr name="itemPadding" format="dimension" />
+    <!-- Optional theme override of the tool bar buttons background -->
+    <attr name="toolBarButtonBackground" format="reference" />
 
     <declare-styleable name="ToolBarView">
         <attr name="size" format="dimension|reference" />

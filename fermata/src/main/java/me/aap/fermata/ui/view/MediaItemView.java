@@ -17,6 +17,7 @@ import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Outline;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -26,6 +27,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.ViewOutlineProvider;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
@@ -35,6 +37,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StyleRes;
@@ -84,6 +87,14 @@ public class MediaItemView extends ConstraintLayout
 	private final ColorStateList iconTint;
 	private final ColorStateList textTint;
 	@Nullable
+	private final ColorStateList subtitleTint;
+	private final float iconAspectRatio;
+	private final float iconCornerRadius;
+	private final float iconExtraSize;
+	private final int iconBackground;
+	private final boolean boldTitle;
+	private boolean wideIcon;
+	@Nullable
 	private MediaItemViewHolder holder;
 	private ProgressUpdater progressUpdater;
 	private VectorDrawableCompat watchedVideoDrawable;
@@ -102,6 +113,12 @@ public class MediaItemView extends ConstraintLayout
 		subtitleTextAppearance = ta.getResourceId(R.styleable.MediaItemView_subtitleTextAppearance, 0);
 		setElevation(ta.getDimension(R.styleable.MediaItemView_elevation, 0));
 		textTint = ta.getColorStateList(R.styleable.MediaItemView_android_textColor);
+		subtitleTint = ta.getColorStateList(R.styleable.MediaItemView_mediaItemSubtitleColor);
+		iconAspectRatio = ta.getFloat(R.styleable.MediaItemView_mediaItemIconAspectRatio, 1f);
+		iconCornerRadius = ta.getDimension(R.styleable.MediaItemView_mediaItemIconCornerRadius, 0);
+		iconExtraSize = ta.getDimension(R.styleable.MediaItemView_mediaItemIconExtraSize, toPx(ctx, 10));
+		iconBackground = ta.getResourceId(R.styleable.MediaItemView_mediaItemIconBackground, 0);
+		boldTitle = ta.getBoolean(R.styleable.MediaItemView_mediaItemBoldTitle, false);
 		ta.recycle();
 		MainActivityDelegate a = getMainActivity();
 		applyLayout(ctx, a.isGridView(), a.getPrefs().getTextIconSizePref(a));
@@ -120,23 +137,53 @@ public class MediaItemView extends ConstraintLayout
 	}
 
 	public void setSize(Context ctx, boolean grid, float size) {
-		setTextAppearance(ctx, getTitle(), titleTextAppearance, size);
-		setTextAppearance(ctx, getSubtitle(), subtitleTextAppearance, size);
+		setTextAppearance(ctx, getTitle(), titleTextAppearance, size, textTint);
+		setTextAppearance(ctx, getSubtitle(), subtitleTextAppearance, size,
+				(subtitleTint != null) ? subtitleTint : textTint);
+		wideIcon = !grid && (iconAspectRatio != 1f);
 		if (!grid) {
-			int iconSize = (int) (getTitle().getTextSize() + getSubtitle().getTextSize() + toPx(ctx,
-					10));
+			int iconSize = (int) (getTitle().getTextSize() + getSubtitle().getTextSize() +
+					iconExtraSize);
 			ImageView i = getIcon();
 			ViewGroup.LayoutParams lp = i.getLayoutParams();
 			lp.height = iconSize;
-			lp.width = iconSize;
+			lp.width = (int) (iconSize * iconAspectRatio);
 			i.setLayoutParams(lp);
+		}
+		if (wideIcon) styleWideIcon(getIcon());
+	}
+
+	// A wide, rounded tile: bitmaps fill it, resource icons are centered on its background
+	private void styleWideIcon(ImageView i) {
+		if (iconBackground != 0) i.setBackgroundResource(iconBackground);
+		if (iconCornerRadius > 0) {
+			i.setOutlineProvider(new ViewOutlineProvider() {
+				@Override
+				public void getOutline(View v, Outline o) {
+					o.setRoundRect(0, 0, v.getWidth(), v.getHeight(), iconCornerRadius);
+				}
+			});
+			i.setClipToOutline(true);
 		}
 	}
 
-	private void setTextAppearance(Context ctx, TextView v, @StyleRes int res, float scale) {
+	private void setIconBitmap(ImageView icon, Bitmap bm) {
+		icon.setImageTintList(null);
+		if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		icon.setImageBitmap(bm);
+	}
+
+	private void setIconResource(ImageView icon, @DrawableRes int res) {
+		icon.setImageTintList(iconTint);
+		if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+		icon.setImageResource(res);
+	}
+
+	private void setTextAppearance(Context ctx, TextView v, @StyleRes int res, float scale,
+																 ColorStateList color) {
 		v.setTextAppearance(res);
 		v.setTextSize(COMPLEX_UNIT_PX, getTextAppearanceSize(ctx, res) * scale);
-		v.setTextColor(textTint);
+		v.setTextColor(color);
 	}
 
 	public void setHolder(@Nullable MediaItemViewHolder holder) {
@@ -238,25 +285,21 @@ public class MediaItemView extends ConstraintLayout
 												cancelLoading();
 
 												if (bm != null) {
-													icon.setImageTintList(null);
-													icon.setImageBitmap(bm);
+													setIconBitmap(icon, bm);
 												} else {
-													icon.setImageTintList(iconTint);
-													icon.setImageResource(i.getIcon());
+													setIconResource(icon, i.getIcon());
 												}
 											});
 
 							if (!loadIcon.isDone()) {
 								ImageView icon = getIcon();
 								icon.clearAnimation();
-								icon.setImageTintList(iconTint);
-								icon.setImageResource(i.getIcon());
+								setIconResource(icon, i.getIcon());
 							}
 						} else {
 							ImageView icon = getIcon();
 							icon.clearAnimation();
-							icon.setImageTintList(iconTint);
-							icon.setImageResource(i.getIcon());
+							setIconResource(icon, i.getIcon());
 							cancelLoading();
 						}
 					}
@@ -290,13 +333,13 @@ public class MediaItemView extends ConstraintLayout
 		if (loading) {
 			rotate.setDuration(1000);
 			rotate.setRepeatCount(Animation.INFINITE);
+			if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 			icon.setImageDrawable(getLoadingDrawable(getContext()));
 			icon.startAnimation(rotate);
 			getSubtitle().setText(R.string.loading);
 		} else {
 			icon.clearAnimation();
-			icon.setImageTintList(iconTint);
-			icon.setImageResource(i.getIcon());
+			setIconResource(icon, i.getIcon());
 			getSubtitle().setText("");
 		}
 	}
@@ -469,7 +512,7 @@ public class MediaItemView extends ConstraintLayout
 
 	private void setState(int surfaceType, boolean activated) {
 		TextView t = getTitle();
-		t.setTypeface(null, surfaceType);
+		t.setTypeface(null, boldTitle ? Typeface.BOLD : surfaceType);
 		t.setActivated(activated);
 		t = getSubtitle();
 		t.setTypeface(null, surfaceType);

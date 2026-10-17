@@ -44,8 +44,11 @@
         <item name="colorControlActivated">#8AB4F8</item>
 
         <!-- Shape and focus -->
-        <item name="cornerRadius">10dp</item>
+        <item name="cornerRadius">16dp</item>
         <item name="boxStrokeWidth">2dp</item>
+        <!-- Cards: 6dp between list items -->
+        <item name="mediaItemMargin">3dp</item>
+        <item name="toolBarButtonBackground">@drawable/tool_bar_button_modern</item>
 
         <!-- Sizes -->
         <item name="toolbarStyle">@style/AppTheme.Modern.ToolBarStyle</item>
@@ -55,8 +58,10 @@
 
     </style>
 
+    <!-- The tool bar blends with the window, the buttons carry their own tonal background -->
     <style name="AppTheme.Modern.ToolBarStyle" parent="Theme.Utils.Base.ToolBarStyle">
         <item name="size">48dp</item>
+        <item name="android:colorBackground">?android:attr/colorBackground</item>
     </style>
 
     <style name="AppTheme.Modern.NavBarStyle" parent="Theme.Utils.Base.NavBarStyle">
@@ -70,6 +75,23 @@
     <style name="AppTheme.Modern.MediaItemStyle" parent="AppTheme.MediaItemStyle">
         <item name="hintColor">#81C995</item>
         <item name="elevation">1dp</item>
+        <item name="titleTextAppearance">@style/AppTheme.Modern.MediaItemTitle</item>
+        <item name="subtitleTextAppearance">@style/AppTheme.Modern.MediaItemSubtitle</item>
+        <item name="mediaItemSubtitleColor">@color/media_item_subtitle_modern</item>
+        <item name="mediaItemBoldTitle">true</item>
+        <!-- A 16:10 artwork tile with rounded corners instead of the square icon -->
+        <item name="mediaItemIconAspectRatio">1.6</item>
+        <item name="mediaItemIconCornerRadius">10dp</item>
+        <item name="mediaItemIconExtraSize">18dp</item>
+        <item name="mediaItemIconBackground">@drawable/media_item_icon_bg_modern</item>
+    </style>
+
+    <style name="AppTheme.Modern.MediaItemTitle" parent="TextAppearance.Utils.ListItem">
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="AppTheme.Modern.MediaItemSubtitle" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">13sp</item>
     </style>
 
 </resources>

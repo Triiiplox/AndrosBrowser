@@ -18,11 +18,13 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 | `285fb55` | PR upstream #839: download de playlist IPTV (chunked e close-delimited) |
 | `853f308` | Crash de build do fork não manda email para o autor upstream (fica no `Fermata.log`) |
 
-## Próximo (aprovado)
+## Em teste
 
-- **Rodada A — visual 2026:** trilho lateral como padrão no AA, cards (raio 16dp, espaço, 64dp),
-  capa 16:9 maior no lugar do ícone, título em negrito e subtítulo em cinza, botões redondos tonais
-  na toolbar. Tudo dentro do tema Moderno.
+- **Rodada A — visual 2026** (aguardando CI + teste no carro): trilho lateral como padrão no AA,
+  cards com raio 16dp e 6dp entre eles, capa 16:10 arredondada no lugar do ícone (foto preenche;
+  ícone fica centrado num fundo tonal), título em negrito, subtítulo cinza, toolbar sem faixa com
+  botões redondos tonais. Tudo dentro do tema Moderno; os outros temas não mudam (exceto o trilho
+  lateral, que é o padrão do AA para todos).
 
 ## Backlog — visual
 
@@ -45,7 +47,7 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
   (`MirrorDisplay`, `MirrorServiceFS`) + **tela dividida do Android no celular** (Waze | YouTube),
   e a central mostra as duas metades. Testar primeiro sem código; se funcionar, polir (paisagem
   por padrão, barras escondidas, offset de toque — upstream #796). Como o APK roda em qualquer
-  carro: recurso **opt-in, desligado por padrão**, rotulado para veículo sem motorista.
+  carro: o Andro decidiu **ligado por padrão**, com chave nas Configurações para desligar.
 - YouTube com Waze no split do AA — áudio + controles no card de mídia (upstream #759).
 - Pôster oficial de filme via TMDB (precisa de chave de API do Andro) — recurso novo, depois.
 

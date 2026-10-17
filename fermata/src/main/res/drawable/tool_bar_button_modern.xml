@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Round tonal tool bar button with the focus ring of focusable_shape_transparent -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/rippleColor">
+    <item android:id="@android:id/mask">
+        <inset android:inset="3dp">
+            <shape android:shape="oval">
+                <solid android:color="?attr/rippleColor" />
+            </shape>
+        </inset>
+    </item>
+
+    <item android:id="@android:id/background">
+        <inset android:inset="3dp">
+            <shape android:shape="oval">
+                <solid android:color="#1C232D" />
+                <stroke
+                    android:width="?attr/boxStrokeWidth"
+                    android:color="@color/focus_color" />
+            </shape>
+        </inset>
+    </item>
+</ripple>
