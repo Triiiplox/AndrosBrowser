@@ -17,7 +17,9 @@ import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Outline;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -57,6 +59,7 @@ import me.aap.fermata.media.lib.MediaLib.ArchiveItem;
 import me.aap.fermata.media.lib.MediaLib.EpgItem;
 import me.aap.fermata.media.lib.MediaLib.Item;
 import me.aap.fermata.media.lib.MediaLib.PlayableItem;
+import me.aap.fermata.media.lib.MediaLib.StreamItem;
 import me.aap.fermata.media.pref.PlayableItemPrefs;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
 import me.aap.fermata.ui.fragment.MediaLibFragment;
@@ -96,6 +99,13 @@ public class MediaItemView extends ConstraintLayout
 	@DrawableRes
 	private final int defaultCover;
 	private boolean wideIcon;
+	// Grid cards wider than square: logos are fitted, not cropped
+	private boolean wideCard;
+	private boolean gridLayout;
+	private float gridRatio = 1f;
+	private Paint livePaint;
+	private Paint liveTextPaint;
+	private String liveText;
 	@Nullable
 	private MediaItemViewHolder holder;
 	private ProgressUpdater progressUpdater;
@@ -128,7 +138,6 @@ public class MediaItemView extends ConstraintLayout
 		iconTint = getIcon().getImageTintList();
 		setLongClickable(true);
 		setOnLongClickListener(this);
-		getCheckBox().setOnCheckedChangeListener(this);
 		setBackgroundResource(R.drawable.media_item_bg);
 		setFocusable(true);
 	}
@@ -136,14 +145,33 @@ public class MediaItemView extends ConstraintLayout
 	public void applyLayout(Context ctx, boolean grid, float size) {
 		removeAllViews();
 		inflate(ctx, grid ? R.layout.media_item_grid_layout : R.layout.media_item_list_layout, this);
+		getCheckBox().setOnCheckedChangeListener(this);
+		gridLayout = grid;
+		gridRatio = grid ? getMainActivity().getGridIconRatio() : 1f;
+		wideCard = grid && (gridRatio > 1f);
+
+		if (wideCard) {
+			ImageView i = getIcon();
+			LayoutParams lp = (LayoutParams) i.getLayoutParams();
+			lp.dimensionRatio = gridRatio + ":1";
+			i.setLayoutParams(lp);
+		}
+
 		setSize(ctx, grid, size);
+	}
+
+	// The screen may switch between list and grid per folder, e.g. TV channels and their EPG
+	private boolean isLayoutStale(MainActivityDelegate a) {
+		boolean grid = a.isGridView();
+		if (grid != gridLayout) return true;
+		return grid && (a.getGridIconRatio() != gridRatio);
 	}
 
 	public void setSize(Context ctx, boolean grid, float size) {
 		setTextAppearance(ctx, getTitle(), titleTextAppearance, size, textTint);
 		setTextAppearance(ctx, getSubtitle(), subtitleTextAppearance, size,
 				(subtitleTint != null) ? subtitleTint : textTint);
-		wideIcon = !grid && (iconAspectRatio != 1f);
+		wideIcon = wideCard || (!grid && (iconAspectRatio != 1f));
 		if (!grid) {
 			int iconSize = (int) (getTitle().getTextSize() + getSubtitle().getTextSize() +
 					iconExtraSize);
@@ -172,8 +200,16 @@ public class MediaItemView extends ConstraintLayout
 
 	private void setIconBitmap(ImageView icon, Bitmap bm) {
 		icon.setImageTintList(null);
-		if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		if (wideCard) setCardScale(icon, 6);
+		else if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
 		icon.setImageBitmap(bm);
+	}
+
+	// A card shows the whole picture, resource icons get more room around them
+	private void setCardScale(ImageView icon, int paddingDp) {
+		int p = (int) toPx(getContext(), paddingDp);
+		icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+		icon.setPadding(p, p, p, p);
 	}
 
 	// The generic video/audio icon is replaced with the theme's cover, if it has one
@@ -181,7 +217,8 @@ public class MediaItemView extends ConstraintLayout
 		int res = i.getIcon();
 		if ((defaultCover != 0) && ((res == R.drawable.video) || (res == R.drawable.audiotrack))) {
 			icon.setImageTintList(null);
-			if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			if (wideCard) setCardScale(icon, 10);
+			else if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 			icon.setImageResource(defaultCover);
 		} else {
 			setIconResource(icon, res);
@@ -190,7 +227,8 @@ public class MediaItemView extends ConstraintLayout
 
 	private void setIconResource(ImageView icon, @DrawableRes int res) {
 		icon.setImageTintList(iconTint);
-		if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+		if (wideCard) setCardScale(icon, 24);
+		else if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 		icon.setImageResource(res);
 	}
 
@@ -229,6 +267,13 @@ public class MediaItemView extends ConstraintLayout
 	}
 
 	public void rebind(@Nullable MediaItemWrapper oldItem, @Nullable MediaItemWrapper newItem) {
+		if ((newItem != null) && isLayoutStale(getMainActivity())) {
+			MainActivityDelegate a = getMainActivity();
+			cancelLoading();
+			if (oldItem != null) oldItem.getItem().removeChangeListener(this);
+			applyLayout(getContext(), a.isGridView(), a.getPrefs().getTextIconSizePref(a));
+			oldItem = null;
+		}
 		if (oldItem == newItem) return;
 		cancelLoading();
 		if (oldItem != null) oldItem.getItem().removeChangeListener(this);
@@ -413,6 +458,7 @@ public class MediaItemView extends ConstraintLayout
 		super.onDrawForeground(canvas);
 		Item item = getItem();
 		VectorDrawableCompat d;
+		if (gridLayout && (item instanceof StreamItem)) drawLiveBadge(canvas);
 
 		if ((item instanceof ArchiveItem) && !((ArchiveItem) item).isExpired()) {
 			d = archiveLabelDrawable;
@@ -457,6 +503,33 @@ public class MediaItemView extends ConstraintLayout
 		int b = i.getBottom();
 		d.setBounds(l + (r - l) / 3, t + (b - t) / 3, r, b);
 		d.draw(canvas);
+	}
+
+	// A small "LIVE" pill in the top left corner of the card
+	private void drawLiveBadge(Canvas canvas) {
+		Context ctx = getContext();
+		if (livePaint == null) {
+			livePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+			livePaint.setColor(0xFFE50914);
+			liveTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+			liveTextPaint.setColor(Color.WHITE);
+			liveTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
+			liveTextPaint.setTextSize(toPx(ctx, 9));
+			liveTextPaint.setLetterSpacing(0.05f);
+			liveText = ctx.getString(R.string.live_badge);
+		}
+		ImageView i = getIcon();
+		float m = toPx(ctx, 6);
+		float px = toPx(ctx, 5);
+		float py = toPx(ctx, 2);
+		Paint.FontMetrics fm = liveTextPaint.getFontMetrics();
+		float w = liveTextPaint.measureText(liveText) + 2 * px;
+		float h = (fm.descent - fm.ascent) + 2 * py;
+		float l = i.getLeft() + m;
+		float t = i.getTop() + m;
+		float r = h / 2;
+		canvas.drawRoundRect(l, t, l + w, t + h, r, r, livePaint);
+		canvas.drawText(liveText, l + px, t + py - fm.ascent, liveTextPaint);
 	}
 
 	public void refresh() {

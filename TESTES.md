@@ -68,6 +68,11 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Abrir canal; trocar de canal pela lista e pelo volante.
 - [ ] Guia (EPG) aparece, se configurado.
 - [ ] Canal fora do ar: mostra erro ou fica preso carregando?
+- [ ] TV em cards (sem tocar no botão de grade): listas, grupos e canais em cards largos; o botão de grade some na TV.
+- [ ] Logo do canal inteiro, centralizado, sem corte; canal sem logo mostra o emblema.
+- [ ] Selo vermelho "AO VIVO" no canto dos canais.
+- [ ] Entrar no guia (EPG) de um canal: vira lista; voltar: volta para os cards, na mesma posição.
+- [ ] Pastas e Favoritos continuam como estavam (lista ou grade, conforme o botão).
 
 ## 5. Vídeo + Waze (atração)
 

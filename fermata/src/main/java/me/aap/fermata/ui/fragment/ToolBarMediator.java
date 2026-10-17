@@ -55,7 +55,8 @@ public class ToolBarMediator implements ToolBarView.Mediator.BackTitleFilter {
 		addButton(tb, R.drawable.title, ToolBarMediator::onViewButtonClick, R.id.tool_view);
 		addButton(tb, R.drawable.sort, ToolBarMediator::onSortButtonClick, R.id.tool_sort);
 
-		if ((f instanceof MediaLibFragment) && ((MediaLibFragment) f).isGridSupported()) {
+		if ((f instanceof MediaLibFragment) && ((MediaLibFragment) f).isGridSupported() &&
+				!((MediaLibFragment) f).isGridForced()) {
 			int gridIcon = a.isGridView() ? R.drawable.view_list : R.drawable.view_grid;
 			addButton(tb, gridIcon, ToolBarMediator::onGridButtonClick, R.id.tool_grid);
 		}

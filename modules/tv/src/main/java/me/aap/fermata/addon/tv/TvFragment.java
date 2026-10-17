@@ -65,6 +65,18 @@ public class TvFragment extends MediaLibFragment {
 		return TvFloatingButtonMediator.instance;
 	}
 
+	// Channels and groups are cards, only the program guide of a channel is a list
+	@Override
+	public boolean isGridForced() {
+		ListAdapter a = getAdapter();
+		return (a == null) || !(a.getParent() instanceof MediaLib.StreamItem);
+	}
+
+	@Override
+	public float getGridIconRatio() {
+		return isGridForced() ? 16f / 9f : 1f;
+	}
+
 	public void navBarItemReselected(int itemId) {
 		getAdapter().setParent(getRootItem());
 	}
@@ -219,6 +231,16 @@ public class TvFragment extends MediaLibFragment {
 		@Override
 		public FutureSupplier<?> setParent(BrowsableItem parent, boolean userAction) {
 			return super.setParent(parent, userAction).onSuccess(v -> animateAddButton(parent));
+		}
+
+		// Entering or leaving a channel's program guide switches between grid and list
+		@Override
+		public FutureSupplier<?> setParent(BrowsableItem parent, boolean userAction, boolean scroll) {
+			boolean grid = getMainActivity().isGridView();
+			FutureSupplier<?> set = super.setParent(parent, userAction, scroll);
+			if ((grid != getMainActivity().isGridView()) && (getView() != null))
+				TvFragment.this.getListView().configure();
+			return set;
 		}
 
 		public boolean isLongPressDragEnabled() {

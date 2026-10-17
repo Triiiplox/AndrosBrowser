@@ -48,6 +48,11 @@ public class MediaItemListView extends RecyclerView implements PreferenceStore.L
 		configure(newConfig);
 	}
 
+	// Re-applies the list / grid layout, when the screen decides it per folder
+	public void configure() {
+		configure(getContext().getResources().getConfiguration());
+	}
+
 	private void configure(Configuration cfg) {
 		Context ctx = getContext();
 		MainActivityDelegate.getActivityDelegate(getContext()).onSuccess(a -> {
@@ -56,9 +61,15 @@ public class MediaItemListView extends RecyclerView implements PreferenceStore.L
 
 			if (grid) {
 				float scale = prefs.getTextIconSizePref(a);
-				int span = (int) Math.max(cfg.screenWidthDp / (128 * scale), 2);
+				// Wide cards need wider columns to keep the logos readable
+				int base = (a.getGridIconRatio() > 1f) ? 168 : 128;
+				int span = (int) Math.max(cfg.screenWidthDp / (base * scale), 2);
+				LayoutManager lm = getLayoutManager();
+				if ((lm instanceof GridLayoutManager) && (((GridLayoutManager) lm).getSpanCount() == span))
+					return;
 				setLayoutManager(new GridLayoutManager(ctx, span));
-			} else {
+			} else if (!(getLayoutManager() instanceof LinearLayoutManager) ||
+					(getLayoutManager() instanceof GridLayoutManager)) {
 				setLayoutManager(new LinearLayoutManager(ctx));
 			}
 		});

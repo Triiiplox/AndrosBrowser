@@ -37,8 +37,9 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
   com play circular (`ControlPanelView`); botão ⋮ visível em cada item.
 - Rodada C: overlay de vídeo para toque — play central 96dp, ±10s nas laterais, vídeo em tela
   cheia, título em degradê.
-- **IPTV estilo streamer:** card com logo do canal, "AO VIVO", programa atual (EPG) e progresso;
-  grupos do M3U como abas. Depende de o M3U ter `tvg-logo` e EPG — *perguntar ao Andro*.
+- **IPTV estilo streamer — rodada B1 feita** (TV sempre em cards 16:9, logo inteiro, selo
+  "AO VIVO", EPG em lista). Falta: grupos do M3U como abas (B2), programa atual (EPG) e progresso
+  no card, hero + fileiras (opção A), mesma grade nas pastas.
 - **Filmes estilo streamer:** cards 16:9 com frame do vídeo e progresso; destaque "Continuar
   assistindo" com Continuar / Do início; nome limpo e ano a partir do nome do arquivo.
 - **Foto real na pasta:** hoje usa `cover.jpg`/`folder.jpg` se existir (`FolderItem.java:215`),

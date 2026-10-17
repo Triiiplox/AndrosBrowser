@@ -340,6 +340,15 @@ public abstract class MediaLibFragment extends MainActivityFragment implements M
 				!getActivityDelegate().getBody().isBothMode();
 	}
 
+	// The screen is always shown as a grid, the grid button is hidden
+	public boolean isGridForced() {
+		return false;
+	}
+
+	public float getGridIconRatio() {
+		return 1f;
+	}
+
 	public int getSupportedSortOpts() {
 		BrowsableItem p = getAdapter().getParent();
 		return (p == null) ? SORT_MASK_NAME_RND : p.getSupportedSortOpts();

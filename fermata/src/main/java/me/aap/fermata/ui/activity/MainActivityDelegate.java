@@ -519,10 +519,16 @@ public class MainActivityDelegate extends ActivityDelegate
 		ActivityFragment f = getActiveFragment();
 
 		if ((f instanceof MediaLibFragment) && ((MediaLibFragment) f).isGridSupported()) {
-			return getPrefs().getGridViewPref(this);
+			return ((MediaLibFragment) f).isGridForced() || getPrefs().getGridViewPref(this);
 		} else {
 			return false;
 		}
+	}
+
+	// Width / height of the grid cards of the active screen
+	public float getGridIconRatio() {
+		MediaLibFragment f = getActiveMediaLibFragment();
+		return (f != null) ? f.getGridIconRatio() : 1f;
 	}
 
 	@NonNull
