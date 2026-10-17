@@ -9,14 +9,19 @@ time: providers often allow a single connection per account.
 Usage: IPTV_PRIVATE_URL=... iptv_profile.py <report.md>
 """
 import collections
+import json
 import os
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
 UA = 'VLC/3.0.20 LibVLC/3.0.20'
+# Panels may refuse some players or datacenter addresses: each try reports its status code only
+AGENTS = [UA, 'IPTVSmartersPro', 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 '
+          '(KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36']
 ATTR = re.compile(r'([\w-]+)="([^"]*)"')
 EPISODE = re.compile(r'\s*[-|]?\s*S(\d{1,2})\s*E(\d{1,3})\b.*$', re.I)
 PROBES = 4
@@ -57,19 +62,60 @@ def probe(url):
         return 'failed: %s' % type(e).__name__
 
 
+def fetch(url, timeout, w):
+    global UA
+    for ua in AGENTS:
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': ua})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                data = r.read()
+            UA = ua
+            return data
+        except urllib.error.HTTPError as e:
+            w('- agent %s: HTTP %d %s\n' % (ua.split('/')[0][:20], e.code, e.reason))
+        except Exception as e:
+            w('- agent %s: %s\n' % (ua.split('/')[0][:20], type(e).__name__))
+    return None
+
+
+def account(url, w):
+    # The Xtream API of the panel tells whether the account is active, without listing it
+    u = urllib.parse.urlparse(url)
+    q = urllib.parse.parse_qs(u.query)
+    if not (q.get('username') and q.get('password')):
+        return
+    api = urllib.parse.urlunparse(u._replace(path='/player_api.php', query=urllib.parse.urlencode(
+        {'username': q['username'][0], 'password': q['password'][0]})))
+    w('\n## Account (Xtream API)\n\n')
+    body = fetch(api, 30, w)
+    if body is None:
+        return
+    try:
+        info = json.loads(body).get('user_info', {})
+    except Exception as e:
+        w('- not JSON: %s, %d bytes\n' % (type(e).__name__, len(body)))
+        return
+    exp = info.get('exp_date')
+    exp = time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(int(exp))) if str(exp).isdigit() else exp
+    w('- status: %s, auth: %s, trial: %s, expires: %s\n' % (info.get('status'), info.get('auth'),
+                                                           info.get('is_trial'), exp))
+    w('- connections: %s active of %s, formats: %s\n' % (info.get('active_cons'),
+                                                         info.get('max_connections'),
+                                                         info.get('allowed_output_formats')))
+
+
 def main():
     url = os.environ.get('IPTV_PRIVATE_URL', '').strip()
     out = open(sys.argv[1], 'w')
     if not url:
         out.write('IPTV_PRIVATE_URL secret not set, nothing to profile.\n')
         return
+    account(url, out.write)
+    out.write('\n## Download\n\n')
     t = time.time()
-    try:
-        req = urllib.request.Request(url, headers={'User-Agent': UA})
-        with urllib.request.urlopen(req, timeout=180) as r:
-            raw = r.read()
-    except Exception as e:
-        out.write('Download failed: %s\n' % type(e).__name__)
+    raw = fetch(url, 180, out.write)
+    if raw is None:
+        out.write('Download failed with every agent.\n')
         return
     secs = time.time() - t
     text = raw.decode('utf-8', 'replace')
