@@ -162,7 +162,7 @@ public class Utils {
 
 		static {
 			var colors =
-					UiUtils.getDrawableColor(FermataApplication.get(), R.drawable.fermata_bg, Color.WHITE);
+					UiUtils.getDrawableColor(FermataApplication.get(), R.drawable.logo_bg, Color.WHITE);
 			COLOR = colors[colors.length - 1];
 		}
 	}

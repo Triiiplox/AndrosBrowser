@@ -70,7 +70,7 @@
             android:resource="@xml/automotive_app_desc" />
         <meta-data
             android:name="com.google.android.gms.car.notification.SmallIcon"
-            android:resource="@drawable/launcher" />
+            android:resource="@drawable/notification" />
         <meta-data
             android:name="androidx.car.app.TintableAttributionIcon"
             android:resource="@drawable/notification" />
