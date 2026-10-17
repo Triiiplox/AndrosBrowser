@@ -64,6 +64,7 @@ import static me.aap.utils.misc.Assert.assertNotNull;
 import static me.aap.utils.misc.MiscUtils.ifNotNull;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -476,10 +477,7 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 				MediaEngine eng = getEngine();
 				assert (eng != null);
 				assert (eng.getSource() != null);
-				if (!eng.requestAudioFocus(audioManager, audioFocusReq)) {
-					Log.i("Audio focus request failed");
-					return completedVoid();
-				}
+				if (!requestAudioFocus(eng)) return completedVoid();
 				long pos = state.getPosition();
 				float speed = getSpeed(engine.getSource());
 				state =
@@ -1259,10 +1257,7 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 		playOnPrepared = true;
 		tryAnotherEngine = true;
 
-		if (!eng.requestAudioFocus(audioManager, audioFocusReq)) {
-			Log.i("Audio focus request failed");
-			return;
-		}
+		if (!requestAudioFocus(eng)) return;
 
 		eng.prepare(i);
 
@@ -1271,6 +1266,28 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 				if ((engine != null) && (engine.getSource() == i)) session.setQueue(q);
 			});
 		}
+	}
+
+	/**
+	 * Requests the audio focus for the engine. When Android refuses it, during a call for example,
+	 * the playback ends in an error that says why, instead of staying in the connecting state with
+	 * nothing on screen telling the user what happened.
+	 */
+	private boolean requestAudioFocus(MediaEngine eng) {
+		if (eng.requestAudioFocus(audioManager, audioFocusReq)) return true;
+		int mode = (audioManager == null) ? -1 : audioManager.getMode();
+		ActivityManager.RunningAppProcessInfo proc = new ActivityManager.RunningAppProcessInfo();
+		ActivityManager.getMyMemoryState(proc);
+		Log.i("Audio focus request failed: audio mode ", mode, ", process importance ",
+				proc.importance);
+		boolean call = (mode == AudioManager.MODE_IN_CALL) ||
+				(mode == AudioManager.MODE_IN_COMMUNICATION) || (mode == AudioManager.MODE_RINGTONE);
+		String msg = lib.getContext().getResources()
+				.getString(call ? R.string.err_audio_focus_call : R.string.err_audio_focus);
+		setPlaybackState(new PlaybackStateCompat.Builder().setActions(SUPPORTED_ACTIONS)
+				.setState(STATE_ERROR, 0, 1.0f)
+				.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, msg).build());
+		return false;
 	}
 
 	private PlaybackStateCompat createPlayingState(PlayableItem i, boolean pause, long qid,
