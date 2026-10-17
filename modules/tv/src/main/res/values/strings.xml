@@ -28,4 +28,6 @@
     <string name="delete_tv_source">Delete IPTV source</string>
     <string name="delete_tv_source_question">Delete \"%1$s\" and its channels from the list? The playlist itself is not affected.</string>
     <string name="default_tv_source_name">Free channels of Brazil (iptv-org)</string>
+    <string name="tv_source_name_hint">Optional, the server name if empty</string>
+    <string name="tv_source_default_name">IPTV list</string>
 </resources>

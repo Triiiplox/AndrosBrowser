@@ -6,4 +6,6 @@
     <string name="delete_tv_source_question">Excluir \"%1$s\" e os canais dela? O arquivo da lista não é apagado.</string>
     <string name="default_tv_source_name">Canais abertos do Brasil (iptv-org)</string>
     <string name="err_failed_to_add_tv_source">Não foi possível adicionar a lista: %1$s</string>
+    <string name="tv_source_name_hint">Opcional — se vazio, usa o nome do servidor</string>
+    <string name="tv_source_default_name">Lista IPTV</string>
 </resources>

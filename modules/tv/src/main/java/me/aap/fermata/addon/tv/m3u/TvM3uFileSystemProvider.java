@@ -17,6 +17,8 @@ import static me.aap.utils.async.Completed.completedNull;
 import static me.aap.utils.net.http.HttpFileDownloader.AGENT;
 import static me.aap.utils.net.http.HttpFileDownloader.RESP_TIMEOUT;
 
+import android.net.Uri;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -46,6 +48,7 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 		PreferenceStore ps = PrefsHolder.instance;
 		return requestPrefs(a, ps).thenRun(ps::removeBroadcastListeners).then(ok -> {
 			if (!ok) return completedNull();
+			setDefaultName(a, ps);
 			return load(ps, TvM3uFileSystem.getInstance()).cast();
 		}).onSuccess(m3u -> {
 			// The values are kept for a retry after a failure, not for the next source
@@ -84,6 +87,7 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 
 		return requestPrefs(a, ps).thenRun(ps::removeBroadcastListeners).map(ok -> {
 			if (!ok) return false;
+			setDefaultName(a, ps);
 			setPrefs(ps, f);
 
 			if (!Objects.equals(url, f.getUrl())
@@ -105,10 +109,13 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 			o.store = ps;
 			o.pref = NAME;
 			o.title = me.aap.fermata.R.string.m3u_playlist_name;
+			o.hint = R.string.tv_source_name_hint;
+			o.trim = true;
 		});
 		prefs.addFilePref(o -> {
 			o.store = ps;
 			o.pref = URL;
+			o.trim = true;
 			o.mode = FilePickerFragment.FILE;
 			o.title = me.aap.fermata.R.string.m3u_playlist_location;
 			o.stringHint = a.getString(me.aap.fermata.R.string.m3u_playlist_location_hint);
@@ -194,9 +201,29 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 		return requestPrefs(a, prefs, ps);
 	}
 
+	// The name is optional: the OK button showed up only with a name, and an empty name left a
+	// pasted URL with no way to confirm it
+	private static void setDefaultName(MainActivityDelegate a, PreferenceStore ps) {
+		String url = ps.getStringPref(URL).trim();
+		ps.applyStringPref(URL, url);
+		String name = ps.getStringPref(NAME);
+		if ((name != null) && !TextUtils.isBlank(name)) return;
+		String host = Uri.parse(url).getHost();
+		ps.applyStringPref(NAME, (host != null) ? host : a.getString(R.string.tv_source_default_name));
+	}
+
 	@Override
 	protected boolean validate(PreferenceStore ps) {
-		if (!super.validate(ps)) return false;
+		String u = ps.getStringPref(URL);
+		if ((u == null) || TextUtils.isBlank(u)) return false;
+		u = u.trim();
+		boolean ok;
+		if (u.startsWith("http://")) ok = u.length() > 7;
+		else if (u.startsWith("https://")) ok = u.length() > 8;
+		else if (u.startsWith("content://")) ok = u.length() > 10;
+		else if (u.startsWith("/")) ok = new java.io.File(u).isFile();
+		else ok = false;
+		if (!ok) return false;
 		String q;
 
 		switch (ps.getIntPref(CATCHUP_TYPE)) {
