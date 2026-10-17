@@ -39,6 +39,10 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 - **YouTube "modo carro":** CSS injetado na página `m.youtube.com` para alvos maiores e menos
   poluição; opção de abrir o vídeo direto em tela cheia no AA (issue upstream #806); usar os
   controles do próprio YouTube em tela cheia (PR upstream #840).
+- **YouTube com Waze na tela dividida — só áudio:** o áudio do vídeo continua tocando e o card de
+  mídia do split mostra título, capa e anterior/pausa/próximo (hoje os controles somem no split,
+  upstream #759). **Vídeo no split com navegação ativa não entra** (motorista vendo vídeo em
+  movimento; e o painel de mídia do split do AA é template, não superfície de vídeo — a confirmar).
 - Pôster oficial de filme via TMDB (precisa de chave de API do Andro) — recurso novo, depois.
 
 ## Backlog — bugs
