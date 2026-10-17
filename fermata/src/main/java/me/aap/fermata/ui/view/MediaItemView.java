@@ -146,6 +146,8 @@ public class MediaItemView extends ConstraintLayout
 		removeAllViews();
 		inflate(ctx, grid ? R.layout.media_item_grid_layout : R.layout.media_item_list_layout, this);
 		getCheckBox().setOnCheckedChangeListener(this);
+		// Shown by refreshCheckbox() when the list is in selection mode
+		getCheckBox().setVisibility(GONE);
 		gridLayout = grid;
 		gridRatio = grid ? getMainActivity().getGridIconRatio() : 1f;
 		wideCard = grid && (gridRatio > 1f);

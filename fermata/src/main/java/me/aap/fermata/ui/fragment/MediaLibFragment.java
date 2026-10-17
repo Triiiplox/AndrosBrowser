@@ -438,8 +438,15 @@ public abstract class MediaLibFragment extends MainActivityFragment implements M
 				for (MediaItemWrapper w : getAdapter().getList()) {
 					MediaItemView v = w.getView();
 					if (v == null) continue;
-					if (viewChanged) v.applyLayout(ctx, grid, size);
-					else v.setSize(ctx, grid, size);
+					if (viewChanged) {
+						// The new layout is empty: bind the item again to fill it
+						v.applyLayout(ctx, grid, size);
+						v.rebind(w, null);
+						v.rebind(null, w);
+						v.refreshCheckbox();
+					} else {
+						v.setSize(ctx, grid, size);
+					}
 				}
 			}
 

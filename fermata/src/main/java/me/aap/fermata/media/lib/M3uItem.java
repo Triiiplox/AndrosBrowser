@@ -11,6 +11,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -549,10 +550,17 @@ public class M3uItem extends BrowsableItemBase {
 			cs = m3u.getCharacterEncoding();
 		}
 
-		if (enc != null) {
-			if ("gzip".equals(enc)) {
-				in = new GZIPInputStream(in);
-			} else if ("deflate".equals(enc)) {
+		// The saved encoding may not match the file: a list rebuilt in place (e.g. from an Xtream
+		// API) is plain text, a server may gzip without saying so. The gzip magic number decides.
+		if (!in.markSupported()) in = new BufferedInputStream(in);
+		in.mark(2);
+		boolean gzip = (in.read() == 0x1F) && (in.read() == 0x8B);
+		in.reset();
+
+		if (gzip) {
+			in = new GZIPInputStream(in);
+		} else if ((enc != null) && !"gzip".equals(enc)) {
+			if ("deflate".equals(enc)) {
 				in = new InflaterInputStream(in);
 			} else {
 				throw new IOException("Unsupported content encoding: " + enc);

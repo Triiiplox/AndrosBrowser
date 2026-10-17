@@ -89,6 +89,10 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Entrar no guia (EPG) de um canal: vira lista; voltar: volta para os cards, na mesma posição.
 - [ ] Pastas em cards 16:9 com o quadro do vídeo (preenchendo o card); o botão de grade volta para lista se preferir.
 
+- [ ] Lista dos painéis (bestway / nanoignite): **apagar e adicionar de novo**. Aparecem os grupos de canais e "Filmes | …" (antes: lista vazia). Log: "Xtream API list: N channels" e "M3U parsed: …: N entries" com N > 0.
+- [ ] Abrir a lista não fecha o app (antes: falta de memória com a lista inteira).
+- [ ] TV: os cards mostram nome e ícone, sem a caixinha de seleção (antes: cards vazios com caixinha).
+
 ## 5. Vídeo + Waze (atração)
 
 - [ ] Espelhamento do Fermata em paisagem + tela dividida do celular (Waze | YouTube).
