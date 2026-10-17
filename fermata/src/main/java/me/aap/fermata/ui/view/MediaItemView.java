@@ -200,8 +200,12 @@ public class MediaItemView extends ConstraintLayout
 
 	private void setIconBitmap(ImageView icon, Bitmap bm) {
 		icon.setImageTintList(null);
-		if (wideCard) setCardScale(icon, 6);
-		else if (wideIcon) icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		if (wideCard && !getMainActivity().isGridIconCropped()) {
+			setCardScale(icon, 6);
+		} else if (wideIcon) {
+			icon.setPadding(0, 0, 0, 0);
+			icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		}
 		icon.setImageBitmap(bm);
 	}
 

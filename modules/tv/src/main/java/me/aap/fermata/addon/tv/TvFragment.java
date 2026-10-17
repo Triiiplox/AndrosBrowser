@@ -83,6 +83,12 @@ public class TvFragment extends MediaLibFragment {
 		return isGridForced() ? 16f / 9f : 1f;
 	}
 
+	// Channel logos are shown whole
+	@Override
+	public boolean isGridIconCropped() {
+		return false;
+	}
+
 	public void navBarItemReselected(int itemId) {
 		getAdapter().setParent(getRootItem());
 	}

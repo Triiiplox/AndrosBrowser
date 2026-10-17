@@ -127,6 +127,7 @@ public class YoutubeWebView extends FermataWebView {
 		attachListeners();
 		injectSponsorBlock();
 		injectAdSkip();
+		injectContinueWatching();
 		injectTapFullScreen();
 		addFocusHighlight();
 		CookieManager.getInstance().flush();
@@ -189,18 +190,64 @@ public class YoutubeWebView extends FermataWebView {
 				  var id = new URLSearchParams(location.search).get('v') || location.pathname;
 				  if (window.__fermataAutoplay === id) return;
 				  window.__fermataAutoplay = id;
-				  var tries = 0;
+				  window.__fermataPausedBy = null;
+				  if (!window.__fermataTouchWatch) {
+				    window.__fermataTouchWatch = true;
+				    document.addEventListener('touchstart', function() { window.__fermataTouch = Date.now(); },
+				      {capture: true, passive: true});
+				  }
+				  var tries = 0, start = Date.now();
 				  (function check() {
-				    if (window.__fermataAutoplay !== id) return;
+				    if ((window.__fermataAutoplay !== id) || (window.__fermataPausedBy === id)) return;
 				    var p = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
 				    var v = p && p.querySelector('video');
-				    if (v && !v.paused) return;
-				    if (v && (v.readyState > 0) && !v.ended) {
-				      console.log('Fermata autoplay: starting ' + id);
+				    if (v && !v.__fermataPauseWatch) {
+				      v.__fermataPauseWatch = true;
+				      v.addEventListener('pause', function() {
+				        if (Date.now() - (window.__fermataTouch || 0) < 2000) window.__fermataPausedBy = window.__fermataAutoplay;
+				      });
+				    }
+				    if (v && !v.paused) {
+				      console.log('Fermata autoplay: ' + id + ' playing after ' + (Date.now() - start) + ' ms');
+				      return;
+				    }
+				    // A slow network may take longer than a few seconds to load the video: keep trying, and
+				    // ask the player to load it now and then even when nothing is loaded yet
+				    if (v && !v.ended && ((v.readyState > 0) || (tries % 6 === 5))) {
 				      if (typeof p.playVideo === 'function') p.playVideo(); else v.play();
 				    }
-				    if (++tries < 20) setTimeout(check, 500);
+				    if (++tries < 60) setTimeout(check, 500);
+				    else console.log('Fermata autoplay: ' + id + ' not started after 30 s');
 				  })();
+				})();
+				""", null);
+	}
+
+	// YouTube pauses after a while without touches and asks whether to continue: nobody answers in
+	// the car, so the answer is yes
+	private void injectContinueWatching() {
+		evaluateJavascript("""
+				(function() {
+				  if (window.__fermataStillWatching) return;
+				  window.__fermataStillWatching = true;
+				  var ask = /continue watching|still watching|continuar assistindo|continuar a assistir|ainda est/i;
+				  var yes = /^(yes|sim|continuar|continue)/i;
+				  setInterval(function() {
+				    var dialogs = document.querySelectorAll('[role="dialog"], ytm-dialog, yt-confirm-dialog-renderer, ' +
+				      'tp-yt-paper-dialog, ytm-confirm-dialog-renderer');
+				    for (var i = 0; i < dialogs.length; i++) {
+				      var d = dialogs[i];
+				      if (!ask.test(d.textContent || '')) continue;
+				      var b = Array.from(d.querySelectorAll('button, [role="button"]'))
+				        .find(function(x) { return yes.test((x.textContent || '').trim()); });
+				      if (!b) continue;
+				      console.log('Fermata: answering "continue watching"');
+				      b.click();
+				      var p = document.querySelector('#movie_player') || document.querySelector('.html5-video-player');
+				      setTimeout(function() { if (p && (typeof p.playVideo === 'function')) p.playVideo(); }, 500);
+				      return;
+				    }
+				  }, 3000);
 				})();
 				""", null);
 	}
@@ -323,11 +370,14 @@ public class YoutubeWebView extends FermataWebView {
 	}
 
 	void play() {
-		loadUrl("javascript:var v = document.querySelector('video'); if (v != null) v.play();");
+		loadUrl("javascript:window.__fermataPausedBy = null;" +
+				"var v = document.querySelector('video'); if (v != null) v.play();");
 	}
 
+	// A pause from the app (panel, steering wheel) is kept: autoplay does not resume the video
 	void pause() {
-		loadUrl("javascript:var v = document.querySelector('video'); if (v != null) v.pause();");
+		loadUrl("javascript:window.__fermataPausedBy = window.__fermataAutoplay;" +
+				"var v = document.querySelector('video'); if (v != null) v.pause();");
 	}
 
 	void stop() {
@@ -357,7 +407,7 @@ public class YoutubeWebView extends FermataWebView {
 				  // Poll instead of waiting the worst case
 				  if ((fn === 'nextVideo') && before) (function wait(n) {
 				    if (id() !== before) return;
-				    if (n < 6) { setTimeout(wait, 200, n + 1); return; }
+				    if (n < 3) { setTimeout(wait, 200, n + 1); return; }
 				    const other = a => {
 				      try { return new URL(a.href).searchParams.get('v') !== before; } catch (e) { return false; }
 				    };

@@ -59,6 +59,10 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Em tela cheia: voltar sai da tela cheia (vídeo continua); voltar de novo vai para o feed.
 - [ ] Mandar o `Fermata.log` desse teste: procurar "Full screen on", "Fermata tap" e "fullscreen refused".
 - [ ] Num vídeo, tocar de novo em **YouTube** no trilho: vai para a home do YouTube (como a aba Início do app). Na home, tocar de novo: volta ao topo. Em tela cheia: o 1º toque sai da tela cheia, o 2º vai para a home.
+- [ ] Vídeo que demora a carregar (rede fraca): começa sozinho, sem apertar play (o app insiste por até 30 s).
+- [ ] Pausar pelo YouTube (toque) ou pelo painel/volante: o vídeo fica pausado (o autoplay não despausa).
+- [ ] Depois de muito tempo sem tocar na tela: o "Continuar assistindo?" do YouTube é respondido sozinho e o vídeo segue.
+- [ ] Próximo vídeo (fim do vídeo ou botão próximo): troca mais rápido; mandar Fermata.log ("Fermata autoplay: … playing after N ms").
 
 ## 4. IPTV
 
@@ -79,7 +83,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Logo do canal inteiro, centralizado, sem corte; canal sem logo mostra o emblema.
 - [ ] Selo vermelho "AO VIVO" no canto dos canais.
 - [ ] Entrar no guia (EPG) de um canal: vira lista; voltar: volta para os cards, na mesma posição.
-- [ ] Pastas e Favoritos continuam como estavam (lista ou grade, conforme o botão).
+- [ ] Pastas em cards 16:9 com o quadro do vídeo (preenchendo o card); o botão de grade volta para lista se preferir.
 
 ## 5. Vídeo + Waze (atração)
 

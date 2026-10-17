@@ -100,6 +100,12 @@ public class FoldersFragment extends MediaLibFragment {
 		getAdapter().setParent(getLib().getFolders());
 	}
 
+	// Videos as wide cards with their frame, like the TV channels
+	@Override
+	public float getGridIconRatio() {
+		return 16f / 9f;
+	}
+
 	@Override
 	protected boolean isRefreshSupported() {
 		return true;

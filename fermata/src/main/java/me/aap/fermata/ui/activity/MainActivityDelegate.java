@@ -531,6 +531,11 @@ public class MainActivityDelegate extends ActivityDelegate
 		return (f != null) ? f.getGridIconRatio() : 1f;
 	}
 
+	public boolean isGridIconCropped() {
+		MediaLibFragment f = getActiveMediaLibFragment();
+		return (f == null) || f.isGridIconCropped();
+	}
+
 	@NonNull
 	public FermataServiceUiBinder getMediaServiceBinder() {
 		return mediaServiceBinder;

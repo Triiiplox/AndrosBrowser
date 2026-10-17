@@ -349,6 +349,11 @@ public abstract class MediaLibFragment extends MainActivityFragment implements M
 		return 1f;
 	}
 
+	// Pictures fill the cards (video frames, covers), logos are shown whole instead
+	public boolean isGridIconCropped() {
+		return true;
+	}
+
 	public int getSupportedSortOpts() {
 		BrowsableItem p = getAdapter().getParent();
 		return (p == null) ? SORT_MASK_NAME_RND : p.getSupportedSortOpts();
