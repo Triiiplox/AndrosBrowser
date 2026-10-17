@@ -37,7 +37,9 @@ public class KeyEventHandler {
 	private static boolean handleKeyEvent(MediaSessionCallback cb,
 																				@Nullable MainActivityDelegate activity, KeyEvent event,
 																				IntObjectFunction<KeyEvent, Boolean> defaultHandler) {
-		Log.i((activity == null) ? "Media: " : "Activity: ", event);
+		// A held key repeats every ~50ms: only its first event goes to the release log
+		if (event.getRepeatCount() == 0) Log.i((activity == null) ? "Media: " : "Activity: ", event);
+		else Log.d((activity == null) ? "Media: " : "Activity: ", event);
 
 		if (event.isCanceled()) {
 			worker = null;
@@ -76,7 +78,7 @@ public class KeyEventHandler {
 
 		if (((clickAction == dblClickAction) && (clickAction == longClickAction)) ||
 				((dblClickAction == Action.NONE) && (longClickAction == Action.NONE))) {
-			Log.i(k, " key click");
+			Log.d(k, " key click");
 			performAction(clickAction, cb, activity, uptimeMillis());
 			return true;
 		}
@@ -121,7 +123,7 @@ public class KeyEventHandler {
 		public void run() {
 			if (worker != this) return;
 			if (up) {
-				Log.i(key, " key click");
+				Log.d(key, " key click");
 				handle(clickAction);
 				return;
 			}
@@ -149,7 +151,7 @@ public class KeyEventHandler {
 				case ACTION_DOWN -> {
 					if (!up) {
 						if ((longClickAction == clickAction) || (longClickAction == Action.NONE)) {
-							Log.i(key, " key click");
+							Log.d(key, " key click");
 							handle(clickAction);
 						}
 					}
@@ -163,7 +165,7 @@ public class KeyEventHandler {
 							Log.i(key, " key double click");
 							handle(dblClickAction);
 						} else if (dblClickAction == clickAction) {
-							Log.i(key, " key click");
+							Log.d(key, " key click");
 							handle(clickAction);
 						} else {
 							up = true;
@@ -173,7 +175,7 @@ public class KeyEventHandler {
 					} else {
 						worker = null;
 						if (longClickTime == time) {
-							Log.i(key, " key click");
+							Log.d(key, " key click");
 							handle(clickAction);
 						}
 					}

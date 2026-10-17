@@ -26,6 +26,10 @@ public abstract class Logger {
 
 	public abstract boolean isLoggable(Log.Level level);
 
+	// Writes the pending messages now, e.g. before the process dies on a crash
+	public void flush() {
+	}
+
 	public void formatMessage(Log.Level level, StringBuilder sb, Object... msg) {
 		boolean threadName = addThreadName();
 		boolean callerName = addCallerName();

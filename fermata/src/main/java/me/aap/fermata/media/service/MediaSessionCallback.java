@@ -1292,7 +1292,15 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 				.addCustomAction(i.isFavoriteItem() ? customFavoritesRemove : customFavoritesAdd).build();
 	}
 
+	private int loggedState = -1;
+
 	private void setPlaybackState(PlaybackStateCompat state) {
+		if (state.getState() != loggedState) {
+			loggedState = state.getState();
+			PlayableItem cur = getCurrentItem();
+			Log.i("Playback ", stateName(loggedState), " at ", state.getPosition() / 1000, "s: ",
+					(cur == null) ? "-" : cur.getName());
+		}
 		currentState = state;
 		session.setPlaybackState(state);
 		if ((state.getState() == STATE_PLAYING) && !session.isActive()) session.setActive(true);
@@ -1310,6 +1318,20 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 		} else {
 			stopTimer();
 		}
+	}
+
+	private static String stateName(int s) {
+		return switch (s) {
+			case PlaybackStateCompat.STATE_NONE -> "none";
+			case PlaybackStateCompat.STATE_STOPPED -> "stopped";
+			case PlaybackStateCompat.STATE_PAUSED -> "paused";
+			case PlaybackStateCompat.STATE_PLAYING -> "playing";
+			case PlaybackStateCompat.STATE_BUFFERING -> "buffering";
+			case PlaybackStateCompat.STATE_ERROR -> "error";
+			case PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> "skipping to next";
+			case PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS -> "skipping to previous";
+			default -> String.valueOf(s);
+		};
 	}
 
 	@NonNull

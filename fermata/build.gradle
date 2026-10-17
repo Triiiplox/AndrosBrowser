@@ -7,6 +7,8 @@ android {
         versionCode VERSION_CODE
         versionName VERSION_NAME
         base.archivesName = "fermata-$versionName"
+        // Shown in Fermata.log, to tell which build a log comes from
+        buildConfigField "String", "GIT_COMMIT", "\"${(System.getenv('GITHUB_SHA') ?: 'local').take(7)}\""
 
         ndk {
             //noinspection ChromeOsAbiSupport

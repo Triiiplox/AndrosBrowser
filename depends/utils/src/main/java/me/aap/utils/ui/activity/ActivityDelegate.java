@@ -156,7 +156,11 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 		setUncaughtExceptionHandler();
 	}
 
+	private Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler;
+
 	protected void setUncaughtExceptionHandler() {
+		var h = Thread.getDefaultUncaughtExceptionHandler();
+		if (h != this) defaultUncaughtExceptionHandler = h;
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}
 
@@ -222,6 +226,15 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 		getAppActivity().finish();
 	}
 
+	protected String resName(int id) {
+		if (id == ID_NULL) return "none";
+		try {
+			return getContext().getResources().getResourceEntryName(id);
+		} catch (Exception ignore) {
+			return String.valueOf(id);
+		}
+	}
+
 	public void recreate() {
 		Log.d("Recreating");
 		recreating = true;
@@ -235,6 +248,12 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 	@Override
 	public void uncaughtException(@NonNull Thread t, @NonNull Throwable err) {
 		Log.e(err, "Uncaught exception in thread ", t);
+		Log.flush();
+		// Without a crash report address, let the system close the app (it was left frozen)
+		if ((App.get().getCrashReportEmail() == null) && (defaultUncaughtExceptionHandler != null)) {
+			defaultUncaughtExceptionHandler.uncaughtException(t, err);
+			return;
+		}
 		sendCrashReport(err);
 	}
 
@@ -366,6 +385,7 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 	@Nullable
 	public ActivityFragment showFragment(@IdRes int id, Object input) {
 		int activeId = getActiveFragmentId();
+		if (id != activeId) Log.i("Screen: ", resName(activeId), " -> ", resName(id));
 
 		if (id == activeId) {
 			var f = getActiveFragment();
@@ -434,7 +454,9 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 	}
 
 	public void onBackPressed() {
+		Log.i("Back pressed on ", resName(getActiveFragmentId()));
 		if (backPressed) {
+			Log.i("Back pressed twice: exit");
 			finish();
 			return;
 		}
@@ -460,6 +482,7 @@ public abstract class ActivityDelegate implements EventBroadcaster<ActivityListe
 			}
 		}
 
+		Log.i("Back not handled, exit on Back: ", exitOnBackPressed());
 		if (exitOnBackPressed()) {
 			backPressed = true;
 			Toast.makeText(getContext(), getExitMsg(), Toast.LENGTH_SHORT).show();

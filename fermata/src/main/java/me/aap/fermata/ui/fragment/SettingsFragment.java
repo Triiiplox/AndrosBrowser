@@ -944,14 +944,24 @@ public class SettingsFragment extends MainActivityFragment
 
 	private void openLog(MainActivityDelegate a) {
 		try {
-			var i = new Intent(Intent.ACTION_SEND);
 			var app = FermataApplication.get();
+			Log.flush();
 			var f = app.getLogFile();
-			Uri u = (SDK_INT >= Build.VERSION_CODES.N) ?
-					FileProvider.getUriForFile(app, app.getPackageName() + ".FileProvider", f) :
-					Uri.fromFile(f);
+			// The previous part of the log (rotated) goes too: it often holds the trip that failed
+			var old = new File(f.getAbsolutePath() + ".old");
+			var uris = new ArrayList<Uri>(2);
+			if (old.isFile()) uris.add(FileProvider.getUriForFile(app, app.getPackageName() + ".FileProvider", old));
+			uris.add(FileProvider.getUriForFile(app, app.getPackageName() + ".FileProvider", f));
+			Intent i;
+			if (uris.size() == 1) {
+				i = new Intent(Intent.ACTION_SEND);
+				i.putExtra(Intent.EXTRA_STREAM, uris.get(0));
+			} else {
+				i = new Intent(Intent.ACTION_SEND_MULTIPLE);
+				i.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+			}
 			i.setType("text/plain");
-			i.putExtra(Intent.EXTRA_STREAM, u);
+			i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			a.startActivity(Intent.createChooser(i, app.getString(R.string.open_log)));
 		} catch (Exception err) {
 			Log.e(err);

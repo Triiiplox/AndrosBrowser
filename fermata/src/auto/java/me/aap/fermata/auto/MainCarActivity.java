@@ -50,6 +50,7 @@ import me.aap.fermata.R;
 import me.aap.fermata.media.service.FermataMediaServiceConnection;
 import me.aap.fermata.ui.activity.FermataActivity;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
+import me.aap.fermata.util.Diag;
 import me.aap.fermata.ui.view.MediaItemListView;
 import me.aap.fermata.ui.view.VideoView;
 import me.aap.utils.async.FutureSupplier;
@@ -85,6 +86,7 @@ public class MainCarActivity extends CarActivity implements FermataActivity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		Log.i("Android Auto: connected");
 		MainActivityDelegate.setTheme(this, true);
 		super.onCreate(savedInstanceState);
 		initCarActivity(this);
@@ -113,18 +115,21 @@ public class MainCarActivity extends CarActivity implements FermataActivity {
 		ActivityDelegate.setContextToDelegate(ctx -> d);
 		delegate = completed(d);
 		d.onActivityCreate(state);
+		Diag.logCar(d);
 		return d;
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
+		Log.i("Android Auto: Fermata on screen");
 		getActivityDelegate().onSuccess(MainActivityDelegate::onActivityResume);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public void onDestroy() {
+		Log.i("Android Auto: disconnected");
 		super.onDestroy();
 		getActivityDelegate().onSuccess(MainActivityDelegate::onActivityDestroy)
 				.thenRun(() -> ActivityDelegate.setContextToDelegate(null));

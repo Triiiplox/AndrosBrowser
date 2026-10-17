@@ -18,6 +18,7 @@ import java.util.Locale;
 import me.aap.fermata.addon.AddonManager;
 import me.aap.fermata.media.engine.BitmapCache;
 import me.aap.fermata.ui.activity.MainActivityPrefs;
+import me.aap.fermata.util.Diag;
 import me.aap.fermata.vfs.FermataVfsManager;
 import me.aap.utils.app.App;
 import me.aap.utils.app.NetSplitCompatApp;
@@ -46,6 +47,13 @@ public class FermataApplication extends NetSplitCompatApp {
 		super.onCreate();
 		vfsManager = new FermataVfsManager();
 		bitmapCache = new BitmapCache();
+		Diag.logStart(this);
+	}
+
+	@Override
+	public int getLogRotateThreshold() {
+		// A car trip with a few videos did not fit in the default 64KB
+		return 512 * 1024;
 	}
 
 	@Override

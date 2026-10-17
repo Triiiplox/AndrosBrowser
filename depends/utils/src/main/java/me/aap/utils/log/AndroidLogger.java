@@ -130,24 +130,35 @@ public class AndroidLogger extends Logger {
 
 			if (q == null) {
 				App app = App.get();
-				app.getScheduler().schedule(this::flush, app.getLogFlushDelay(), SECONDS);
+				app.getScheduler().schedule(() -> flush(), app.getLogFlushDelay(), SECONDS);
 			}
 		}
 
 		return m;
 	}
 
-	private void flush() {
+	private final Object writeLock = new Object();
+
+	@Override
+	public void flush() {
+		if (logFile == null) return;
+		synchronized (writeLock) {
+			write();
+		}
+	}
+
+	private void write() {
 		LogWriter w = null;
 
 		try {
-			w = new LogWriter(logFile, true);
-
 			Msg msg;
 
 			synchronized (this) {
+				if (queue == null) return;
 				msg = queue.head;
 			}
+
+			w = new LogWriter(logFile, true);
 
 			for (long threshold = App.get().getLogRotateThreshold(); ; ) {
 				if (w.len >= threshold) {

@@ -90,11 +90,13 @@ public class FermataWebClient extends WebViewClientCompat {
 	@Override
 	public void onReceivedError(@NonNull WebView view, @NonNull WebResourceRequest request,
 															@NonNull WebResourceErrorCompat error) {
-		if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_DESCRIPTION)) {
-			Log.e("Web error received: " + error.getDescription());
-		} else {
-			Log.e("Web error received");
-		}
+		String desc = WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_DESCRIPTION)
+				? String.valueOf(error.getDescription()) : "?";
+		String url = String.valueOf(request.getUrl());
+		if (url.length() > 120) url = url.substring(0, 120) + "...";
+		// The page itself failing is what the user sees; a failed resource (ads, trackers) is often not
+		if (request.isForMainFrame()) Log.e("Web page error: ", desc, " ", url);
+		else Log.w("Web resource error: ", desc, " ", url);
 
 		super.onReceivedError(view, request, error);
 	}

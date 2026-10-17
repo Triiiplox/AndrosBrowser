@@ -103,6 +103,10 @@ public abstract class Log {
 		return impl.isLoggable(level);
 	}
 
+	public static void flush() {
+		impl.flush();
+	}
+
 	public enum Level {
 		DEBUG, INFO, WARN, ERROR
 	}
