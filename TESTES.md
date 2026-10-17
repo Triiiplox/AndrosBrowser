@@ -88,6 +88,10 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 
 ## 6. Visual
 
+- [ ] Formulário de lista IPTV: só Nome, Localização e "Avançado" (EPG, Catchup, Logos e Conexão dentro dele). Voltar dentro de Avançado volta ao formulário.
+- [ ] Menus (Menu do trilho, toque longo num item): itens maiores (~48dp), texto mais claro, fácil de acertar no carro.
+- [ ] Textos em português do Brasil: "Configurações" (não "Definições"), "Tela cheia", "Arquivo", "Compartilhar", "Baixando…". Nenhum texto em inglês nos menus, nas configurações do YouTube e da TV.
+
 - [ ] Texto e ícones legíveis de dia e à noite.
 - [ ] Botões do painel e do trilho fáceis de acertar.
 - [ ] Nada cortado ou sobreposto em 800×480.

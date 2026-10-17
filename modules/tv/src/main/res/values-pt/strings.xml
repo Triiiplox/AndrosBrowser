@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="sub_ch">Canais: %1$d.</string>
+    <string name="sub_gr">Grupos: %1$d.</string>
+    <string name="sub_ch_gr">Canais: %1$d. Grupos: %2$d.</string>
     <string name="add_tv_source">Adicionar lista IPTV (M3U)</string>
+    <string name="epg_time_shift">Ajuste de horário do EPG (horas)</string>
+    <string name="logo">Logos dos canais</string>
+    <string name="logo_location">Local</string>
+    <string name="logo_location_hint">Pasta ou URL base http(s)</string>
+    <string name="logo_prefer_epg">Preferir logos do EPG</string>
+    <string name="catchup_query">Formato da consulta</string>
+    <string name="catchup_type">Tipo de Catchup</string>
+    <string name="catchup_type_cur">Tipo de Catchup atual: %1$s</string>
+    <string name="catchup_type_auto">Auto</string>
+    <string name="catchup_days">Número de dias</string>
+    <string name="connection_settings">Configurações de conexão</string>
     <string name="manage_tv_sources">Gerenciar listas IPTV</string>
     <string name="delete_tv_source">Excluir lista IPTV</string>
     <string name="delete_tv_source_question">Excluir \"%1$s\" e os canais dela? O arquivo da lista não é apagado.</string>
@@ -8,4 +22,6 @@
     <string name="err_failed_to_add_tv_source">Não foi possível adicionar a lista: %1$s</string>
     <string name="tv_source_name_hint">Opcional — se vazio, usa o nome do servidor</string>
     <string name="tv_source_default_name">Lista IPTV</string>
+    <string name="tv_source_advanced">Avançado</string>
+    <string name="tv_source_advanced_sub">Guia de programação (EPG), Catch-up (rever programas), logos, conexão</string>
 </resources>

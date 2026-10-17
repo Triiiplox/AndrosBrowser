@@ -103,6 +103,7 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 
 	private FutureSupplier<Boolean> requestPrefs(MainActivityDelegate a, PreferenceStore ps) {
 		PreferenceSet prefs = new PreferenceSet();
+		PreferenceSet adv;
 		PreferenceSet sub;
 
 		prefs.addStringPref(o -> {
@@ -121,7 +122,13 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 			o.stringHint = a.getString(me.aap.fermata.R.string.m3u_playlist_location_hint);
 		});
 
-		sub = prefs.subSet(o -> o.title = R.string.epg);
+		// A list needs only its link: the rest is for the few lists that need tuning
+		adv = prefs.subSet(o -> {
+			o.title = R.string.tv_source_advanced;
+			o.subtitle = R.string.tv_source_advanced_sub;
+		});
+
+		sub = adv.subSet(o -> o.title = R.string.epg);
 		sub.addStringPref(o -> {
 			o.store = ps;
 			o.pref = EPG_URL;
@@ -141,7 +148,7 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 			o.title = R.string.epg_time_shift;
 		});
 
-		sub = prefs.subSet(o -> o.title = R.string.catchup);
+		sub = adv.subSet(o -> o.title = R.string.catchup);
 		sub.addListPref(o -> {
 			o.store = ps;
 			o.pref = CATCHUP_TYPE;
@@ -176,7 +183,7 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 					p -> ps.getIntPref(CATCHUP_TYPE) == CATCHUP_TYPE_DEFAULT);
 		});
 
-		sub = prefs.subSet(o -> o.title = R.string.logo);
+		sub = adv.subSet(o -> o.title = R.string.logo);
 		sub.addFilePref(o -> {
 			o.store = ps;
 			o.pref = LOGO_URL;
@@ -185,7 +192,7 @@ public class TvM3uFileSystemProvider extends M3uFileSystemProvider {
 			o.stringHint = a.getString(R.string.logo_location_hint);
 		});
 
-		sub = prefs.subSet(o -> o.title = R.string.connection_settings);
+		sub = adv.subSet(o -> o.title = R.string.connection_settings);
 		sub.addStringPref(o -> {
 			o.store = ps;
 			o.pref = AGENT;

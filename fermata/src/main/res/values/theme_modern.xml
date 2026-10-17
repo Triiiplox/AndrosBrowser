@@ -58,7 +58,15 @@
         <item name="appControlPanelStyle">@style/AppTheme.Modern.ControlPanelStyle</item>
         <item name="appMediaItemStyle">@style/AppTheme.Modern.MediaItemStyle</item>
         <item name="appContentLoadingStyle">@style/AppTheme.Modern.ContentLoading</item>
+        <item name="popupMenuStyle">@style/AppTheme.Modern.PopupMenuStyle</item>
 
+    </style>
+
+    <!-- Menu items sized for a finger in the car: ~48dp tall, larger and brighter text -->
+    <style name="AppTheme.Modern.PopupMenuStyle" parent="Theme.Utils.Base.PopupMenuStyle">
+        <item name="itemPadding">14dp</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textAppearance">?attr/textAppearanceSubtitle1</item>
     </style>
 
     <!-- The tool bar blends with the window, the buttons carry their own tonal background -->

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dict_folder">Pasta de dicionários</string>
+    <string name="cache_folder">Pasta de cache</string>
+    <string name="stt_service">Serviço de voz para texto</string>
+    <string name="dict_sub1">Palavras: %1$d</string>
+    <string name="dict_sub2">Palavras: %1$d. Progresso: %2$d/%3$d.</string>
+    <string name="start_tutor">Iniciar tutor</string>
+    <string name="start_tutor_dir">Tradução direta</string>
+    <string name="start_tutor_rev">Tradução reversa</string>
+    <string name="start_tutor_mix">Misto</string>
+    <string name="start_tutor_listen">Escuta</string>
+    <string name="offline_mode">Modo offline</string>
+    <string name="add_dict">Adicionar dicionário</string>
+    <string name="dict_name">Nome do dicionário</string>
+    <string name="src_lang">Idioma de origem</string>
+    <string name="target_lang">Idioma de destino</string>
+    <string name="ack_phrase">Frase de confirmação</string>
+    <string name="ack_phrase_sub">Eu sei | I know | Ich weiß</string>
+    <string name="skip_phrase">Frase para pular</string>
+    <string name="skip_phrase_sub">Pular | Não sei | Skip | I don\'t know</string>
+    <string name="no_lang_supported">Nenhum idioma compatível com o TTS</string>
+    <string name="add_word">Adicionar palavra</string>
+    <string name="add_trans">Adicionar tradução</string>
+    <string name="add_example">Adicionar exemplo</string>
+    <string name="word">Palavra</string>
+    <string name="trans">Tradução</string>
+    <string name="example">Exemplo</string>
+    <string name="example_trans">Tradução do exemplo</string>
+    <string name="wipe_prog">Zerar progresso</string>
+    <string name="wipe_prog_for">Zerar o progresso de %1$s?</string>
+    <string name="change_prog">Alterar progresso</string>
+    <string name="dir_prog">Progresso direto</string>
+    <string name="rev_prog">Progresso reverso</string>
+    <string name="import_dict">Importar dicionário</string>
+    <string name="import_dict_q">Importar o dicionário %1$s?</string>
+    <string name="import_dict_exist">Adicionar palavras ao dicionário existente %1$s?</string>
+    <string name="err_invalid_dict_hdr">Cabeçalho de dicionário inválido: %1$s?</string>
+    <string name="err_invalid_name">Nome inválido: %1$s?</string>
+</resources>

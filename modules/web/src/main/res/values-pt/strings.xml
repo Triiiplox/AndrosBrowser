@@ -1,5 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="force_dark">Forçar modo escuro, se compatível</string>
+    <string name="force_dark_sub">%1$s. Escolha \"Auto\" para seguir o tema do aparelho.</string>
+    <string name="force_dark_auto">Auto</string>
+    <string name="force_dark_enabled">Ativado</string>
+    <string name="force_dark_disabled">Desativado</string>
+    <string name="user_agent">User-Agent</string>
+    <string name="user_agent_desktop">User-Agent - versão para computador</string>
+    <string name="desktop_version">Versão para computador</string>
+    <string name="full_screen">Tela cheia</string>
+    <string name="full_screen_exit">Sair da tela cheia</string>
+    <string name="video_scaling_fill_proportional">Preencher proporcionalmente</string>
+    <string name="video_quality">Qualidade do vídeo</string>
+    <string name="open_on_start">Abrir ao iniciar</string>
     <string name="yt_autoplay">Reprodução automática</string>
     <string name="yt_autoplay_sub">Toca o vídeo ao abrir e retoma o último quando o app inicia</string>
+    <string name="auto_highest_video_quality">Escolher automaticamente a maior qualidade de vídeo</string>
+    <string name="try_to_skip_ad">Tentar pular anúncios</string>
+    <string name="sponsorblock_sub">Pula trechos marcados pela comunidade nos vídeos do YouTube.</string>
+    <string name="sponsorblock_enable">Ativar SponsorBlock</string>
+    <string name="sponsorblock_enable_sub">Busca em sponsor.ajay.app os dados dos trechos do vídeo atual.</string>
+    <string name="sponsorblock_cat_sponsor">Patrocínios</string>
+    <string name="sponsorblock_cat_selfpromo">Autopromoção</string>
+    <string name="sponsorblock_cat_interaction">Lembretes de interação</string>
+    <string name="sponsorblock_cat_intro">Introduções e intervalos</string>
+    <string name="sponsorblock_cat_outro">Telas finais e créditos</string>
+    <string name="sponsorblock_cat_preview">Prévias e recapitulações</string>
+    <string name="sponsorblock_cat_hook">Ganchos</string>
+    <string name="sponsorblock_cat_music_offtopic">Trechos sem música</string>
+    <string name="sponsorblock_cat_filler">Enrolação</string>
+    <string name="sponsorblock_cat_filler_sub">Categoria agressiva; desativada por padrão.</string>
 </resources>

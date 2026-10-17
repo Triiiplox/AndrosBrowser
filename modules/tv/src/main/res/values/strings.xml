@@ -30,4 +30,6 @@
     <string name="default_tv_source_name">Free channels of Brazil (iptv-org)</string>
     <string name="tv_source_name_hint">Optional, the server name if empty</string>
     <string name="tv_source_default_name">IPTV list</string>
+    <string name="tv_source_advanced">Advanced</string>
+    <string name="tv_source_advanced_sub">Program guide (EPG), catch-up, logos, connection</string>
 </resources>
