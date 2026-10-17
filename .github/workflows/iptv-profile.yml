@@ -23,4 +23,6 @@ jobs:
           IPTV_PRIVATE_URL: ${{ secrets.IPTV_PRIVATE_URL }}
         run: |
           python3 scripts/iptv_profile.py report.md
+          # The report holds no URL: it goes to the log too, which the API can read
+          cat report.md
           cat report.md >> "$GITHUB_STEP_SUMMARY"
