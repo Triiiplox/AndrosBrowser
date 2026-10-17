@@ -159,7 +159,6 @@ final class XtreamPageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 			lm.setInitialPrefetchItemCount(6);
 			list.setLayoutManager(lm);
 			list.setRecycledViewPool(pool);
-			list.setHasFixedSize(true);
 			cards = new XtreamCards(controller);
 			list.setAdapter(cards);
 		}
