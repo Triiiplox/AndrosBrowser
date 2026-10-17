@@ -133,8 +133,10 @@ public class SubScheduler {
 		private void sched(long delay) {
 			if (!started) return;
 			delay /= speed;
+			// When late (a busy device, or a short delay divided by the speed), catch up right away.
+			// Cancelling here stopped the track: no more subtitles until the next sync.
 			if (delay > 0) sched = executor.schedule(this, delay);
-			else sched = CANCELED;
+			else sched = executor.submit(this);
 		}
 	}
 }

@@ -53,6 +53,12 @@ Cada entrega: simulação → aprovação → código → build no CI → teste 
 
 ## Backlog — bugs
 
+- **Legenda parava de aparecer** quando o agendador acordava atrasado (aparelho ocupado, ou
+  velocidade 2x): `SubScheduler.sched` cancelava o worker em vez de alcançar. Corrigido; o
+  `SubtitlesTest.testScheduler` é a prova (travava no CI).
+- **Permissão pedida a cada abertura:** corrigido em `f435a84` (pedia permissões que o sistema
+  não concede mais, e repetia a lista inteira).
+
 - **Login do Google no navegador interno** ("Esse navegador ou app pode não ser seguro"): em teste.
   O `X-Requested-With` já foi descontinuado pela WebView (fonte do androidx.webkit) — a hipótese
   inicial estava errada. O sinal que sobra são os client hints (`Sec-CH-UA`,
@@ -86,6 +92,13 @@ v2 (feedback do Andro "diminua os menus, botões ruins, YouTube de cara"): barra
 mini-player 56dp, botões do topo 38dp, aleatório/repetir/velocidade/timer como botões de ícone.
 
 ## Backlog — técnico
+
+- **Testes no CI (run de bc3e720):** utils 177 testes — 169 ok, 3 pulados pelo autor, 8 falham:
+  todas as variações de `HttpHandlerTest.testHttpConnection2`, que chama
+  `http(s)://localhost/tmp_redirect.html` e só passa com o servidor da máquina do autor
+  (`ConnectException` no CI). Não desabilitado; para virar teste de verdade, o próprio teste
+  precisa subir o servidor que espera. App: `SubtitlesTest.testScheduler` travava — bug real no
+  `SubScheduler` (ver bugs), corrigido.
 
 - Validação local do checksum do `gradle-wrapper.jar` (o proxy da sessão bloqueia
   `downloads.gradle.org`; o CI valida).
