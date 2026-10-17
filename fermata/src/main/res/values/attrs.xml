@@ -22,5 +22,11 @@
         <attr name="android:colorBackground" />
         <!-- Optional drawable used instead of the plain background color -->
         <attr name="controlPanelBackground" format="reference" />
+        <!-- Optional, used by the Modern theme: pills behind the playback buttons -->
+        <attr name="controlPanelButtonBackground" format="reference" />
+        <attr name="controlPanelPlayBackground" format="reference" />
+        <attr name="controlPanelPlayTint" format="color|reference" />
+        <!-- The icon height relative to the button height, 0 keeps the icon filling the button -->
+        <attr name="controlPanelIconScale" format="float" />
     </declare-styleable>
 </resources>

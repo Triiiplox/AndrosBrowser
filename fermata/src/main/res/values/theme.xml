@@ -9,6 +9,8 @@
     <attr name="appVideoInfoStyle" format="reference" />
     <attr name="mediaItemMargin" format="dimension" />
     <attr name="controlPanelMargin" format="dimension" />
+    <!-- Optional, the video title background. Black when not set -->
+    <attr name="videoInfoBackground" format="reference" />
     <attr name="appContentLoadingStyle" format="reference" />
 
     <style name="AppTheme" parent="Theme.Utils.Base">

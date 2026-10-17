@@ -56,6 +56,9 @@
         <item name="toolbarStyle">@style/AppTheme.Modern.ToolBarStyle</item>
         <item name="bottomNavigationStyle">@style/AppTheme.Modern.NavBarStyle</item>
         <item name="appControlPanelStyle">@style/AppTheme.Modern.ControlPanelStyle</item>
+        <item name="appSeekBarStyle">@style/AppTheme.Modern.SeekBarStyle</item>
+        <item name="appVideoInfoStyle">@style/AppTheme.Modern.VideoInfoStyle</item>
+        <item name="videoInfoBackground">@drawable/video_info_scrim_modern</item>
         <item name="appMediaItemStyle">@style/AppTheme.Modern.MediaItemStyle</item>
         <item name="appContentLoadingStyle">@style/AppTheme.Modern.ContentLoading</item>
         <item name="popupMenuStyle">@style/AppTheme.Modern.PopupMenuStyle</item>
@@ -105,9 +108,40 @@
     </style>
 
     <style name="AppTheme.Modern.ControlPanelStyle" parent="AppTheme.ControlPanelStyle">
-        <!-- Compact for the 7" car screen: the panel covered a quarter of the video -->
+        <!-- Compact for the 7" car screen: the panel covered a quarter of the video. The
+             user prefers the video area to larger buttons -->
         <item name="size">64dp</item>
         <item name="controlPanelBackground">@drawable/control_panel_bg_modern</item>
+        <item name="textAppearance">@style/AppTheme.Modern.ControlPanelTextAppearance</item>
+        <item name="controlPanelButtonBackground">@drawable/control_button_modern</item>
+        <item name="controlPanelPlayBackground">@drawable/control_play_button_modern</item>
+        <item name="controlPanelPlayTint">#0E1116</item>
+        <item name="controlPanelIconScale">0.52</item>
+    </style>
+
+    <!-- Elapsed and total time: smaller, secondary, digits of the same width -->
+    <style name="AppTheme.Modern.ControlPanelTextAppearance" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">#9AA3AF</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+    </style>
+
+    <!-- A thin track with the accent progress and a round thumb -->
+    <style name="AppTheme.Modern.SeekBarStyle" parent="AppTheme.SeekBarStyle">
+        <item name="android:progressDrawable">@drawable/seek_bar_track_modern</item>
+        <item name="android:thumb">@drawable/seek_bar_thumb_modern</item>
+        <item name="android:splitTrack">false</item>
+        <item name="android:thumbTint">#8AB4F8</item>
+        <item name="android:progressTint">#8AB4F8</item>
+        <item name="android:secondaryProgressTint">#59FFFFFF</item>
+        <item name="android:progressBackgroundTint">#2EFFFFFF</item>
+    </style>
+
+    <!-- The title over the video: a soft shadow keeps it readable on a bright picture -->
+    <style name="AppTheme.Modern.VideoInfoStyle" parent="AppTheme.VideoInfoStyle">
+        <item name="android:shadowColor">#99000000</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">4</item>
     </style>
 
     <style name="AppTheme.Modern.MediaItemStyle" parent="AppTheme.MediaItemStyle">

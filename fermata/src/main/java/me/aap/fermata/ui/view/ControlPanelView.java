@@ -9,6 +9,7 @@ import static me.aap.utils.ui.UiUtils.isVisible;
 import static me.aap.utils.ui.UiUtils.toIntPx;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -25,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StyleRes;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.core.widget.ImageViewCompat;
 
 import com.google.android.material.textview.MaterialTextView;
 
@@ -69,12 +71,15 @@ public class ControlPanelView extends ConstraintLayout
 		GestureListener {
 	private static final byte MASK_VISIBLE = 1;
 	private static final byte MASK_VIDEO_MODE = 2;
+	private static final int[] BUTTONS = {R.id.control_prev, R.id.control_rw,
+			R.id.control_play_pause, R.id.control_ff, R.id.control_next};
 	private final GestureDetectorCompat gestureDetector;
 	private final ImageView showHideBars;
 	@DimenRes
 	private final int size;
 	@StyleRes
 	private final int textAppearance;
+	private final float iconScale;
 	private PlaybackControlPrefs prefs;
 	private HideTimer hideTimer;
 	private byte mask;
@@ -94,7 +99,21 @@ public class ControlPanelView extends ConstraintLayout
 		int bg = ta.getResourceId(R.styleable.ControlPanelView_controlPanelBackground, 0);
 		if (bg != 0) setBackgroundResource(bg);
 		else setBackgroundColor(ta.getColor(R.styleable.ControlPanelView_android_colorBackground, 0));
+		int btnBg = ta.getResourceId(R.styleable.ControlPanelView_controlPanelButtonBackground, 0);
+		int playBg = ta.getResourceId(R.styleable.ControlPanelView_controlPanelPlayBackground, 0);
+		ColorStateList playTint = ta.getColorStateList(R.styleable.ControlPanelView_controlPanelPlayTint);
+		iconScale = ta.getFloat(R.styleable.ControlPanelView_controlPanelIconScale, 0f);
 		ta.recycle();
+
+		if (btnBg != 0) {
+			for (int id : BUTTONS) {
+				if (id != R.id.control_play_pause) findViewById(id).setBackgroundResource(btnBg);
+			}
+		}
+		if (playBg != 0) findViewById(R.id.control_play_pause).setBackgroundResource(playBg);
+		if (playTint != null) {
+			ImageViewCompat.setImageTintList(findViewById(R.id.control_play_pause), playTint);
+		}
 
 		MainActivityDelegate a = getActivity();
 		a.addBroadcastListener(this, ACTIVITY_DESTROY);
@@ -178,6 +197,15 @@ public class ControlPanelView extends ConstraintLayout
 
 		setHeight(R.id.control_next, buttonSize);
 		getLayoutParams().height = panelSize;
+
+		// The icon sits inside the button background instead of filling the whole height
+		if (iconScale > 0f) {
+			int p = (int) (buttonSize * (1f - iconScale) / 2);
+			for (int id : BUTTONS) {
+				View v = findViewById(id);
+				v.setPadding(v.getPaddingLeft(), p, v.getPaddingRight(), p);
+			}
+		}
 	}
 
 	private void seTextAppearance(TextView t, float size) {

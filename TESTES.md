@@ -34,6 +34,8 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Voltar do vídeo para a lista; o item tocando fica destacado e com progresso.
 - [ ] Capa: pasta com `cover.jpg`/`folder.jpg` mostra a foto; vídeo mostra frame/capa no card.
 
+- [ ] Player (tema Moderno): botões em pílulas arredondadas, play/pause claro e destacado, barra de progresso fina azul com bolinha, tempos menores em cinza, título sobre o vídeo com sombra (sem a faixa preta). Painel continua com 64dp de altura.
+
 ## 3. YouTube
 
 - [ ] Abrir vídeo; play/pause pelo painel do Fermata.

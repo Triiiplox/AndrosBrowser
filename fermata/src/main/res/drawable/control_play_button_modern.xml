@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The main button: a wider light pill with a dark icon. A blue ring on the light fill
+     is hard to see, so the focused button turns accent with a white edge -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#330E1116">
+    <item
+        android:id="@android:id/mask"
+        android:gravity="center"
+        android:width="68dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+
+    <item
+        android:id="@android:id/background"
+        android:gravity="center"
+        android:width="68dp">
+        <selector>
+            <item android:state_focused="true">
+                <shape android:shape="rectangle">
+                    <solid android:color="?attr/colorAccent" />
+                    <stroke
+                        android:width="?attr/boxStrokeWidth"
+                        android:color="#FFFFFF" />
+                    <corners android:radius="999dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#F2F4F7" />
+                    <corners android:radius="999dp" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

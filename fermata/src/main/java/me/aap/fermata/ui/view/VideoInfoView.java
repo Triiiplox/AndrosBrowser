@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,9 +45,19 @@ public class VideoInfoView extends ConstraintLayout
 		getActivity().onSuccess(a -> {
 			a.addBroadcastListener(this, ACTIVITY_DESTROY);
 			a.getMediaServiceBinder().addBroadcastListener(this);
-			setBackgroundColor(Color.BLACK);
+			applyBackground();
 			onPlayableChanged(null, a.getCurrentPlayable());
 		});
+	}
+
+	private void applyBackground() {
+		TypedValue v = new TypedValue();
+		if (getContext().getTheme().resolveAttribute(R.attr.videoInfoBackground, v, true) &&
+				(v.resourceId != 0)) {
+			setBackgroundResource(v.resourceId);
+		} else {
+			setBackgroundColor(Color.BLACK);
+		}
 	}
 
 	@Override

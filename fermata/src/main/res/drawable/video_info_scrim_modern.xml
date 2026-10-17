@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- A top scrim instead of the black box. The text is always on the dark part, even for
+     a long description; only the bottom padding fades out over the picture -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingBottom="28dp"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:paddingTop="6dp">
+    <item android:bottom="28dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#A6000000"
+                android:startColor="#D9000000" />
+        </shape>
+    </item>
+
+    <item
+        android:gravity="bottom|fill_horizontal"
+        android:height="28dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="#00000000"
+                android:startColor="#A6000000" />
+        </shape>
+    </item>
+</layer-list>
