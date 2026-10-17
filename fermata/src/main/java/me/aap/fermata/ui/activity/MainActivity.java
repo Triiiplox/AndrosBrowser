@@ -199,6 +199,9 @@ public class MainActivity extends SplitCompatActivityBase
 			}, 1, MINUTES);
 		}
 
+		// Builds with a custom APP_ID_SFX (forks) must not be replaced by the upstream release
+		if (!"me.aap.fermata.auto".equals(BuildConfig.APPLICATION_ID)) return;
+
 		String reqUrl = "https://api.github.com/repos/AndreyPavlenko/Fermata/releases/latest";
 		HttpConnection.connect(o -> o.url(reqUrl), (resp, err) -> {
 			if (err != null) {

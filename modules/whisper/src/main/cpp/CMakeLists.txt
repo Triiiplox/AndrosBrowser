@@ -31,7 +31,7 @@ if (CMAKE_ANDROID_ARCH_ABI MATCHES "arm64")
             GIT_TAG v1.3.275
     )
     FetchContent_Declare(SPIRV-Headers GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Headers
-            GIT_TAG main
+            GIT_TAG 2b7475f6d664efbad4d4315c94ecec9640831e5b # main @ 2026-09-18
             OVERRIDE_FIND_PACKAGE
     )
     FetchContent_MakeAvailable(vk_hpp SPIRV-Headers)
@@ -49,7 +49,7 @@ find_library(LOG_LIB log)
 FetchContent_Declare(
         whispercpp
         GIT_REPOSITORY https://github.com/ggml-org/whisper.cpp.git
-        GIT_TAG master # v1.8.2
+        GIT_TAG 5670d5c0bbcb148feabef84400a07cfca9aa3b30 # master @ 2026-09-18
 )
 FetchContent_MakeAvailable(whispercpp)
 
