@@ -53,6 +53,15 @@ jobs:
           chmod +x gradlew
           ./gradlew :utils:testDebugUnitTest :xtream:testDebugUnitTest :fermata:testAutoDebugUnitTest -PABI=arm64-v8a --continue
 
+      # Taps through the app at the car's size and a phone's (nav bar, IPTV, ChatGPT, folders,
+      # settings, Back) and renders the screens: a broken button fails here, before the APK
+      - name: Screens and navigation
+        if: always()
+        env:
+          NO_GS: true
+        run: |
+          ./gradlew :fermata:testAutoDebugUnitTest -Pscreenshots -PABI=arm64-v8a --tests '*ScreensTest*' --tests '*NavigationTest*'
+
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -62,6 +71,15 @@ jobs:
             depends/utils/build/reports/tests/
             depends/xtream/build/reports/tests/
             fermata/build/reports/tests/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: build/screenshots/
           retention-days: 14
           if-no-files-found: ignore
 

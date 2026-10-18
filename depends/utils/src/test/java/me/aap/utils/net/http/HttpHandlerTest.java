@@ -39,6 +39,7 @@ import me.aap.utils.vfs.VfsManager;
 import me.aap.utils.vfs.local.LocalFileSystem;
 
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static java.util.Objects.requireNonNull;
 import static me.aap.utils.async.Completed.completedVoid;
 import static me.aap.utils.async.FutureSupplier.noOp;
@@ -457,6 +458,10 @@ public class HttpHandlerTest extends Assertions {
 	public void testHttpConnection2(String mode) throws Exception {
 		String[] mod = mode.split(",");
 		boolean useSsl = mod[0].equals("ssl");
+		// Against a web server of the developer's machine (nginx serving /tmp_redirect.html, gzip,
+		// on localhost:80 and :443): it runs where that server is, and says why it does not elsewhere
+		assumeTrue(isListening(useSsl ? 443 : 80),
+				"needs a local web server on port " + (useSsl ? 443 : 80) + " with /tmp_redirect.html");
 		boolean skipPayload = mod[1].equals("skipPayload");
 		boolean readPayload = mod[1].equals("readPayload");
 		boolean writePayload = mod[1].equals("writePayload");
@@ -530,6 +535,15 @@ public class HttpHandlerTest extends Assertions {
 
 		done.get();
 		assertEquals(0, counter.get());
+	}
+
+	private static boolean isListening(int port) {
+		try (java.net.Socket s = new java.net.Socket()) {
+			s.connect(new java.net.InetSocketAddress("localhost", port), 500);
+			return true;
+		} catch (IOException ex) {
+			return false;
+		}
 	}
 
 	@Test
