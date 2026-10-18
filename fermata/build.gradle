@@ -119,3 +119,6 @@ dependencies {
     implementation libs.javaxInject
     autoImplementation libs.androidxCarApp
 }
+
+// Screenshots of the screens, rendered by Robolectric at car and phone sizes, on demand only
+apply from: "${rootProject.projectDir}/gradle/screenshots.gradle"

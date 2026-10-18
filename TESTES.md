@@ -164,3 +164,12 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Configurações → Complementos → ChatGPT → Modelo: lista atual da sua conta (gpt-6…, gpt-5…), sem gpt-4o/o1. Sem chave: lista de reserva com modelos atuais.
 - [ ] Configurações: linhas num bloco único arredondado com divisórias finas, título claro e descrição mais apagada; no carro o foco do controle ainda aparece na linha.
 - [ ] YouTube: sem a faixa vazia embaixo de "Início / Shorts / Você"; o teclado ainda sobe a página ao buscar.
+
+### Rodada prints (Robolectric, 800×400dp e celular)
+- [ ] Configurações (celular e carro): sem o botão redondo de voltar por cima das setas; voltar pela seta da barra de cima.
+- [ ] Celular: sair de Pastas para outra tela não deixa o botão redondo aparecendo.
+- [ ] Pastas vazia: aparece "Nenhuma pasta ainda…" no meio da tela; some ao adicionar a primeira pasta.
+- [ ] IPTV no carro, Início e Filmes: a primeira fileira de capas aparece inteira abaixo do destaque.
+- [ ] IPTV no carro, detalhes de filme/série: o botão ← fica visível, acima da capa.
+- [ ] Modo voz no carro: bola menor, frase em até 2 linhas acima dos botões; mudo à esquerda, X à direita, nada sobreposto.
+- [ ] Abas do IPTV: "Ao vivo" inteiro? (nos prints do Robolectric a última letra sai cortada; confirmar no aparelho)

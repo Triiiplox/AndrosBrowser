@@ -1,0 +1,25 @@
+// Renders the screens with Robolectric into build/screenshots, at the size of the car screen and
+// of a phone. Off unless asked, so the usual builds and CI are untouched:
+//   ./gradlew :fermata:testAutoDebugUnitTest -Pscreenshots -PABI=arm64-v8a --tests '*Screens*'
+// Robolectric cannot read the resources of a dynamic feature, so the code of IPTV and ChatGPT
+// runs in the tests of the app itself, with their resources as libraries (gradle/screens).
+if (project.hasProperty('screenshots')) {
+    android {
+        sourceSets.test.java.srcDirs += ['src/screenshots/java',
+                "${rootProject.projectDir}/modules/tv/src/main/java",
+                "${rootProject.projectDir}/modules/chat/src/main/java"]
+        testOptions.unitTests.includeAndroidResources = true
+        testOptions.unitTests.all {
+            systemProperty 'screenshots.dir', "${rootProject.projectDir}/build/screenshots"
+            maxHeapSize = '3g'
+            forkEvery = 1
+        }
+    }
+    dependencies {
+        implementation project(':screens-tv')
+        implementation project(':screens-chat')
+        testImplementation project(':xtream')
+        testImplementation 'org.robolectric:robolectric:4.17'
+        testImplementation 'androidx.test:core:1.7.0'
+    }
+}

@@ -146,3 +146,11 @@ mini-player 56dp, botões do topo 38dp, aleatório/repetir/velocidade/timer como
 - `Fermata.log` de um crash, com o que foi feito antes.
 - O M3U tem `tvg-logo`? Usa EPG (XMLTV)?
 - Está logado no YouTube (Premium?) no AndrosBrowser, no Fermata ou nos dois?
+
+## Prints automáticos (out/2026)
+- `./gradlew :fermata:testAutoDebugUnitTest -Pscreenshots -PABI=arm64-v8a --tests '*ScreensTest*'`
+  gera PNG de Pastas, Configurações, IPTV (painel falso local) e ChatGPT em `build/screenshots`.
+  Não cobre WebView (YouTube), vídeo nem a tela do Android Auto em si (é a activity do celular no
+  tamanho do carro).
+- Abas "Ao vivo" cortadas no Robolectric: provável diferença de medida de fonte do teste; confirmar
+  com print do aparelho antes de mexer.

@@ -1,0 +1,11 @@
+// The resources of :tv as a library, for the screenshots only (see gradle/screenshots.gradle)
+android {
+    namespace = "me.aap.fermata.addon.tv"
+    sourceSets.main.res.srcDirs = ["${rootProject.projectDir}/modules/tv/src/main/res", 'stubs']
+}
+
+dependencies {
+    implementation project(':utils')
+    implementation libs.androidMaterial
+    implementation libs.androidxAppcompat
+}

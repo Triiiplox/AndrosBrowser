@@ -1,0 +1,11 @@
+// The resources of :chat as a library, for the screenshots only (see gradle/screenshots.gradle)
+android {
+    namespace = "me.aap.fermata.addon.chat"
+    sourceSets.main.res.srcDirs = ["${rootProject.projectDir}/modules/chat/src/main/res", 'stubs']
+}
+
+dependencies {
+    implementation project(':utils')
+    implementation libs.androidMaterial
+    implementation libs.androidxAppcompat
+}

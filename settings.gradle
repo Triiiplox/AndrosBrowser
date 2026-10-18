@@ -38,3 +38,12 @@ file('modules').eachDir {
     include name
     project(name).projectDir = it
 }
+
+// Screenshot builds only (-Pscreenshots): the resources of IPTV and ChatGPT as plain libraries,
+// since Robolectric cannot read the resources of a dynamic feature (see gradle/screenshots.gradle)
+if (gradle.startParameter.projectProperties.containsKey('screenshots')) {
+    ['tv', 'chat'].each { m ->
+        include ":screens-$m"
+        project(":screens-$m").projectDir = file("gradle/screens/$m")
+    }
+}

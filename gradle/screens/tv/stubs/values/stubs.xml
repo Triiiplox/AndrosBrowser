@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Declared by the app: the app's own values win when the resources are merged -->
+<resources>
+    <attr name="appContentLoadingStyle" format="reference" />
+    <string name="live_badge">LIVE</string>
+</resources>
