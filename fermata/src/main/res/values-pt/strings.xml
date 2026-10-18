@@ -24,6 +24,19 @@
     <string name="addons">Complementos</string>
     <string name="addon_name_tv">TV</string>
     <string name="addon_name_xtream">IPTV</string>
+    <string name="addon_name_subgen">Gerador de legendas</string>
+    <string name="addon_name_poi">Radares e limites (POI)</string>
+    <string name="addon_desc_tv">Listas M3U no formato antigo. O IPTV já importa as listas daqui</string>
+    <string name="addon_desc_xtream">Canais, filmes e séries do seu IPTV, estilo Netflix</string>
+    <string name="addon_desc_youtube">YouTube com som ligado e retomada de onde parou</string>
+    <string name="addon_desc_web_browser">Páginas da web dentro do app</string>
+    <string name="addon_desc_felex">Dicionários e prática de idiomas</string>
+    <string name="addon_desc_cast">Mandar o vídeo para o Chromecast ou a TV</string>
+    <string name="addon_desc_chat">Conversa por voz com o ChatGPT, com a sua chave da OpenAI</string>
+    <string name="addon_desc_poi">Aviso de radar e de limite de velocidade na estrada</string>
+    <string name="addon_desc_subgen">Legendas geradas a partir da fala do vídeo</string>
+    <string name="addon_on">Ativado</string>
+    <string name="addon_off">Desativado</string>
     <string name="addon_name_web_browser">Navegador</string>
     
     

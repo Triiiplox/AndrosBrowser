@@ -31,7 +31,18 @@
     <string name="addon_name_cast" translatable="false">Google Cast</string>
     <string name="addon_name_chat" translatable="false">ChatGPT</string>
     <string name="addon_name_translate" translatable="false">Language translator</string>
-    <string name="addon_name_subgen" translatable="false">Subtitles generator</string>
+    <string name="addon_name_subgen">Subtitles generator</string>
+    <string name="addon_desc_tv">Old M3U lists. IPTV already imports them</string>
+    <string name="addon_desc_xtream">Channels, movies and series of your IPTV, Netflix style</string>
+    <string name="addon_desc_youtube">YouTube with sound on and resume where you stopped</string>
+    <string name="addon_desc_web_browser">Web pages inside the app</string>
+    <string name="addon_desc_felex">Dictionaries and language practice</string>
+    <string name="addon_desc_cast">Send the video to a Chromecast or a TV</string>
+    <string name="addon_desc_chat">Voice chat with ChatGPT, with your OpenAI key</string>
+    <string name="addon_desc_poi">Speed limit and speed camera alerts while driving</string>
+    <string name="addon_desc_subgen">Subtitles made from the speech of the video</string>
+    <string name="addon_on">On</string>
+    <string name="addon_off">Off</string>
     <string name="addon_name_whisper" translatable="false">Whisper</string>
     <string name="addon_name_mlkit" translatable="false">ML Kit</string>
     <string name="addon_name_mlkit_translate" translatable="false">ML Kit Translate</string>
@@ -39,7 +50,7 @@
     <string name="addon_name_opusmt_translate" translatable="false">OPUS-MT Translate</string>
     <string name="addon_name_nllb" translatable="false">NLLB-200</string>
     <string name="addon_name_nllb_translate" translatable="false">NLLB-200 Translate</string>
-    <string name="addon_name_poi" translatable="false">POI</string>
+    <string name="addon_name_poi">Speed cameras (POI)</string>
 
     <string name="interface_prefs">Interface</string>
     <string name="interface_prefs_aa">Android Auto</string>

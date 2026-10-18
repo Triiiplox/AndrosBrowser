@@ -428,8 +428,13 @@ public class VlcEngine extends MediaEngineBase
 				if (percent == 100F) listener.onEngineBufferingCompleted(this);
 				else listener.onEngineBuffering(this, (int) percent);
 			}
+			// The video size is known once the vout is there
+			case MediaPlayer.Event.Vout -> {
+				if ((event.getVoutCount() > 0) && (videoView != null)) setSurfaceSize(videoView);
+			}
 			case MediaPlayer.Event.Playing -> {
 				if (this.source instanceof VideoSource vs) {
+					if (videoView != null) setSurfaceSize(videoView);
 					PlayableItemPrefs prefs = vs.getItem().getPrefs();
 					MediaEngine.selectMediaStream(prefs::getAudioIdPref, prefs::getAudioLangPref,
 							prefs::getAudioKeyPref, () -> completed(getAudioStreamInfo()),
@@ -512,11 +517,18 @@ public class VlcEngine extends MediaEngineBase
 
 		int scaleType = src.getItem().getPrefs().getVideoScalePref();
 		player.getVLCVout().setWindowSize(sw, sh);
+		boolean fromTrack = false;
 
 		if ((src.videoWidth == 0) || (src.videoHeight == 0)) {
-			setPlayerLayout(sw, sh, scaleType);
-			setSurfaceLayout(view, MATCH_PARENT, MATCH_PARENT);
-			return;
+			// Without a layout from the vout, the surface filled the view and the picture was
+			// stretched to it: a 16:9 channel took the whole height of a phone held upright. The
+			// size of the video track gives the same aspect, so the surface is sized to it.
+			fromTrack = layoutFromTrack(src);
+			if (!fromTrack) {
+				setPlayerLayout(sw, sh, scaleType);
+				setSurfaceLayout(view, MATCH_PARENT, MATCH_PARENT);
+				return;
+			}
 		}
 
 		ViewGroup.LayoutParams lp = view.getVideoSurface().getLayoutParams();
@@ -570,6 +582,28 @@ public class VlcEngine extends MediaEngineBase
 		sw = (int) Math.ceil(dw * src.videoWidth / src.visibleVideoWidth);
 		sh = (int) Math.ceil(dh * src.videoHeight / src.visibleVideoHeight);
 		setSurfaceLayout(view, sw, sh);
+
+		if (fromTrack) {
+			// The picture fills the surface, which already has the aspect of the video
+			player.getVLCVout().setWindowSize(sw, sh);
+			player.setScale(0);
+			player.setAspectRatio(null);
+		}
+	}
+
+	/** The video size and pixel aspect of the current track, as a vout layout would give them. */
+	private boolean layoutFromTrack(VideoSource src) {
+		VideoTrack t = player.getCurrentVideoTrack();
+		if ((t == null) || (t.width <= 0) || (t.height <= 0)) return false;
+		boolean swap = (t.orientation == VideoTrack.Orientation.LeftBottom) ||
+				(t.orientation == VideoTrack.Orientation.RightTop);
+		int w = swap ? t.height : t.width;
+		int h = swap ? t.width : t.height;
+		src.videoWidth = src.visibleVideoWidth = w;
+		src.videoHeight = src.visibleVideoHeight = h;
+		src.videoSarNum = (t.sarNum > 0) ? t.sarNum : 1;
+		src.videoSarDen = (t.sarDen > 0) ? t.sarDen : 1;
+		return true;
 	}
 
 	private void setPlayerLayout(int surfaceW, int surfaceH, int scaleType) {

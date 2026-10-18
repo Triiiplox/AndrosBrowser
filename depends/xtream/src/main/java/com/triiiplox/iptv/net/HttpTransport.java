@@ -70,6 +70,32 @@ public final class HttpTransport implements Transport {
 				((u.getRef() != null) ? '#' + u.getRef() : "");
 	}
 
+	/** The user and password written in a URL, decoded, or null without a login. */
+	public static String[] login(String url) {
+		try {
+			String info = new URL(url).getUserInfo();
+			if (info == null) return null;
+			int i = info.indexOf(':');
+			return (i < 0) ? new String[]{decode(info), ""} :
+					new String[]{decode(info.substring(0, i)), decode(info.substring(i + 1))};
+		} catch (IOException ex) {
+			return null;
+		}
+	}
+
+	/** The URL without the login written in it. */
+	public static String withoutLogin(String url) {
+		try {
+			URL u = new URL(url);
+			if (u.getUserInfo() == null) return url;
+			String host = u.getHost() + ((u.getPort() >= 0) ? ":" + u.getPort() : "");
+			return u.getProtocol() + "://" + host + u.getFile() +
+					((u.getRef() != null) ? '#' + u.getRef() : "");
+		} catch (IOException ex) {
+			return url;
+		}
+	}
+
 	private InputStream connect(String url) throws IOException {
 		URL u = new URL(url);
 		String login = u.getUserInfo();

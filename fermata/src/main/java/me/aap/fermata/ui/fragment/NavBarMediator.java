@@ -325,17 +325,19 @@ public class NavBarMediator extends PrefNavBarMediator
 		// The M3U TV is not in the bar: IPTV plays the Xtream panels, which its sources are imported
 		// from, and two buttons for the same lists only confuse
 		names.remove(TV_ADDON);
-		// Default order, unless saved by the user: YouTube, IPTV, library, favorites
+		// Default order, unless saved by the user: YouTube, IPTV, library, the screens of the addons
+		// off by default that the user turned on (ChatGPT...), then favorites: an addon just turned
+		// on lands in the visible part of the bar, not behind the overflow arrow
 		addAddon(amgr, names, "me.aap.fermata.addon.web.yt.YoutubeAddon");
 		addAddon(amgr, names, "me.aap.fermata.addon.tv.xtream.XtreamAddon");
 		names.add("folders");
+		for (AddonInfo ai : BuildConfig.ADDONS) {
+			if (!ai.enabledPref.getDefaultValue().getAsBoolean()) addAddon(amgr, names, ai.className);
+		}
 		names.add("favorites");
 		names.add("playlists");
 		for (AddonInfo ai : BuildConfig.ADDONS) {
-			FermataAddon a = amgr.getAddon(ai.className);
-			if ((a instanceof FermataFragmentAddon) && !TV_ADDON.equals(ai.className)) {
-				names.add(ai.className);
-			}
+			if (!TV_ADDON.equals(ai.className)) addAddon(amgr, names, ai.className);
 		}
 		names.add("menu");
 		return names;

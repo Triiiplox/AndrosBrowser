@@ -58,6 +58,11 @@ public class HttpTransportTest {
 				.encodeToString("us@er:p:ss+word".getBytes(StandardCharsets.UTF_8));
 		assertTrue(req.contains("Authorization: Basic " + expected));
 		assertTrue("no login in the request line", req.startsWith("GET /"));
+		String[] login = HttpTransport.login(withLogin);
+		assertEquals("us@er", login[0]);
+		assertEquals("p:ss+word", login[1]);
+		assertEquals(url, HttpTransport.withoutLogin(withLogin));
+		assertEquals(null, HttpTransport.login(url));
 	}
 
 	@Test

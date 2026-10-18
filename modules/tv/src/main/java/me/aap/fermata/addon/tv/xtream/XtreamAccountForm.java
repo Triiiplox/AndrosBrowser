@@ -32,11 +32,35 @@ final class XtreamAccountForm {
 	}
 
 	static void show(MainActivityDelegate a, Consumer<XtreamRepo.Account> added) {
-		show(a, null, null, null, null, added);
+		show(a, null, null, null, null, R.string.xtream_add_account, added);
+	}
+
+	/**
+	 * Edits an account: the form comes filled in. A new login makes a new account, which replaces
+	 * the old one; a new name alone keeps the account and its history.
+	 */
+	static void edit(MainActivityDelegate a, XtreamRepo.Account acc,
+									 Consumer<XtreamRepo.Account> saved) {
+		String link, user, pass;
+		if (acc.xtream != null) {
+			link = acc.xtream.getServer();
+			user = acc.xtream.getUser();
+			pass = acc.xtream.getPassword();
+		} else {
+			String[] login = HttpTransport.login(acc.playlist);
+			link = HttpTransport.withoutLogin(acc.playlist);
+			user = (login != null) ? login[0] : null;
+			pass = (login != null) ? login[1] : null;
+		}
+		XtreamRepo repo = XtreamRepo.get(a.getContext());
+		show(a, link, user, pass, acc.name, R.string.xtream_edit_account, n -> {
+			if (!n.id.equals(acc.id)) repo.removeAccount(acc);
+			saved.accept(n);
+		});
 	}
 
 	private static void show(MainActivityDelegate a, @Nullable String link, @Nullable String user,
-													 @Nullable String pass, @Nullable String name,
+													 @Nullable String pass, @Nullable String name, int title,
 													 Consumer<XtreamRepo.Account> added) {
 		Context ctx = a.getContext();
 		float dp = ctx.getResources().getDisplayMetrics().density;
@@ -50,7 +74,7 @@ final class XtreamAccountForm {
 				InputType.TYPE_TEXT_VARIATION_PASSWORD);
 		EditText nameText = field(ctx, form, R.string.xtream_name, name, InputType.TYPE_CLASS_TEXT);
 
-		a.createDialogBuilder().setTitle(R.string.xtream_add_account).setView(form)
+		a.createDialogBuilder().setTitle(title).setView(form)
 				.setNegativeButton(android.R.string.cancel, null)
 				.setPositiveButton(android.R.string.ok, (d, w) -> {
 					String l = linkText.getText().toString().trim();
@@ -58,7 +82,7 @@ final class XtreamAccountForm {
 					String p = passText.getText().toString();
 					String n = nameText.getText().toString().trim();
 					XtreamAccount xa = XtreamAccount.fromM3uUrl(l);
-					Runnable retry = () -> show(a, l, u, p, n, added);
+					Runnable retry = () -> show(a, l, u, p, n, title, added);
 					if (xa != null) {
 						check(a, xa, n, null, retry, added);
 					} else if (!l.isEmpty() && !u.isEmpty() && !p.isEmpty()) {

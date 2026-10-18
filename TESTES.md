@@ -120,12 +120,18 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 
 - [ ] Vendo um canal ou filme do IPTV em tela cheia, Voltar volta para a tela do IPTV (com o vídeo no alto), não para o YouTube.
 
+- [ ] Canal ou filme em tela cheia no celular em pé: imagem na proporção certa (faixas pretas em cima e embaixo), não esticada.
+- [ ] Botão de perfil do IPTV: contas com "painel" ou "lista M3U"; Editar conta (formulário preenchido), Atualizar catálogo, Remover (pede confirmação).
+
 ## 5. Vídeo + Waze (atração)
 
 - [ ] Espelhamento do Fermata em paisagem + tela dividida do celular (Waze | YouTube).
 - [ ] Toque nas duas metades cai no lugar certo (#796).
 
 ## 6. Visual
+
+- [ ] Configurações → Complementos: cada um com "Ativado/Desativado · o que faz", nomes em português (Gerador de legendas, Radares e limites).
+- [ ] ChatGPT ativado: o botão aparece na barra (depois de Pastas). Modelo: a lista vem da sua conta da OpenAI (abra as configurações do ChatGPT duas vezes depois de colocar a chave).
 
 - [ ] Pastas → adicionar pasta: lista "Armazenamento interno", cartão SD/USB (se tiver), Downloads, Filmes, Músicas, Câmera. Sem "0", "mnt" ou "me.aap.fermata…".
 

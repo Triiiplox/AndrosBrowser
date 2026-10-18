@@ -483,24 +483,34 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 		});
 	}
 
+	/**
+	 * The accounts: tap one to open it. The open account can be edited, refreshed or removed; the
+	 * removal asks first, and drops the account with its cached catalog.
+	 */
 	private void showAccounts() {
 		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
 		List<Account> list = repo.getAccounts();
 		List<CharSequence> items = new ArrayList<>();
-		for (Account acc : list) items.add(acc.name);
-		int add = items.size();
-		items.add(getString(R.string.xtream_add_account));
-		int refresh = -1, remove = -1;
-		if (account != null) {
-			refresh = items.size();
-			items.add(getString(R.string.xtream_refresh));
-			remove = items.size();
-			items.add(getString(R.string.xtream_remove_account) + ": " + account.name);
+		for (Account acc : list) {
+			String kind = getString(acc.isPlaylist() ? R.string.xtream_kind_playlist :
+					R.string.xtream_kind_panel);
+			items.add(acc.name + "  ·  " + kind);
 		}
-		int cur = list.indexOf(account);
-		int fRefresh = refresh, fRemove = remove;
+		int add = items.size();
+		items.add("+ " + getString(R.string.xtream_add_account));
+		int edit = -1, refresh = -1, remove = -1;
+		if (account != null) {
+			edit = items.size();
+			items.add("✎ " + getString(R.string.xtream_edit_account) + ": " + account.name);
+			refresh = items.size();
+			items.add("↻ " + getString(R.string.xtream_refresh));
+			remove = items.size();
+			items.add("✕ " + getString(R.string.xtream_remove_account) + ": " + account.name);
+		}
+		int fEdit = edit, fRefresh = refresh, fRemove = remove;
 		a.createDialogBuilder().setTitle(R.string.xtream_accounts)
-				.setSingleChoiceItems(items.toArray(new CharSequence[0]), cur, (d, which) -> {
+				.setSingleChoiceItems(items.toArray(new CharSequence[0]), list.indexOf(account),
+						(d, which) -> {
 					d.dismiss();
 					if (which < add) {
 						Account sel = list.get(which);
@@ -511,17 +521,39 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 						}
 					} else if (which == add) {
 						addAccount();
+					} else if (which == fEdit) {
+						editAccount();
 					} else if (which == fRefresh) {
 						refreshNow();
 					} else if (which == fRemove) {
-						Account acc = account;
-						if (acc == null) return;
-						repo.removeAccount(acc);
-						closeAll();
-						loadAccount();
+						confirmRemove();
 					}
 				}).setNegativeButton(android.R.string.cancel, null).show();
 		showExpiry();
+	}
+
+	private void editAccount() {
+		Account acc = account;
+		if (acc == null) return;
+		XtreamAccountForm.edit(MainActivityDelegate.get(requireContext()), acc, n -> {
+			repo.setActiveAccount(n);
+			closeAll();
+			loadAccount();
+		});
+	}
+
+	private void confirmRemove() {
+		Account acc = account;
+		if (acc == null) return;
+		MainActivityDelegate.get(requireContext()).createDialogBuilder()
+				.setTitle(R.string.xtream_remove_account)
+				.setMessage(getString(R.string.xtream_remove_confirm, acc.name))
+				.setNegativeButton(android.R.string.cancel, null)
+				.setPositiveButton(R.string.xtream_remove, (d, w) -> {
+					repo.removeAccount(acc);
+					closeAll();
+					loadAccount();
+				}).show();
 	}
 
 	private void refreshNow() {

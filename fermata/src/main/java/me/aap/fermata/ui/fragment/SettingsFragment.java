@@ -1004,6 +1004,27 @@ public class SettingsFragment extends MainActivityFragment
 		public void accept(PreferenceView.Opts o) {
 			o.title = info.addonName;
 			o.icon = info.icon;
+			// What it does and whether it is on, so the list says more than a column of names
+			Context ctx = getContext();
+			int desc = describe(info.className);
+			String state = ctx.getString(store.getBooleanPref(info.enabledPref) ?
+					R.string.addon_on : R.string.addon_off);
+			o.csubtitle = (desc == ID_NULL) ? state : state + " · " + ctx.getString(desc);
+		}
+
+		private int describe(String className) {
+			return switch (className) {
+				case "me.aap.fermata.addon.tv.TvAddon" -> R.string.addon_desc_tv;
+				case "me.aap.fermata.addon.tv.xtream.XtreamAddon" -> R.string.addon_desc_xtream;
+				case "me.aap.fermata.addon.web.yt.YoutubeAddon" -> R.string.addon_desc_youtube;
+				case "me.aap.fermata.addon.web.WebBrowserAddon" -> R.string.addon_desc_web_browser;
+				case "me.aap.fermata.addon.felex.FelexAddon" -> R.string.addon_desc_felex;
+				case "me.aap.fermata.addon.cast.CastAddon" -> R.string.addon_desc_cast;
+				case "me.aap.fermata.addon.chat.ChatAddon" -> R.string.addon_desc_chat;
+				case "me.aap.fermata.addon.poi.PoiAddon" -> R.string.addon_desc_poi;
+				case "me.aap.fermata.addon.SubGenAddon" -> R.string.addon_desc_subgen;
+				default -> ID_NULL;
+			};
 		}
 
 		@Override

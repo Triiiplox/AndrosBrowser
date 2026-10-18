@@ -67,6 +67,11 @@
     <string name="xtream_hours_minutes">%1$dh %2$02dmin</string>
     <string name="xtream_invalid_account">Cole o link da lista (http…), ou um servidor com usuário e senha</string>
     <string name="xtream_not_playlist">O link não trouxe uma lista M3U: %s</string>
+    <string name="xtream_edit_account">Editar conta</string>
+    <string name="xtream_remove">Remover</string>
+    <string name="xtream_remove_confirm">Remover \"%s\"? A conta e o catálogo baixado dela saem do aparelho.</string>
+    <string name="xtream_kind_panel">painel</string>
+    <string name="xtream_kind_playlist">lista M3U</string>
     <string name="xtream_login_refused">O painel recusou o login: %s</string>
     <string name="xtream_checking">Verificando a conta…</string>
     <string name="xtream_live_now">Agora: %s</string>

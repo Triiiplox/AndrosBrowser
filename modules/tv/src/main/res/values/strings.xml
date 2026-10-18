@@ -75,6 +75,11 @@
     <string name="xtream_hours_minutes">%1$dh %2$02dmin</string>
     <string name="xtream_invalid_account">Paste the playlist link (http…), or a server with the user and password</string>
     <string name="xtream_not_playlist">The link did not return an M3U playlist: %s</string>
+    <string name="xtream_edit_account">Edit account</string>
+    <string name="xtream_remove">Remove</string>
+    <string name="xtream_remove_confirm">Remove \"%s\"? The account and its downloaded catalog leave the device.</string>
+    <string name="xtream_kind_panel">panel</string>
+    <string name="xtream_kind_playlist">M3U playlist</string>
     <string name="xtream_login_refused">The panel refused the login: %s</string>
     <string name="xtream_checking">Checking the account…</string>
     <string name="xtream_live_now">Now: %s</string>
