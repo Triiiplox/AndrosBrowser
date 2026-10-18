@@ -86,13 +86,13 @@ public final class Catalog {
 		Snapshot s = snapshot;
 		if (s != null) return s;
 		synchronized (this) {
-			if (snapshot == null) snapshot = isPlaylist() ? loadPlaylist(false) : load(client);
+			if (snapshot == null) snapshot = isPlaylist() ? loadPlaylist(false) : load(client, refreshing);
 			return snapshot;
 		}
 	}
 
 	public synchronized Snapshot refresh() throws IOException {
-		return snapshot = isPlaylist() ? loadPlaylist(true) : load(refreshing);
+		return snapshot = isPlaylist() ? loadPlaylist(true) : load(refreshing, refreshing);
 	}
 
 	/** True if the lists on disk are older than their freshness: worth a refresh in background. */
@@ -139,9 +139,12 @@ public final class Catalog {
 
 	/**
 	 * Loads the three kinds at once: on a first load the lists are big downloads from a slow panel,
-	 * and one after the other they add up. A kind that fails is empty; all failing is an error.
+	 * and one after the other they add up. Some panels take one request at a time per account and
+	 * refuse the others, with an error or with an empty answer that looks like an empty list; so a
+	 * kind that fails or comes back empty is asked again, alone and bypassing the cache ({@code
+	 * fresh}), once the others are done. A kind that still fails is empty; all failing is an error.
 	 */
-	private static Snapshot load(XtreamClient c) throws IOException {
+	private static Snapshot load(XtreamClient c, XtreamClient fresh) throws IOException {
 		Kind[] kinds = {Kind.LIVE, Kind.MOVIE, Kind.SERIES};
 		ExecutorService exec = Executors.newFixedThreadPool(kinds.length, r -> {
 			Thread t = new Thread(r, "Xtream catalog");
@@ -179,6 +182,19 @@ public final class Catalog {
 			}
 			cats.put(k, p.categories);
 			entries.put(k, p.entries);
+		}
+
+		// Only now that nothing else is on its way: one request at a time
+		for (Kind k : kinds) {
+			if (!entries.get(k).isEmpty()) continue;
+			try {
+				Part p = loadKind(fresh, k);
+				cats.put(k, p.categories);
+				entries.put(k, p.entries);
+				loaded++;
+			} catch (IOException ex) {
+				if (failure == null) failure = ex;
+			}
 		}
 
 		// Nothing at all: the panel refused or cannot be reached, and nothing is cached

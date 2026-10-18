@@ -233,6 +233,31 @@ public class CoreTest {
 	}
 
 	@Test
+	public void catalogAsksAgainForAListRefusedWhileTheOthersLoaded() throws Exception {
+		// Panels limited to one request at a time answer the others with an empty list or an error
+		FakePanel panel = new FakePanel();
+		java.util.Set<String> refused = new java.util.HashSet<>(
+				java.util.Arrays.asList("get_live_streams", "get_series"));
+		com.triiiplox.iptv.net.Transport busy = url -> {
+			String a = FakePanel.action(url);
+			synchronized (refused) {
+				if ("get_series".equals(a) && refused.remove(a))
+					throw new com.triiiplox.iptv.net.HttpException(503, "Busy");
+				if (refused.remove(a))
+					return new java.io.ByteArrayInputStream("[]".getBytes(StandardCharsets.UTF_8));
+			}
+			return panel.open(url);
+		};
+		File dir = tmp.newFolder();
+		Snapshot s = new Catalog(FakePanel.account(), busy, dir).snapshot();
+		assertEquals(3, s.size(Kind.LIVE));
+		assertEquals(3, s.size(Kind.MOVIE));
+		assertEquals(2, s.size(Kind.SERIES));
+		// The empty answer is not what the cache keeps
+		assertEquals(3, new Catalog(FakePanel.account(), panel, dir).snapshot().size(Kind.LIVE));
+	}
+
+	@Test
 	public void catalogOpensOfflineFromTheCache() throws Exception {
 		FakePanel panel = new FakePanel();
 		File dir = tmp.newFolder();
