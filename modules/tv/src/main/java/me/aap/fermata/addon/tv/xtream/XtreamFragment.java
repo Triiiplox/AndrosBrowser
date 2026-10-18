@@ -470,13 +470,17 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 		Account acc = repo.getAccount(xp.getAccountId());
 		if ((acc == null) || acc.isPlaylist()) return;
 		Context ctx = requireContext().getApplicationContext();
+		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
 		repo.run(() -> repo.catalog(acc).epg(xp.getStreamId(), 4)).main().onCompletion((l, err) -> {
 			if (err != null) {
 				Log.d("Xtream: no guide for the channel: ", err.getMessage());
 				return;
 			}
 			String text = nowNext(ctx, l, System.currentTimeMillis() / 1000);
-			if (text != null) xp.setNowNext(text);
+			if (text == null) return;
+			xp.setNowNext(text);
+			// Shown at once, not at the next pause, when the stream already started
+			a.getMediaSessionCallback().refreshMetadata(xp);
 		});
 	}
 

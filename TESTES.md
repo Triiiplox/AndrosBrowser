@@ -123,7 +123,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Canal ou filme em tela cheia no celular em pé: imagem na proporção certa (faixas pretas em cima e embaixo), não esticada.
 - [ ] Botão de perfil do IPTV: contas com "painel" ou "lista M3U"; Editar conta (formulário preenchido), Atualizar catálogo, Remover (pede confirmação).
 
-- [ ] Canal ao vivo de painel: depois de alguns segundos, sob o nome do canal aparece "Agora: programa (hh:mm–hh:mm) · A seguir: próximo" (no player e no card do carro, na próxima mudança de estado se não aparecer na hora).
+- [ ] Canal ao vivo de painel: depois de alguns segundos, sob o nome do canal aparece "Agora: programa (hh:mm–hh:mm) · A seguir: próximo" (no player e no card do carro).
 
 ## 5. Vídeo + Waze (atração)
 

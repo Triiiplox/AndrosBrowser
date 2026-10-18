@@ -946,6 +946,21 @@ public class MediaSessionCallback extends MediaSessionCompat.Callback
 				.onSuccess(h -> setPlayingState(engine, true, h.value1, h.value2));
 	}
 
+	/**
+	 * Shows the new metadata of the playing item, e.g. the programme on air of a live channel that
+	 * arrived after the stream started. Nothing happens for another item.
+	 */
+	public void refreshMetadata(PlayableItem i) {
+		MediaEngine eng = getEngine();
+		if ((eng == null) || (eng.getSource() != i)) return;
+		boolean playing = isPlaying();
+		eng.getPosition().and(eng.getSpeed()).main().onSuccess(h -> {
+			if ((eng == getEngine()) && (eng.getSource() == i)) {
+				setPlayingState(eng, playing, h.value1, h.value2);
+			}
+		});
+	}
+
 	private void setPlayingState(MediaEngine engine, boolean playing, long pos, float speed) {
 		PlayableItem i = engine.getSource();
 		BrowsableItemPrefs prefs = i.getParent().getPrefs();
