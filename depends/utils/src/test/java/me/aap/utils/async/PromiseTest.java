@@ -80,6 +80,13 @@ public class PromiseTest extends Assertions {
 		}
 	}
 
+	private static void awaitTrue(AtomicBoolean b) {
+		for (long end = System.nanoTime() + SECONDS.toNanos(5); !b.get(); ) {
+			assertTrue(System.nanoTime() < end);
+			LockSupport.parkNanos(1000);
+		}
+	}
+
 	public FutureSupplier<Integer> progress(int iters) throws ExecutionException, InterruptedException, TimeoutException {
 		Promise<Integer> p = new Promise<>();
 		supplier = p.thenReplace(updater, this);
@@ -148,15 +155,16 @@ public class PromiseTest extends Assertions {
 			}
 		});
 
+		// The result is set before the consumers are called: get() may return while they still run
 		assertEquals(p.get(5, SECONDS).intValue(), iters);
-		assertTrue(success.get());
-		assertTrue(consumed.get());
-		assertTrue(completion.get());
+		awaitTrue(success);
+		awaitTrue(consumed);
+		awaitTrue(completion);
 
 		assertEquals(p.get().intValue(), iters);
-		assertTrue(success2.get());
-		assertTrue(consumed2.get());
-		assertTrue(completion2.get());
+		awaitTrue(success2);
+		awaitTrue(consumed2);
+		awaitTrue(completion2);
 
 		AtomicBoolean success3 = new AtomicBoolean();
 		AtomicBoolean consumed3 = new AtomicBoolean();
@@ -181,9 +189,9 @@ public class PromiseTest extends Assertions {
 		});
 
 		assertEquals(p.get().intValue(), iters);
-		assertTrue(success3.get());
-		assertTrue(consumed3.get());
-		assertTrue(completion3.get());
+		awaitTrue(success3);
+		awaitTrue(consumed3);
+		awaitTrue(completion3);
 
 		FutureSupplier<Integer> replaced = updater.get(this);
 		assertTrue(replaced instanceof Completed, () -> replaced.getClass().getName());
