@@ -19,6 +19,7 @@ import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -40,6 +41,7 @@ final class VoiceOverlay extends FrameLayout {
 		void onClose();
 	}
 
+	private static final int BAR_DP = 92;
 	private final Orb orb;
 	private final TextView caption;
 	private final ImageButton mute;
@@ -54,9 +56,7 @@ final class VoiceOverlay extends FrameLayout {
 		center.setOrientation(LinearLayout.VERTICAL);
 		center.setGravity(Gravity.CENTER_HORIZONTAL);
 		orb = new Orb(ctx);
-		int size = Math.min(ctx.getResources().getDisplayMetrics().widthPixels,
-				ctx.getResources().getDisplayMetrics().heightPixels) / 2;
-		center.addView(orb, new LinearLayout.LayoutParams(size, size));
+		center.addView(orb, new LinearLayout.LayoutParams(0, 0));
 		caption = new TextView(ctx);
 		caption.setTextColor(0xCCFFFFFF);
 		caption.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
@@ -64,28 +64,51 @@ final class VoiceOverlay extends FrameLayout {
 		caption.setMaxLines(4);
 		caption.setEllipsize(TextUtils.TruncateAt.END);
 		int pad = toIntPx(ctx, 32);
-		caption.setPadding(pad, toIntPx(ctx, 28), pad, 0);
+		caption.setPadding(pad, toIntPx(ctx, 20), pad, 0);
 		center.addView(caption, new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-		addView(center, new LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.CENTER));
+		// Only the room above the buttons: what is heard never runs under them. Padding, not a
+		// margin: a frame centers its child in what its padding leaves
+		FrameLayout room = new FrameLayout(ctx);
+		room.setPadding(0, 0, 0, toIntPx(ctx, BAR_DP));
+		room.addView(center, new LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.CENTER));
+		addView(room, new LayoutParams(MATCH_PARENT, MATCH_PARENT));
 
-		LinearLayout bottom = new LinearLayout(ctx);
-		bottom.setOrientation(LinearLayout.HORIZONTAL);
-		bottom.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
-		int bp = toIntPx(ctx, 16);
-		bottom.setPadding(bp, bp, bp, toIntPx(ctx, 20));
+		// As in the ChatGPT app: the microphone on one side, close on the other
+		FrameLayout bottom = new FrameLayout(ctx);
+		int bp = toIntPx(ctx, 20);
+		bottom.setPadding(bp, 0, bp, toIntPx(ctx, 16));
 		mute = roundButton(ctx, R.drawable.chat_mic, 0xFF2A2A2A, Color.WHITE);
 		mute.setContentDescription(ctx.getString(R.string.chat_mute));
 		mute.setOnClickListener(v -> listener.onMuteToggled());
 		ImageButton close = roundButton(ctx, R.drawable.chat_close, Color.WHITE, Color.BLACK);
 		close.setContentDescription(ctx.getString(R.string.chat_close_voice));
 		close.setOnClickListener(v -> listener.onClose());
-		int b = toIntPx(ctx, 56);
-		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(b, b);
-		bottom.addView(mute, lp);
-		lp = new LinearLayout.LayoutParams(b, b);
-		lp.setMarginStart(toIntPx(ctx, 12));
-		bottom.addView(close, lp);
-		addView(bottom, new LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.BOTTOM));
+		int b = toIntPx(ctx, 60);
+		bottom.addView(mute, new LayoutParams(b, b, Gravity.START | Gravity.CENTER_VERTICAL));
+		bottom.addView(close, new LayoutParams(b, b, Gravity.END | Gravity.CENTER_VERTICAL));
+		addView(bottom, new LayoutParams(MATCH_PARENT, toIntPx(ctx, BAR_DP), Gravity.BOTTOM));
+	}
+
+	/*
+	 * The orb takes what is left once the buttons and the words have their room: about half of a
+	 * phone's width, but much less on the car's short screen, where the words get two lines.
+	 */
+	@Override
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+		float d = getResources().getDisplayMetrics().density;
+		boolean shortScreen = h < 480 * d;
+		int lines = shortScreen ? 2 : 4;
+		int words = Math.round(lines * caption.getLineHeight() + 20 * d);
+		int room = h - Math.round(BAR_DP * d) - words - Math.round(24 * d);
+		int size = Math.max(Math.round(72 * d), Math.min(Math.min(w / 2, room), Math.round(320 * d)));
+		post(() -> {
+			caption.setMaxLines(lines);
+			ViewGroup.LayoutParams lp = orb.getLayoutParams();
+			if ((lp.width == size) && (lp.height == size)) return;
+			lp.width = lp.height = size;
+			orb.setLayoutParams(lp);
+		});
 	}
 
 	void show() {

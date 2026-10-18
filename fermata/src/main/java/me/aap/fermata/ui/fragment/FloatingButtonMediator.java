@@ -3,6 +3,7 @@ package me.aap.fermata.ui.fragment;
 import static android.view.View.FOCUS_LEFT;
 import static android.view.View.FOCUS_RIGHT;
 import static android.view.View.FOCUS_UP;
+import static me.aap.utils.ui.activity.ActivityListener.FRAGMENT_CHANGED;
 import static me.aap.utils.ui.UiUtils.isVisible;
 
 import android.content.Context;
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import me.aap.fermata.R;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
 import me.aap.fermata.ui.view.MediaItemListView;
+import me.aap.utils.ui.activity.ActivityDelegate;
 import me.aap.utils.ui.fragment.ActivityFragment;
 import me.aap.utils.ui.view.FloatingButton;
 import me.aap.utils.ui.view.FloatingButton.Mediator.BackMenu;
@@ -25,15 +27,28 @@ import me.aap.utils.ui.view.ToolBarView;
 public class FloatingButtonMediator implements BackMenu {
 	public static final FloatingButtonMediator instance = new FloatingButtonMediator();
 
-	/**
-	 * On the phone the button only repeated the system Back and the nav bar's Menu, over the
-	 * content: it shows there only to add a folder. In the car it is the only Back on the screen.
-	 */
 	@Override
 	public void enable(FloatingButton fb, ActivityFragment f) {
 		BackMenu.super.enable(fb, f);
+		suppress(fb, f);
+	}
+
+	@Override
+	public void onActivityEvent(FloatingButton fb, ActivityDelegate a, long e) {
+		BackMenu.super.onActivityEvent(fb, a, e);
+		// The screens share this mediator: enable() is not called again from one to the next
+		if ((e & FRAGMENT_CHANGED) != 0) suppress(fb, a.getActiveFragment());
+	}
+
+	/*
+	 * On the phone the button only repeated the system Back and the nav bar's Menu, over the
+	 * content: it shows there only to add a folder. In the car it is the only Back on the screen,
+	 * but in the settings, whose tool bar has one, and where it covered the arrows of the rows.
+	 */
+	private void suppress(FloatingButton fb, ActivityFragment f) {
 		MainActivityDelegate a = MainActivityDelegate.get(fb.getContext());
-		fb.setSuppressed(!a.isCarActivity() && !isAddFolderEnabled(f));
+		boolean show = a.isCarActivity() ? !(f instanceof SettingsFragment) : isAddFolderEnabled(f);
+		fb.setSuppressed(!show);
 	}
 
 	@Override

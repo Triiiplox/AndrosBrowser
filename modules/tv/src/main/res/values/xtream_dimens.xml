@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Short screens: the car (800x480, about 400dp tall under the bars) and a phone on its side.
-         The hero leaves room for a row of cards below it; taller screens use values-h600dp. -->
-    <dimen name="xtream_poster_width">92dp</dimen>
-    <dimen name="xtream_poster_height">138dp</dimen>
-    <dimen name="xtream_channel_width">140dp</dimen>
-    <dimen name="xtream_channel_height">79dp</dimen>
-    <dimen name="xtream_wide_width">168dp</dimen>
-    <dimen name="xtream_wide_height">95dp</dimen>
-    <dimen name="xtream_hero_height">150dp</dimen>
+         The hero (120dp) and a whole row of cards (28 + 120dp) fit the 280dp between the tabs and
+         the nav bar; taller screens use values-h600dp. -->
+    <dimen name="xtream_poster_width">80dp</dimen>
+    <dimen name="xtream_poster_height">120dp</dimen>
+    <dimen name="xtream_channel_width">128dp</dimen>
+    <dimen name="xtream_channel_height">72dp</dimen>
+    <dimen name="xtream_wide_width">152dp</dimen>
+    <dimen name="xtream_wide_height">86dp</dimen>
+    <dimen name="xtream_hero_height">120dp</dimen>
     <dimen name="xtream_backdrop_height">160dp</dimen>
+    <dimen name="xtream_details_poster_width">64dp</dimen>
+    <dimen name="xtream_details_poster_height">96dp</dimen>
     <dimen name="xtream_gutter">16dp</dimen>
 </resources>

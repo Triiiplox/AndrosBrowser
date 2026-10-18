@@ -2,10 +2,17 @@ package me.aap.fermata.ui.view;
 
 import static java.util.Objects.requireNonNull;
 import static me.aap.utils.ui.UiUtils.isVisible;
+import static me.aap.utils.ui.UiUtils.toIntPx;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -35,11 +42,48 @@ public class MediaItemListView extends RecyclerView implements PreferenceStore.L
 	private boolean isSelectionActive;
 	private boolean grid;
 	private int focusReq;
+	@Nullable
+	private CharSequence emptyText;
+	@Nullable
+	private StaticLayout emptyLayout;
 
 	public MediaItemListView(Context ctx, AttributeSet attrs) {
 		super(ctx, attrs);
 		configure(ctx.getResources().getConfiguration());
 		setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
+	}
+
+	/** What the list says while it has nothing, e.g. how to add the first folder; null for nothing. */
+	public void setEmptyText(@Nullable CharSequence text) {
+		emptyText = text;
+		emptyLayout = null;
+		invalidate();
+	}
+
+	// Not draw(): a list that "will not draw" (no overscroll glow) skips it, not dispatchDraw()
+	@Override
+	protected void dispatchDraw(@NonNull Canvas c) {
+		super.dispatchDraw(c);
+		CharSequence text = emptyText;
+		Adapter<?> a = getAdapter();
+		if ((text == null) || ((a != null) && (a.getItemCount() > 0))) return;
+		int w = getWidth() - toIntPx(getContext(), 64);
+		if (w <= 0) return;
+		StaticLayout l = emptyLayout;
+		if ((l == null) || (l.getWidth() != w)) {
+			TextPaint p = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+			TypedValue v = new TypedValue();
+			getContext().getTheme().resolveAttribute(android.R.attr.textColorSecondary, v, true);
+			p.setColor((v.resourceId != 0) ? getContext().getColor(v.resourceId) : v.data);
+			p.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 17,
+					getResources().getDisplayMetrics()));
+			emptyLayout = l = StaticLayout.Builder.obtain(text, 0, text.length(), p, w)
+					.setAlignment(Layout.Alignment.ALIGN_CENTER).setLineSpacing(0, 1.2f).build();
+		}
+		c.save();
+		c.translate((getWidth() - w) / 2f, (getHeight() - l.getHeight()) / 2f);
+		l.draw(c);
+		c.restore();
 	}
 
 	@Override

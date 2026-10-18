@@ -35,6 +35,7 @@ import me.aap.fermata.media.lib.MediaLib.Item;
 import me.aap.fermata.media.pref.FoldersPrefs;
 import me.aap.fermata.media.service.FermataServiceUiBinder;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
+import me.aap.fermata.ui.view.MediaItemListView;
 import me.aap.fermata.vfs.FermataVfsManager;
 import me.aap.utils.app.App;
 import me.aap.utils.async.FutureSupplier;
@@ -332,6 +333,9 @@ public class FoldersFragment extends MediaLibFragment {
 		}
 
 		private void animateAddButton(BrowsableItem parent) {
+			// The fragment's list: the adapter's own is set only after it is built
+			if (FoldersFragment.this.getView() instanceof MediaItemListView list) list.setEmptyText((parent instanceof Folders) ?
+					list.getContext().getString(R.string.folders_empty) : null);
 			if (!(parent instanceof Folders)) return;
 
 			parent.getUnsortedChildren().onSuccess(c -> {

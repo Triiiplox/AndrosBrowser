@@ -9,5 +9,7 @@
     <dimen name="xtream_wide_height">104dp</dimen>
     <dimen name="xtream_hero_height">210dp</dimen>
     <dimen name="xtream_backdrop_height">230dp</dimen>
+    <dimen name="xtream_details_poster_width">84dp</dimen>
+    <dimen name="xtream_details_poster_height">126dp</dimen>
     <dimen name="xtream_gutter">16dp</dimen>
 </resources>
