@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screens 600dp tall or more (a phone held upright): the full Netflix sizes -->
+    <dimen name="xtream_poster_width">104dp</dimen>
+    <dimen name="xtream_poster_height">156dp</dimen>
+    <dimen name="xtream_channel_width">152dp</dimen>
+    <dimen name="xtream_channel_height">86dp</dimen>
+    <dimen name="xtream_wide_width">184dp</dimen>
+    <dimen name="xtream_wide_height">104dp</dimen>
+    <dimen name="xtream_hero_height">210dp</dimen>
+    <dimen name="xtream_backdrop_height">230dp</dimen>
+    <dimen name="xtream_gutter">16dp</dimen>
+</resources>
