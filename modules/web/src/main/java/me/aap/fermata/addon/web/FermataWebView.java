@@ -29,6 +29,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.webkit.UserAgentMetadata;
 import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewFeature;
@@ -98,6 +101,7 @@ public class FermataWebView extends WebView
 
 		addJavascriptInterface(createJsInterface(), FermataJsInterface.NAME);
 		CookieManager.getInstance().setAcceptThirdPartyCookies(this, true);
+		ignoreSystemBars();
 
 		addon.getPreferenceStore().addBroadcastListener(this);
 		getActivity().onSuccess(a -> a.addBroadcastListener(this));
@@ -138,6 +142,21 @@ public class FermataWebView extends WebView
 	protected void onWindowVisibilityChanged(int visibility) {
 		if (!BuildConfig.AUTO) super.onWindowVisibilityChanged(visibility);
 		else if (visibility != View.GONE) super.onWindowVisibilityChanged(View.VISIBLE);
+	}
+
+	/*
+	 * The activity already keeps its content clear of the status and navigation bars. Seeing them
+	 * too, the WebView would give the page a safe area (env(safe-area-inset-*)) and the page would
+	 * leave room for them once more: an empty band of the height of the navigation bar under the
+	 * tab bar of YouTube. The keyboard is still passed on.
+	 */
+	private void ignoreSystemBars() {
+		ViewCompat.setOnApplyWindowInsetsListener(this, (v, insets) -> {
+			int bars = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
+			WindowInsetsCompat page = new WindowInsetsCompat.Builder(insets)
+					.setInsets(bars, Insets.NONE).build();
+			return ViewCompat.onApplyWindowInsets(v, page);
+		});
 	}
 
 	@Override
