@@ -174,3 +174,11 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Modo voz no carro: bola menor, frase em até 2 linhas acima dos botões; mudo à esquerda, X à direita, nada sobreposto.
 - [ ] Abas do IPTV: "Ao vivo" inteiro? (nos prints do Robolectric a última letra sai cortada; confirmar no aparelho)
 - [ ] YouTube no carro: sem a barra Início/Shorts/Você do site (a barra do Fermata já leva ao início); mais resultados na tela. No celular em pé ela continua.
+
+### Rodada volante / conta do ChatGPT / log
+- [ ] No carro, num canal ao vivo: ⏭ e ⏮ do volante trocam para o canal seguinte/anterior da categoria (no último, passa à próxima categoria).
+- [ ] Três toques rápidos no ⏯ do volante abrem o modo voz do ChatGPT. Um toque ainda pausa/toca (com um instante de espera). Se nada acontecer: mandar o log (o volante pode chegar ao app como comando, não como tecla).
+- [ ] Configurações → Atalhos de teclas → MEDIA_PLAY_PAUSE: "Ao clicar três vezes" = "ChatGPT: modo voz"; dá para escolher outra ação ou outro botão.
+- [ ] Configurações → Complementos → ChatGPT → "ChatGPT com": "Minha conta do ChatGPT". A tela do ChatGPT vira o chatgpt.com: entrar uma vez (e-mail, Google, Apple ou Microsoft), fechar e abrir o app e continuar logado. Testar o modo voz do site (microfone).
+- [ ] Se o site ficar em "Um momento…" por mais de ~25s: aparece o aviso com "Abrir o app do ChatGPT".
+- [ ] Menu (≡) → "Enviar log": abre o compartilhar do Android com o Fermata.log.

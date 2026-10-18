@@ -92,10 +92,14 @@ public abstract class NavigationTest {
 				step(this::navBar, "barra de navegação");
 				step(this::iptv, "IPTV");
 				step(this::chat, "ChatGPT");
+				step(this::steeringWheel, "Volante: três toques no ⏯");
 				step(this::folders, "Pastas");
 				step(this::settings, "Configurações");
 			} finally {
 				write();
+			}
+			if (fails > 0) {
+				throw new AssertionError(fails + " falha(s): build/screenshots/" + size + "-navigation.txt");
 			}
 		}
 
@@ -182,6 +186,28 @@ public abstract class NavigationTest {
 				check(overlays.isEmpty(), "botão ← fecha os detalhes");
 			}
 
+			// The steering wheel's next and previous: the channel after or before in its category
+			com.triiiplox.iptv.Snapshot snap = (com.triiiplox.iptv.Snapshot) field(f, "snapshot");
+			XtreamRepo.Account acc = (XtreamRepo.Account) field(f, "account");
+			java.lang.reflect.Method rootOf = XtreamFragment.class.getDeclaredMethod("root");
+			rootOf.setAccessible(true);
+			XtreamRootItem tvRoot = (XtreamRootItem) rootOf.invoke(f);
+			List<com.triiiplox.iptv.model.Entry> live = snap.entries(com.triiiplox.iptv.model.Entry.Kind.LIVE);
+			com.triiiplox.iptv.model.Entry ch = live.get(0);
+			List<com.triiiplox.iptv.model.Entry> sameCat = new ArrayList<>();
+			for (com.triiiplox.iptv.model.Entry e : live) if (e.categoryId.equals(ch.categoryId)) sameCat.add(e);
+			XtreamPlayable p = tvRoot.playable(acc, snap, ch);
+			me.aap.fermata.media.lib.MediaLib.PlayableItem next = get(p.getNextPlayable());
+			check((next != null) && next.getName().equals(sameCat.get(1).name),
+					"⏭ num canal toca o próximo da categoria (" + ch.name + " → " +
+							((next == null) ? "nada" : next.getName()) + ")");
+			me.aap.fermata.media.lib.MediaLib.PlayableItem prev = (next == null) ? null : get(next.getPrevPlayable());
+			check((prev != null) && prev.getName().equals(ch.name), "⏮ volta ao canal anterior");
+			XtreamPlayable last = tvRoot.playable(acc, snap, sameCat.get(sameCat.size() - 1));
+			me.aap.fermata.media.lib.MediaLib.PlayableItem after = get(last.getNextPlayable());
+			check(after != null, "⏭ no último canal da categoria passa para a seguinte (" +
+					((after == null) ? "nada" : after.getName()) + ")");
+
 			root.findViewById(me.aap.fermata.addon.tv.R.id.xtream_search_button).performClick();
 			Screens.waitReal(1);
 			check(overlays.size() == 1, "lupa abre a busca");
@@ -195,7 +221,7 @@ public abstract class NavigationTest {
 		void chat() throws Exception {
 			d.showFragment(R.id.chat_addon);
 			Screens.settle();
-			View screen = d.getActiveFragment().requireView();
+			View screen = ((ViewGroup) d.getActiveFragment().requireView()).getChildAt(0);
 			View action = first(screen, v -> (v instanceof ImageButton) && v.isShown() &&
 					getString(me.aap.fermata.addon.chat.R.string.chat_voice_mode).contentEquals(v.getContentDescription()));
 			check(action != null, "botão azul do modo voz");
@@ -249,6 +275,67 @@ public abstract class NavigationTest {
 			check(((View) menu).isShown(), "\"+\" abre o menu (Nova conversa, app do ChatGPT)");
 			Screens.save(root, size + "-nav-chat-menu");
 			menu.hide();
+			Screens.settle();
+
+			// The account mode: the chatgpt.com site in place of the chat, and back
+			me.aap.utils.pref.PreferenceStore.Pref<me.aap.utils.function.IntSupplier> mode =
+					me.aap.utils.pref.PreferenceStore.Pref.i("CHAT_MODE", 0);
+			ps.applyIntPref(mode, 1);
+			Screens.waitReal(1);
+			View content = ((ViewGroup) d.getActiveFragment().requireView()).getChildAt(0);
+			android.webkit.WebView web = (android.webkit.WebView) first(content, v -> v instanceof android.webkit.WebView);
+			check((web != null) && "https://chatgpt.com/".equals(shadowOf(web).getLastLoadedUrl()),
+					"modo conta: abre o chatgpt.com (" + ((web == null) ? "sem WebView" :
+							shadowOf(web).getLastLoadedUrl()) + ")");
+			check(!d.getFloatingButton().isShown(), "modo conta: sem o botão redondo (o site tem o dele)");
+			Screens.save(root, size + "-nav-chat-site");
+			ps.applyIntPref(mode, 0);
+			Screens.settle();
+			content = ((ViewGroup) d.getActiveFragment().requireView()).getChildAt(0);
+			check(first(content, v -> v instanceof EditText) != null, "volta ao chat com chave");
+		}
+
+		// --- Steering wheel: three presses of play/pause open ChatGPT's voice mode ---
+
+		void steeringWheel() throws Exception {
+			d.showFragment(R.id.folders_fragment);
+			Screens.settle();
+			for (int i = 0; i < 3; i++) {
+				press(android.view.KeyEvent.ACTION_DOWN);
+				Screens.waitReal(0);
+				ShadowWait.ms(80);
+				press(android.view.KeyEvent.ACTION_UP);
+				ShadowWait.ms(120);
+			}
+			Screens.waitReal(2);
+			ActivityFragment f = d.getActiveFragment();
+			boolean chat = (f != null) && (f.getFragmentId() == R.id.chat_addon);
+			View voice = chat ? (View) field(((ViewGroup) f.requireView()).getChildAt(0), "voice") : null;
+			check(chat && (voice != null) && voice.isShown(),
+					"três toques abrem o modo voz do ChatGPT (tela: " + name(f) + ")");
+			if (chat) {
+				Screens.save(root, size + "-nav-wheel-voice");
+				d.onBackPressed();
+				Screens.settle();
+			}
+		}
+
+		void press(int action) {
+			long t = android.os.SystemClock.uptimeMillis();
+			me.aap.fermata.action.KeyEventHandler.handleKeyEvent(d,
+					new android.view.KeyEvent(t, t, action, android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0),
+					(c, e) -> false);
+		}
+
+		// Real time and the main looper together, for the press timings
+		static final class ShadowWait {
+			static void ms(long ms) throws InterruptedException {
+				long end = System.currentTimeMillis() + ms;
+				while (System.currentTimeMillis() < end) {
+					org.robolectric.shadows.ShadowLooper.idleMainLooper(10, java.util.concurrent.TimeUnit.MILLISECONDS);
+					Thread.sleep(10);
+				}
+			}
 		}
 
 		// --- Folders: the button opens the add menu ---
@@ -362,6 +449,11 @@ public abstract class NavigationTest {
 			List<View> l = new ArrayList<>();
 			collect(v, p, l);
 			return l.isEmpty() ? null : l.get(0);
+		}
+
+		static <T> T get(me.aap.utils.async.FutureSupplier<T> f) throws Exception {
+			Screens.waitFor(f::isDone, 10);
+			return f.get();
 		}
 
 		static Object field(Object o, String name) {

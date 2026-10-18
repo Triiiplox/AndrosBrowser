@@ -51,7 +51,7 @@ public class ChatScreensTest {
 		gpt.addMessage("E tem posto no caminho?", ChatGpt.Role.USER);
 		Screens.settle();
 		ChatFragment f = (ChatFragment) d.getActiveFragment();
-		View screen = f.requireView();
+		View screen = ((ViewGroup) f.requireView()).getChildAt(0);
 		ChatListView list = find(screen, ChatListView.class);
 		list.getAdapter().notifyDataSetChanged();
 		list.setWaiting(true);
