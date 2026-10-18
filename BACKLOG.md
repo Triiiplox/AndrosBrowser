@@ -135,6 +135,11 @@ mini-player 56dp, botões do topo 38dp, aleatório/repetir/velocidade/timer como
 - **CI:** os 8 `HttpHandlerTest` param o job de testes antes de `:xtream` rodar; rodar `:xtream`
   primeiro ou corrigir esses 8.
 
+- **YouTube "igual ao app":** o que roda é o site m.youtube.com, o mais perto do app que dá sem
+  um cliente próprio. Tela a tela idêntica exigiria um cliente nativo sobre a API interna do
+  YouTube (Innertube): grande, quebra a cada mudança deles e fere os termos. Ajustes de CSS
+  pontuais podem entrar quando houver um alvo concreto.
+
 ## Aguardando o Andro
 
 - Instalar o APK arm64 e mandar fotos da biblioteca, do vídeo tocando e do YouTube no Civic.

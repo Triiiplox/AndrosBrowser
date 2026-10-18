@@ -154,3 +154,13 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Logo antigo sumiu: ícone da notificação (barra de status e AA) é o H; ícones Espelhar / Início / Voltar no launcher do AA com o fundo escuro novo.
 - [ ] Vídeo/áudio sem capa na lista: emblema no card (não o ícone genérico); vídeo com capa continua com a foto.
 - [ ] Ao carregar (YouTube, vídeo, canal): emblema "respirando" com um brilho passando no cromo, sem esticar; some quando carrega.
+
+### Rodada chat igual ao app do ChatGPT / configurações / YouTube
+- [ ] ChatGPT: barra embaixo em pílula com "+", "Perguntar ao ChatGPT", microfone e botão azul redondo. Ao digitar, o botão azul vira a seta de enviar e o microfone some.
+- [ ] "+": "Nova conversa" limpa a tela; "Abrir o app do ChatGPT" abre o app oficial.
+- [ ] Botão azul com o campo vazio: tela preta com a bola azul animada, "Ouvindo…", e embaixo os botões mudo e X. Fale, a resposta é falada e ele volta a ouvir sozinho. Mudo pausa; X ou Voltar fecha. A música pausa durante o modo voz e volta ao fechar.
+- [ ] Resposta aparece com "•••" enquanto pensa; sua mensagem em balão à direita, a resposta em texto corrido à esquerda.
+- [ ] Erro da OpenAI aparece com o motivo dela (chave inválida, sem crédito, modelo desconhecido), não "Bad Request".
+- [ ] Configurações → Complementos → ChatGPT → Modelo: lista atual da sua conta (gpt-6…, gpt-5…), sem gpt-4o/o1. Sem chave: lista de reserva com modelos atuais.
+- [ ] Configurações: linhas num bloco único arredondado com divisórias finas, título claro e descrição mais apagada; no carro o foco do controle ainda aparece na linha.
+- [ ] YouTube: sem a faixa vazia embaixo de "Início / Shorts / Você"; o teclado ainda sobe a página ao buscar.
