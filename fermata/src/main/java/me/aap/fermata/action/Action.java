@@ -55,6 +55,10 @@ public enum Action {
 	BACK_OR_EXIT(R.string.action_back_or_exit, a(ActivityDelegate::onBackPressed)),
 	EXIT(R.string.action_exit, a(ActivityDelegate::finish)),
 	NONE(R.string.action_none, m(cb -> {})),
+	// After NONE: the actions are saved by their position, the new ones go last
+	CHATGPT_VOICE(R.string.action_chatgpt_voice, m(cb -> {
+		if (cb.getAssistant() instanceof MainActivityDelegate a) a.openChatGptVoice();
+	})),
 	;
 
 	private static final List<Action> all = unmodifiableList(asList(values()));

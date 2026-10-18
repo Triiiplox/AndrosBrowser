@@ -23,6 +23,7 @@ public class KeyEventHandler {
 	private static final int LONG_CLICK_INTERVAL = 1000;
 
 	private static Worker worker;
+	private static TapCounter taps;
 
 	public static boolean handleKeyEvent(MediaSessionCallback cb, KeyEvent event,
 																			 IntObjectFunction<KeyEvent, Boolean> defaultHandler) {
@@ -43,7 +44,13 @@ public class KeyEventHandler {
 
 		if (event.isCanceled()) {
 			worker = null;
+			taps = null;
 			return defaultHandler.apply(event.getKeyCode(), event);
+		}
+
+		if (taps != null) {
+			if (taps.handle(event)) return true;
+			taps = null;
 		}
 
 		if (worker != null) {
@@ -76,6 +83,14 @@ public class KeyEventHandler {
 		var longClickAction = k.getLongClickAction();
 		if (longClickAction == null) return defaultHandler.apply(code, event);
 
+		// A key with an action on three presses counts them all before acting
+		var tripleClickAction = k.getTripleClickAction();
+		if ((tripleClickAction != null) && (tripleClickAction != Action.NONE)) {
+			taps = new TapCounter(cb, activity, k, clickAction, dblClickAction, longClickAction,
+					tripleClickAction);
+			return true;
+		}
+
 		if (((clickAction == dblClickAction) && (clickAction == longClickAction)) ||
 				((dblClickAction == Action.NONE) && (longClickAction == Action.NONE))) {
 			Log.d(k, " key click");
@@ -92,6 +107,79 @@ public class KeyEventHandler {
 		worker = null;
 		Log.i("Performing action ", action);
 		action.getHandler().handle(cb, activity, timestamp);
+	}
+
+	/*
+	 * Counts the presses of a key that has an action on three of them: each release waits a moment
+	 * for the next press, then the count decides (one, two, three or more). A key held down does
+	 * its long press action. Its cost: one press acts a moment later than without the count.
+	 */
+	private static final class TapCounter implements Runnable {
+		private final MediaSessionCallback cb;
+		@Nullable
+		private final MainActivityDelegate activity;
+		private final Key key;
+		private final Action[] actions;
+		private final Action longClickAction;
+		private final Runnable longPress = this::longPress;
+		private int presses = 1;
+		private boolean down = true;
+		private boolean held;
+
+		TapCounter(MediaSessionCallback cb, @Nullable MainActivityDelegate activity, Key key,
+							 Action click, Action dbl, Action longClick, Action triple) {
+			this.cb = cb;
+			this.activity = activity;
+			this.key = key;
+			actions = new Action[]{click, dbl, triple};
+			longClickAction = longClick;
+			handler().postDelayed(longPress, LONG_CLICK_INTERVAL);
+		}
+
+		boolean handle(KeyEvent e) {
+			if (e.getKeyCode() != key.getCode()) return false;
+			if (e.getAction() == ACTION_DOWN) {
+				if (e.getRepeatCount() > 0) return true;
+				handler().removeCallbacks(this);
+				presses++;
+				down = true;
+				handler().postDelayed(longPress, LONG_CLICK_INTERVAL);
+			} else if (e.getAction() == ACTION_UP) {
+				down = false;
+				handler().removeCallbacks(longPress);
+				if (held) taps = null;
+				else handler().postDelayed(this, DBL_CLICK_INTERVAL);
+			}
+			return true;
+		}
+
+		@Override
+		public void run() {
+			if ((taps != this) || down) return;
+			taps = null;
+			Action a = actions[Math.min(presses, actions.length) - 1];
+			// Two presses with nothing for them: two clicks
+			if ((presses == 2) && (a == Action.NONE)) {
+				Log.i(key, " key 2 clicks");
+				performAction(actions[0], cb, activity, uptimeMillis());
+				performAction(actions[0], cb, activity, uptimeMillis());
+				return;
+			}
+			Log.i(key, " key pressed ", presses, " times");
+			performAction(a, cb, activity, uptimeMillis());
+		}
+
+		private void longPress() {
+			if ((taps != this) || !down || (presses != 1)) return;
+			held = true;
+			Log.i(key, " key long click");
+			if (longClickAction != Action.NONE) performAction(longClickAction, cb, activity, uptimeMillis());
+			taps = this;
+		}
+
+		private android.os.Handler handler() {
+			return (activity == null) ? cb.getHandler() : activity.getHandler();
+		}
 	}
 
 	private static final class Worker implements Runnable {

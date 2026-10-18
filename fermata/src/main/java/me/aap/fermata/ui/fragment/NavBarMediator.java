@@ -244,6 +244,8 @@ public class NavBarMediator extends PrefNavBarMediator
 
 			b.addItem(R.id.nav_about, R.drawable.about, R.string.about);
 			b.addItem(R.id.settings_fragment, R.drawable.settings, R.string.settings);
+			// Two taps instead of four (settings, other, log): the log is how a bug gets fixed
+			if (!a.isCarActivityNotMirror()) b.addItem(R.id.nav_send_log, R.drawable.share, R.string.send_log);
 			if (BuildConfig.AUTO) b.addItem(R.id.nav_donate, R.drawable.coffee, R.string.donate);
 			b.addItem(R.id.nav_exit, R.drawable.exit, a.isCarActivityNotMirror() ? R.string.restart : R.string.exit);
 		});
@@ -271,6 +273,9 @@ public class NavBarMediator extends PrefNavBarMediator
 				v.setOnClickListener(t -> openUrl(t.getContext(), url));
 				g.addView(v);
 			});
+			return true;
+		} else if (itemId == R.id.nav_send_log) {
+			SettingsFragment.shareLog(MainActivityDelegate.get(item.getContext()));
 			return true;
 		} else if (itemId == R.id.settings_fragment) {
 			MainActivityDelegate.get(item.getContext()).showFragment(R.id.settings_fragment);

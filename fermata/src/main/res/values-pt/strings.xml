@@ -93,6 +93,7 @@
     <string name="key_bindings">Atalhos de teclas</string>
     <string name="key_on_click">Ao clicar</string>
     <string name="key_on_long_click">Ao clicar e segurar</string>
+    <string name="key_on_triple_click">Ao clicar três vezes</string>
     <string name="key_on_dbl_click">Ao clicar duas vezes</string>
     <string name="action_stop">Parar</string>
     <string name="action_play">Reproduzir</string>
@@ -107,6 +108,7 @@
     <string name="action_vol_up">Aumentar volume</string>
     <string name="action_vol_down">Diminuir volume</string>
     <string name="action_vol_mute_unmute">Silenciar/ativar som</string>
+    <string name="action_chatgpt_voice">ChatGPT: modo voz</string>
     <string name="action_activate_voice_ctrl">Ativar controle por voz</string>
     <string name="action_menu">Menu</string>
     <string name="action_cp_menu">Menu do painel de controle</string>
@@ -389,6 +391,7 @@
     <string name="import_prefs_ok">Preferências importadas com sucesso.\nReinicie o app.</string>
     <string name="import_prefs_failed">Falha ao importar as preferências: %1$s</string>
     <string name="prefs_not_found">Nenhuma preferência encontrada</string>
+    <string name="send_log">Enviar log</string>
     <string name="open_log">Abrir arquivo de log</string>
     <string name="unlock_phone_and_grant">Desbloqueie o celular e conceda as permissões solicitadas.</string>
     <string name="screen_capture_rejected">Solicitação de captura de tela rejeitada.</string>

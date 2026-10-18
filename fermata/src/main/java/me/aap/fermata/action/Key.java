@@ -22,7 +22,10 @@ public enum Key {
 	MEDIA_STOP(KeyEvent.KEYCODE_MEDIA_STOP, Action.STOP),
 	MEDIA_PLAY(KeyEvent.KEYCODE_MEDIA_PLAY, Action.PLAY),
 	MEDIA_PAUSE(KeyEvent.KEYCODE_MEDIA_PAUSE, Action.PAUSE),
-	MEDIA_PLAY_PAUSE(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, Action.PLAY_PAUSE),
+	// Three quick presses open ChatGPT's voice mode: the car keeps its voice button for its own
+	// assistant, and play/pause is the steering wheel button that reaches the app
+	MEDIA_PLAY_PAUSE(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, Action.PLAY_PAUSE, Action.NONE, Action.NONE,
+			Action.CHATGPT_VOICE),
 	MEDIA_PREVIOUS(KeyEvent.KEYCODE_MEDIA_PREVIOUS, Action.PREV),
 	MEDIA_NEXT(KeyEvent.KEYCODE_MEDIA_NEXT, Action.NEXT),
 	MEDIA_REWIND(KeyEvent.KEYCODE_MEDIA_REWIND, Action.RW, Action.RW, Action.RW),
@@ -57,8 +60,11 @@ public enum Key {
 	private final PreferenceStore.Pref<IntSupplier> actionPref;
 	private final PreferenceStore.Pref<IntSupplier> dblActionPref;
 	private final PreferenceStore.Pref<IntSupplier> longActionPref;
+	private final PreferenceStore.Pref<IntSupplier> tripleActionPref;
 	@Nullable
 	private Action clickAction;
+	@Nullable
+	private Action tripleClickAction;
 	@Nullable
 	private Action dblClickAction;
 	@Nullable
@@ -69,6 +75,11 @@ public enum Key {
 	}
 
 	Key(int code, Action clickAction, Action dblClickAction, Action longClickAction) {
+		this(code, clickAction, dblClickAction, longClickAction, Action.NONE);
+	}
+
+	Key(int code, Action clickAction, Action dblClickAction, Action longClickAction,
+			Action tripleClickAction) {
 		this.code = code;
 		var name = name();
 		media = name.startsWith("MEDIA_") || name.startsWith("VOLUME_");
@@ -78,6 +89,8 @@ public enum Key {
 				.withInheritance(false);
 		longActionPref = PreferenceStore.Pref.i("KEY_ACTION_LONG_" + name, longClickAction.ordinal())
 				.withInheritance(false);
+		tripleActionPref = PreferenceStore.Pref.i("KEY_ACTION_TRIPLE_" + name,
+				tripleClickAction.ordinal()).withInheritance(false);
 	}
 
 	@Nullable
@@ -105,6 +118,10 @@ public enum Key {
 		return longActionPref;
 	}
 
+	public PreferenceStore.Pref<IntSupplier> getTripleActionPref() {
+		return tripleActionPref;
+	}
+
 	@Nullable
 	public Action getClickAction() {
 		if (clickAction != null) return clickAction;
@@ -115,6 +132,12 @@ public enum Key {
 	public Action getDblClickAction() {
 		if (dblClickAction != null) return dblClickAction;
 		return Action.get(getPrefs().getIntPref(dblActionPref));
+	}
+
+	@Nullable
+	public Action getTripleClickAction() {
+		if (tripleClickAction != null) return tripleClickAction;
+		return Action.get(getPrefs().getIntPref(tripleActionPref));
 	}
 
 	@Nullable
@@ -141,6 +164,7 @@ public enum Key {
 						k.clickAction = null;
 						k.dblClickAction = null;
 						k.longClickAction = null;
+						k.tripleClickAction = null;
 					}
 					return;
 				}

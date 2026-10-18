@@ -92,6 +92,7 @@
     <string name="key_bindings">Key bindings</string>
     <string name="key_on_click">On click</string>
     <string name="key_on_long_click">On long click</string>
+    <string name="key_on_triple_click">On three clicks</string>
     <string name="key_on_dbl_click">On double click</string>
     <string name="action_stop">Stop</string>
     <string name="action_play">Play</string>
@@ -106,6 +107,7 @@
     <string name="action_vol_up">Volume up</string>
     <string name="action_vol_down">Volume down</string>
     <string name="action_vol_mute_unmute">Mute/Unmute</string>
+    <string name="action_chatgpt_voice">ChatGPT: voice mode</string>
     <string name="action_activate_voice_ctrl">Activate voice control</string>
     <string name="action_menu">Menu</string>
     <string name="action_cp_menu">Control panel menu</string>
@@ -389,6 +391,7 @@
     <string name="import_prefs_ok">Preferences have been successfully imported.\nPlease, restart the application.</string>
     <string name="import_prefs_failed">Failed to import preferences: %1$s</string>
     <string name="prefs_not_found">No preferences found</string>
+    <string name="send_log">Send the log</string>
     <string name="open_log">Open log file</string>
     <string name="unlock_phone_and_grant">Unlock the phone and grant the requested permissions.</string>
     <string name="screen_capture_rejected">Screen capture request rejected.</string>

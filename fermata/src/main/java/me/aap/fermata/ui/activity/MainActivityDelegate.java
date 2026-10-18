@@ -858,6 +858,16 @@ public class MainActivityDelegate extends ActivityDelegate
 		return findViewById(R.id.tool_menu);
 	}
 
+	/** ChatGPT's voice mode from anywhere, e.g. three presses of play/pause on the steering wheel. */
+	public void openChatGptVoice() {
+		AddonManager.get().getOrInstallAddon("me.aap.fermata.addon.chat.ChatAddon").main()
+				.onFailure(err -> Log.e(err, "ChatGPT is not available"))
+				.onSuccess(addon -> {
+					ActivityFragment f = showFragment(R.id.chat_addon);
+					if (f instanceof MainActivityFragment m) getHandler().post(m::startVoiceAssistant);
+				});
+	}
+
 	public void startVoiceAssistant() {
 		ActivityFragment f = getActiveFragment();
 		if (!(f instanceof MainActivityFragment) || !((MainActivityFragment) f).startVoiceAssistant())

@@ -379,6 +379,15 @@ public class SettingsFragment extends MainActivityFragment
 				o.valuesMap = actionOrdinals;
 				o.formatSubtitle = true;
 			});
+			sub2.addListPref(o -> {
+				o.store = Key.getPrefs();
+				o.pref = k.getTripleActionPref();
+				o.title = R.string.key_on_triple_click;
+				o.subtitle = R.string.string_format;
+				o.values = actionNames;
+				o.valuesMap = actionOrdinals;
+				o.formatSubtitle = true;
+			});
 		}
 
 
@@ -977,6 +986,11 @@ public class SettingsFragment extends MainActivityFragment
 	}
 
 	private void openLog(MainActivityDelegate a) {
+		shareLog(a);
+	}
+
+	/** Shares Fermata.log (and the part before it) to WhatsApp, mail…: what the bugs are read from. */
+	public static void shareLog(MainActivityDelegate a) {
 		try {
 			var app = FermataApplication.get();
 			Log.flush();
