@@ -1,9 +1,7 @@
 package me.aap.fermata.addon.tv.xtream;
 
 import android.content.Context;
-import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -22,6 +20,10 @@ public final class XtreamTabStrip extends LinearLayout {
 			{16, 15, 8}, {13, 14, 6}, {10, 13, 6}, {8, 12, 4}, {6, 11, 4}
 	};
 
+	private int fittedWidth = -1;
+	private int fittedKey;
+	private int fittedStep;
+
 	public XtreamTabStrip(Context ctx) {
 		super(ctx);
 	}
@@ -33,37 +35,49 @@ public final class XtreamTabStrip extends LinearLayout {
 	@Override
 	protected void onMeasure(int widthSpec, int heightSpec) {
 		if (MeasureSpec.getMode(widthSpec) != MeasureSpec.UNSPECIFIED) {
-			apply(STEPS[fit(MeasureSpec.getSize(widthSpec))]);
+			int available = MeasureSpec.getSize(widthSpec) - getPaddingLeft() - getPaddingRight();
+			int key = contentKey();
+			// Tried again only when the width or the tabs change: trying sizes changes the views,
+			// and doing it on every pass would ask for a layout on every frame
+			if ((available != fittedWidth) || (key != fittedKey)) {
+				fittedStep = STEPS.length - 1;
+				for (int i = 0; i < STEPS.length; i++) {
+					apply(STEPS[i]);
+					if (naturalWidth() <= available) {
+						fittedStep = i;
+						break;
+					}
+				}
+				fittedWidth = available;
+				fittedKey = key;
+			}
+			apply(STEPS[fittedStep]);
 		}
 		super.onMeasure(widthSpec, heightSpec);
 	}
 
-	/**
-	 * The first step whose tabs fit the width. Computed from the text widths, without touching the
-	 * views: changing them during the measure would ask for another layout pass.
-	 */
-	private int fit(int available) {
-		DisplayMetrics dm = getResources().getDisplayMetrics();
-		float d = dm.density;
-		Paint p = null;
-
-		for (int i = 0; i < STEPS.length - 1; i++) {
-			float[] step = STEPS[i];
-			float w = 0;
-			int n = getChildCount();
-
-			for (int c = 0; c < n; c++) {
-				if (!(getChildAt(c) instanceof TextView t)) continue;
-				if (p == null) p = new Paint(t.getPaint());
-				p.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, step[1], dm));
-				w += p.measureText(t.getText().toString()) + 2 * step[0] * d;
-				if (c < n - 1) w += step[2] * d;
+	/** The width the tabs take at their own size, measured, not estimated. */
+	private int naturalWidth() {
+		int unspecified = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+		int w = 0;
+		for (int i = 0, n = getChildCount(); i < n; i++) {
+			View c = getChildAt(i);
+			if (c.getVisibility() == GONE) continue;
+			c.measure(unspecified, unspecified);
+			w += c.getMeasuredWidth();
+			if (c.getLayoutParams() instanceof MarginLayoutParams m) {
+				w += m.getMarginStart() + m.getMarginEnd();
 			}
-
-			if (w <= available) return i;
 		}
+		return w;
+	}
 
-		return STEPS.length - 1;
+	private int contentKey() {
+		int k = getChildCount();
+		for (int i = 0, n = getChildCount(); i < n; i++) {
+			if (getChildAt(i) instanceof TextView t) k = 31 * k + t.getText().toString().hashCode();
+		}
+		return k;
 	}
 
 	/** Changes only what differs, so a layout with the same step settles at once. */
