@@ -187,3 +187,15 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Assistir um canal ao vivo (ou um filme até a metade), desligar o carro com ele tocando. Ao ligar e abrir o Fermata no Android Auto: abre no IPTV e o canal volta a tocar sozinho; o filme volta de onde parou.
 - [ ] Se o último foi um vídeo do YouTube: abre o YouTube como antes (o vídeo do site não retoma por aqui).
 - [ ] Configurações → Reprodução → "Retomar ao ligar o carro" desligado: abre como antes, sem tocar nada.
+
+### Rodada IPTV: canal, minha lista, assistir de novo
+- [ ] Ao vivo: embaixo do nome de cada canal aparece o programa que está passando agora (vai preenchendo conforme a tela, um canal por vez).
+- [ ] Toque longo num canal abre a página dele: Assistir ao vivo, Minha lista, "Agora: … · A seguir: …".
+- [ ] Canal que o painel grava (catch-up): "Assistir de novo" com os dias (Hoje, Ontem, …) e os programas. Tocar um programa abre a gravação e dá para avançar/voltar. Se o painel não responder: aviso "Não foi possível abrir a gravação".
+- [ ] ♥ Minha lista na página do canal: no Ao vivo, a Minha lista vem em primeiro.
+
+### Rodada ChatGPT controla o app (só com chave da OpenAI, não no modo "Minha conta")
+- [ ] "Toca a Globo": abre o IPTV e toca a Globo (não a GloboNews). O modo voz fecha sozinho; a resposta aparece por escrito.
+- [ ] "Pausa", "próximo canal", "volta": controla o que está tocando. A pausa fica pausada.
+- [ ] "O que está tocando?": responde falando.
+- [ ] "Abre o YouTube e procura Coldplay": abre a busca do YouTube (o vídeo você escolhe).

@@ -41,6 +41,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -450,7 +451,8 @@ public class ChatFragment extends MainActivityFragment
 		ChatGpt gpt = ChatGpt.getInstance();
 		gpt.addMessage(text, ChatGpt.Role.USER);
 		getList().setWaiting(true);
-		chat.sendRequest(gpt.getLastMessages(6)).onCompletion((resp, err) -> {
+		ChatTools tools = new ChatTools(MainActivityDelegate.get(requireContext()));
+		chat.sendRequest(gpt.getLastMessages(6), tools).onCompletion((resp, err) -> {
 			if (!isAdded()) return;
 			getList().setWaiting(false);
 			if (err != null) {
@@ -458,8 +460,16 @@ public class ChatFragment extends MainActivityFragment
 						getString(R.string.chat_failed, String.valueOf(err.getMessage())));
 				if (voiceMode) voicePaused();
 			} else {
-				ChatGpt.getInstance().addMessage(resp, ChatGpt.Role.ASSISTANT);
-				if (!voice) return;
+				if (!resp.isEmpty()) ChatGpt.getInstance().addMessage(resp, ChatGpt.Role.ASSISTANT);
+				// It did what was asked: what plays now is the answer, a voice over it would pause it.
+				// A pause asked for stays: the voice mode must not resume the playback it held.
+				if (tools.hasActed()) {
+					if (tools.hasPaused()) voiceInterrupt = null;
+					closeVoiceMode();
+					if (!resp.isEmpty()) Toast.makeText(requireContext(), resp, Toast.LENGTH_LONG).show();
+					return;
+				}
+				if (!voice || resp.isEmpty()) return;
 				var addon = requireNonNull(AddonManager.get().getAddon(ChatAddon.class));
 				var lang = addon.getGetChatLang();
 				if ((tts == null) || !lang.equals(chatLang)) {

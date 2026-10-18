@@ -40,6 +40,7 @@ import me.aap.fermata.media.lib.DefaultMediaLib;
 import me.aap.fermata.media.lib.MediaLib.PlayableItem;
 import me.aap.fermata.media.service.FermataServiceUiBinder;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
+import me.aap.fermata.ui.activity.VoiceCommand;
 import me.aap.fermata.ui.fragment.MainActivityFragment;
 import me.aap.fermata.ui.view.BodyLayout;
 import me.aap.fermata.ui.view.LogoLoadingDrawable;
@@ -56,6 +57,9 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 	private enum Tab {HOME, LIVE, MOVIES, SERIES}
 
 	private final List<Object> overlays = new ArrayList<>();
+	// A command given while the catalog loads, run once it is there
+	@Nullable
+	private VoiceCommand pendingCommand;
 	@Nullable
 	private XtreamGuide guide;
 	private XtreamRepo repo;
@@ -250,6 +254,11 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 			snapshot = s;
 			hideState();
 			render();
+			if (pendingCommand != null) {
+				VoiceCommand cmd = pendingCommand;
+				pendingCommand = null;
+				voiceCommand(cmd);
+			}
 			if (c.isStale()) refreshInBackground(acc, seq);
 		});
 	}
@@ -354,10 +363,53 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 	}
 
 	private void openSearch() {
+		openSearch(null);
+	}
+
+	private void openSearch(@Nullable String query) {
 		if (snapshot == null) return;
 		XtreamSearch s = new XtreamSearch(requireContext(), snapshot, this, this::popOverlay);
 		pushOverlay(s, s.getView());
-		s.focus();
+		if (query != null) s.setQuery(query);
+		else s.focus();
+	}
+
+	// --- Voice: "play Globo" (the voice control, ChatGPT) ---
+
+	@Override
+	public boolean isVoiceCommandsSupported() {
+		return true;
+	}
+
+	/**
+	 * Play: the best match of the catalog, a channel or a movie at once, a series on its page. Find
+	 * and open, or nothing found: the search with the words.
+	 */
+	@Override
+	public void voiceCommand(VoiceCommand cmd) {
+		Snapshot s = snapshot;
+		if (s == null) {
+			pendingCommand = cmd;
+			return;
+		}
+		while (!overlays.isEmpty()) popOverlay();
+		Entry e = cmd.isPlay() ? bestMatch(s, cmd.getQuery()) : null;
+		Log.i("Xtream: voice ", cmd.getQuery(), " -> ", (e == null) ? "search" : e.name);
+		if (e == null) openSearch(cmd.getQuery());
+		else if (e.kind == Kind.SERIES) openDetails(e);
+		else playEntry(e);
+	}
+
+	// The name said as is, then a name starting with the whole words ("Globo" is Globo SP HD, not
+	// GloboNews), then the search order (names starting with it, live channels first)
+	@Nullable
+	static Entry bestMatch(Snapshot s, String query) {
+		List<Entry> l = s.search(query, 20);
+		if (l.isEmpty()) return null;
+		String q = Snapshot.normalize(query);
+		for (Entry e : l) if (Snapshot.normalize(e.name).equals(q)) return e;
+		for (Entry e : l) if (Snapshot.normalize(e.name).startsWith(q + ' ')) return e;
+		return l.get(0);
 	}
 
 	@Override

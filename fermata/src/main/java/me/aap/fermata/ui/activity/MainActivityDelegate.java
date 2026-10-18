@@ -66,6 +66,7 @@ import android.view.View;
 import android.widget.EditText;
 
 import androidx.annotation.LayoutRes;
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StyleRes;
@@ -914,6 +915,17 @@ public class MainActivityDelegate extends ActivityDelegate
 				h.handle(q);
 			}
 		});
+	}
+
+	/**
+	 * Shows the screen and gives it the command, as the voice control does with "play X in IPTV":
+	 * e.g. for ChatGPT, which can't reach the screens of the other addons.
+	 */
+	public void voiceCommand(@IdRes int fragmentId, VoiceCommand cmd) {
+		VoiceCommandHandler h = voiceCommandHandler;
+		if (h == null) h = voiceCommandHandler = new VoiceCommandHandler(this);
+		showFragment(fragmentId);
+		h.searchInFragment(fragmentId, cmd, 0);
 	}
 
 	public FutureSupplier<List<String>> startSpeechRecognizer() {

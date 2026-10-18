@@ -94,6 +94,7 @@ public abstract class NavigationTest {
 				step(this::iptv, "IPTV");
 				step(this::iptvChannel, "IPTV: canal, minha lista e assistir de novo");
 				step(this::chat, "ChatGPT");
+				step(this::chatControls, "ChatGPT controla o app");
 				step(this::steeringWheel, "Volante: três toques no ⏯");
 				step(this::folders, "Pastas");
 				step(this::settings, "Configurações");
@@ -408,6 +409,89 @@ public abstract class NavigationTest {
 			Screens.settle();
 			content = ((ViewGroup) d.getActiveFragment().requireView()).getChildAt(0);
 			check(first(content, v -> v instanceof EditText) != null, "volta ao chat com chave");
+		}
+
+		// --- ChatGPT plays and pauses: function calling against a local OpenAI ---
+
+		void chatControls() throws Exception {
+			Class<?> gptClass = Class.forName("me.aap.fermata.addon.chat.ChatGpt");
+			Field api = gptClass.getDeclaredField("apiUrl");
+			api.setAccessible(true);
+			Object realApi = api.get(null);
+			me.aap.fermata.ui.view.BodyLayout body = d.getBody();
+			Field surface = me.aap.fermata.ui.view.VideoView.class.getDeclaredField("createSurface");
+			surface.setAccessible(true);
+			try (FakeOpenAi ai = new FakeOpenAi()) {
+				api.set(null, ai.url);
+				// The surface Android creates for the video view, at once here
+				surface.set(body.getVideoView(), me.aap.utils.async.Completed.completedNull());
+				ai.replyCall("call_1", "play", "{\"query\":\"globo\",\"where\":\"iptv\"}");
+				ai.replyText("Pronto, tocando a Globo SP HD.");
+				d.showFragment(R.id.chat_addon);
+				Screens.settle();
+				send("toca a globo");
+				Screens.waitFor(() -> ai.bodies.size() >= 2, 15);
+				Screens.waitReal(1);
+				String first = ai.bodies.isEmpty() ? "" : ai.bodies.get(0);
+				check(first.contains("\"tools\"") && first.contains("\"play\"") && first.contains("\"control\"") &&
+						first.contains("\"role\":\"system\""), "o pedido leva as funções do app e o papel de assistente do carro");
+				ActivityFragment f = d.getActiveFragment();
+				check(f instanceof XtreamFragment, "\"toca a globo\" abre o IPTV (tela: " + name(f) + ")");
+				me.aap.fermata.media.lib.MediaLib.PlayableItem last = get(d.getLib().getLastPlayedItem());
+				check((last != null) && "Globo SP HD".equals(last.getName()),
+						"e pede a Globo SP HD, não a GloboNews (" + ((last == null) ? "nada" : last.getName()) + ")");
+				String second = (ai.bodies.size() < 2) ? "" : ai.bodies.get(1);
+				check(second.contains("\"role\":\"tool\"") && second.contains("call_1") &&
+						second.contains("Tocando: Globo SP HD"), "o resultado volta ao ChatGPT: " +
+						excerpt(second, "\"role\":\"tool\""));
+				java.lang.reflect.Method inst = gptClass.getMethod("getInstance");
+				java.lang.reflect.Method getMsgs = gptClass.getMethod("getMessages");
+				inst.setAccessible(true);
+				getMsgs.setAccessible(true);
+				List<?> msgs = (List<?>) getMsgs.invoke(inst.invoke(null));
+				Object lastMsg = msgs.isEmpty() ? null : msgs.get(msgs.size() - 1);
+				check((lastMsg != null) && "Pronto, tocando a Globo SP HD.".equals(field(lastMsg, "content")),
+						"a resposta do ChatGPT fica na conversa");
+				Screens.save(root, size + "-nav-chat-plays");
+
+				ai.replyCall("call_2", "control", "{\"action\":\"pause\"}");
+				ai.replyText("Pausado.");
+				d.showFragment(R.id.chat_addon);
+				Screens.settle();
+				ActivityFragment chat = d.getActiveFragment();
+				java.lang.reflect.Method openVoice = chat.getClass().getDeclaredMethod("openVoiceMode");
+				openVoice.setAccessible(true);
+				openVoice.invoke(chat);
+				Screens.waitReal(1);
+				View voice = (View) field(((ViewGroup) chat.requireView()).getChildAt(0), "voice");
+				boolean voiceOpen = voice.isShown();
+				send("pausa");
+				Screens.waitFor(() -> ai.bodies.size() >= 4, 15);
+				Screens.waitReal(1);
+				String fourth = (ai.bodies.size() < 4) ? "" : ai.bodies.get(3);
+				check(fourth.contains("Feito: pause"), "\"pausa\" pausa e o ChatGPT fica sabendo");
+				check(voiceOpen && !voice.isShown() && (field(chat, "voiceInterrupt") == null),
+						"depois de agir o modo voz fecha, sem falar por cima e sem desfazer a pausa");
+			} finally {
+				api.set(null, realApi);
+				surface.set(body.getVideoView(), new me.aap.utils.async.Promise<Void>());
+				d.getMediaServiceBinder().stop();
+				Screens.waitReal(1);
+			}
+		}
+
+		// What the user types and sends in the chat, as the send button does
+		void send(String text) throws Exception {
+			ActivityFragment f = d.getActiveFragment();
+			java.lang.reflect.Method m = f.getClass().getDeclaredMethod("sendRequest", String.class,
+					boolean.class);
+			m.setAccessible(true);
+			m.invoke(f, text, false);
+		}
+
+		static String excerpt(String s, String at) {
+			int i = s.indexOf(at);
+			return (i < 0) ? "nada" : s.substring(i, Math.min(s.length(), i + 120));
 		}
 
 		// --- Resume when the car starts: the channel of the last drive plays again ---

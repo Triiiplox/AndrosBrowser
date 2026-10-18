@@ -94,6 +94,13 @@ final class XtreamSearch {
 		if (imm != null) imm.hideSoftInputFromWindow(text.getWindowToken(), 0);
 	}
 
+	/** Searches the words at once, e.g. said to the voice control. */
+	void setQuery(String query) {
+		text.setText(query);
+		text.setSelection(text.length());
+		search();
+	}
+
 	void close() {
 		App.get().getHandler().removeCallbacks(search);
 		hideKeyboard();

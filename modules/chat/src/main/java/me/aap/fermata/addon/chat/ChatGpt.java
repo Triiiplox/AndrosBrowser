@@ -6,6 +6,7 @@ import static me.aap.utils.async.Completed.completedVoid;
 import static me.aap.utils.async.Completed.failed;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -38,6 +39,10 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 	private final Collection<ListenerRef<Listener>> listeners = new LinkedList<>();
 	private final ChatAddon addon = requireNonNull(AddonManager.get().getAddon(ChatAddon.class));
 
+	// A conversation where ChatGPT asks for a tool again and again ends there
+	private static final int MAX_TOOL_ROUNDS = 4;
+	// The tests point it at a local server
+	static String apiUrl = "https://api.openai.com/v1/chat/completions";
 	private final List<ChatGpt.Message> messages = new ArrayList<>();
 
 	public static ChatGpt getInstance() {
@@ -72,36 +77,101 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 	}
 
 	public FutureSupplier<String> sendRequest(List<Message> messages) {
+		return sendRequest(messages, null);
+	}
+
+	/**
+	 * The answer to the conversation. With tools, ChatGPT may call them first (function calling):
+	 * each call is run here, its result sent back, and the model asked again, a few rounds at most.
+	 */
+	public FutureSupplier<String> sendRequest(List<Message> messages, @Nullable ChatTools tools) {
 		var auth = addon.getAuthorization();
 		if (auth == null) return failed(new IllegalStateException("OpenAI key is not specified"));
+		JSONArray history = new JSONArray();
+		JSONArray defs;
+		try {
+			if (tools != null) {
+				history.put(new JSONObject().put("role", "system").put("content", ChatTools.systemPrompt()));
+				defs = tools.definitions();
+			} else {
+				defs = null;
+			}
+			for (Message msg : messages) {
+				history.put(new JSONObject().put("role", msg.role.toString()).put("content", msg.content));
+			}
+		} catch (JSONException ex) {
+			return failed(ex);
+		}
+		Promise<String> p = new Promise<>();
+		ask(auth, history, defs, tools, 0, p);
+		return p.main();
+	}
 
-		var p = new Promise<String>();
+	private void ask(String auth, JSONArray history, @Nullable JSONArray defs,
+									 @Nullable ChatTools tools, int round, Promise<String> p) {
+		JSONObject req;
+		try {
+			req = new JSONObject().put("model", addon.getModel()).put("messages", history);
+			// No temperature: the reasoning models (o*, gpt-5 and later) refuse any but their own
+			if ((defs != null) && (round < MAX_TOOL_ROUNDS)) req.put("tools", defs);
+		} catch (JSONException ex) {
+			p.completeExceptionally(ex);
+			return;
+		}
+		post(auth, req).main().onCompletion((resp, err) -> {
+			if (err != null) {
+				p.completeExceptionally(err);
+				return;
+			}
+			try {
+				JSONObject msg = resp.getJSONArray("choices").getJSONObject(0).getJSONObject("message");
+				JSONArray calls = msg.optJSONArray("tool_calls");
+				if ((tools == null) || (calls == null) || (calls.length() == 0)) {
+					p.complete(msg.optString("content", "").trim());
+					return;
+				}
+				history.put(msg);
+				runCalls(tools, calls, 0, history).onCompletion((v, cerr) -> {
+					if (cerr != null) p.completeExceptionally(cerr);
+					else ask(auth, history, defs, tools, round + 1, p);
+				});
+			} catch (JSONException ex) {
+				p.completeExceptionally(ex);
+			}
+		});
+	}
+
+	// One call after the other: they act on the same screen and player
+	private FutureSupplier<Void> runCalls(ChatTools tools, JSONArray calls, int i, JSONArray history)
+			throws JSONException {
+		if (i == calls.length()) return completedVoid();
+		JSONObject call = calls.getJSONObject(i);
+		JSONObject fn = call.getJSONObject("function");
+		JSONObject args;
+		try {
+			String a = fn.optString("arguments", "");
+			args = a.isEmpty() ? new JSONObject() : new JSONObject(a);
+		} catch (JSONException ex) {
+			args = null;
+		}
+		return tools.call(fn.getString("name"), args).then(result -> {
+			history.put(new JSONObject().put("role", "tool").put("tool_call_id", call.getString("id"))
+					.put("content", result));
+			return runCalls(tools, calls, i + 1, history);
+		});
+	}
+
+	private FutureSupplier<JSONObject> post(String auth, JSONObject json) {
+		var p = new Promise<JSONObject>();
 		HttpConnection.connect(o -> {
-			o.url("https://api.openai.com/v1/chat/completions");
+			o.url(apiUrl);
 			o.method = HttpMethod.POST;
 			o.builder = b -> {
 				b.addHeader(HttpHeader.ACCEPT);
 				b.addHeader(HttpHeader.CONTENT_TYPE, "application/json");
 				b.addHeader(HttpHeader.AUTHORIZATION, auth);
-
-				try {
-					JSONObject[] jsonMessages = new JSONObject[messages.size()];
-					for (int i = 0; i < jsonMessages.length; i++) {
-						Message msg = messages.get(i);
-						jsonMessages[i] = new JSONObject();
-						jsonMessages[i].put("role", msg.role.toString());
-						jsonMessages[i].put("content", msg.content);
-					}
-					JSONObject json = new JSONObject();
-					json.put("model", addon.getModel());
-					// No temperature: the reasoning models (o*, gpt-5 and later) refuse any but their own
-					json.put("messages", new JSONArray(jsonMessages));
-					Log.d("Request: ", json.toString());
-					return b.build(ByteBuffer.wrap(json.toString().getBytes(UTF_8)));
-				} catch (JSONException ex) {
-					p.completeExceptionally(ex);
-					throw new RuntimeException(ex);
-				}
+				Log.d("Request: ", json.toString());
+				return b.build(ByteBuffer.wrap(json.toString().getBytes(UTF_8)));
 			};
 		}, (resp, err) -> {
 			if (err != null) {
@@ -128,14 +198,14 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 
 			return resp.getPayload((bb, perr) -> {
 				try {
-					if (perr != null) return failed(perr);
+					if (perr != null) {
+						p.completeExceptionally(perr);
+						return failed(perr);
+					}
 					bb = IoUtils.getFrom(bb);
 					String jsonString = new String(bb.array(), bb.arrayOffset(), bb.remaining(), UTF_8);
 					Log.d("Response: ", jsonString);
-					JSONObject json = new JSONObject(jsonString);
-					String response = json.getJSONArray("choices").getJSONObject(0).getJSONObject("message")
-							.getString("content").trim();
-					p.complete(response);
+					p.complete(new JSONObject(jsonString));
 				} catch (JSONException ex) {
 					p.completeExceptionally(ex);
 					return failed(ex);
@@ -143,8 +213,7 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 				return completedVoid();
 			});
 		});
-
-		return p.main();
+		return p;
 	}
 
 	enum Role {

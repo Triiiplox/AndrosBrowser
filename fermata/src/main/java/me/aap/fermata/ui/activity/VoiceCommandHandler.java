@@ -243,7 +243,7 @@ class VoiceCommandHandler {
 		return false;
 	}
 
-	private void searchInFragment(@IdRes int id, VoiceCommand cmd, int attempt) {
+	void searchInFragment(@IdRes int id, VoiceCommand cmd, int attempt) {
 		if (attempt == 100) {
 			Log.e("Failed to perform search in fragment ", id);
 			return;
