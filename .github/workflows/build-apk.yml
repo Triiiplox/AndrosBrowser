@@ -60,7 +60,7 @@ jobs:
         env:
           NO_GS: true
         run: |
-          ./gradlew :fermata:testAutoDebugUnitTest -Pscreenshots -PABI=arm64-v8a --tests '*ScreensTest*' --tests '*NavigationTest*'
+          ./gradlew :fermata:testAutoDebugUnitTest -Pscreenshots -PABI=arm64-v8a --tests '*ScreensTest*' --tests '*NavigationTest*' --tests '*MiniPlayerTest*'
 
       - name: Upload test reports
         if: always()
