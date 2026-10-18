@@ -56,6 +56,7 @@ public interface MainActivityPrefs
 	Pref<Supplier<String>> SHOW_ADDON_ON_START =
 			Pref.s("SHOW_ADDON_ON_START", "me.aap.fermata.addon.web.yt.YoutubeAddon");
 	Pref<BooleanSupplier> CHECK_UPDATES = Pref.b("CHECK_UPDATES", true);
+	Pref<BooleanSupplier> RESUME_IN_CAR = AUTO ? Pref.b("RESUME_IN_CAR", true) : null;
 	Pref<BooleanSupplier> PERMISSIONS_REQUESTED = Pref.b("PERMISSIONS_REQUESTED", false);
 	Pref<LongSupplier> CHECK_UPDATES_STAMP = Pref.l("CHECK_UPDATES_STAMP", 0);
 	Pref<BooleanSupplier> SYS_BARS_ON_VIDEO_TOUCH = Pref.b("SYS_BARS_ON_VIDEO_TOUCH", false);
@@ -105,6 +106,10 @@ public interface MainActivityPrefs
 	// None is stored as "": a null value removes the pref, which would bring back the default
 	default void setShowAddonOnStartPref(@Nullable String className) {
 		applyStringPref(SHOW_ADDON_ON_START, (className == null) ? "" : className);
+	}
+
+	default boolean getResumeInCarPref() {
+		return AUTO && getBooleanPref(RESUME_IN_CAR);
 	}
 
 	default boolean getCheckUpdatesPref() {

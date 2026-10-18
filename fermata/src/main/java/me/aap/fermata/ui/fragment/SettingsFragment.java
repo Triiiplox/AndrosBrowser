@@ -400,6 +400,14 @@ public class SettingsFragment extends MainActivityFragment
 			o.pref = BrowsableItemPrefs.PLAY_NEXT;
 			o.title = R.string.play_next_on_completion;
 		});
+		if (BuildConfig.AUTO) {
+			sub1.addBooleanPref(o -> {
+				o.store = a.getPrefs();
+				o.pref = MainActivityPrefs.RESUME_IN_CAR;
+				o.title = R.string.resume_in_car;
+				o.subtitle = R.string.resume_in_car_sub;
+			});
+		}
 
 		sub1 = set.subSet(o -> {
 			o.title = R.string.playback_control;

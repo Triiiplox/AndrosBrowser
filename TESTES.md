@@ -182,3 +182,8 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Configurações → Complementos → ChatGPT → "ChatGPT com": "Minha conta do ChatGPT". A tela do ChatGPT vira o chatgpt.com: entrar uma vez (e-mail, Google, Apple ou Microsoft), fechar e abrir o app e continuar logado. Testar o modo voz do site (microfone).
 - [ ] Se o site ficar em "Um momento…" por mais de ~25s: aparece o aviso com "Abrir o app do ChatGPT".
 - [ ] Menu (≡) → "Enviar log": abre o compartilhar do Android com o Fermata.log.
+
+### Rodada retomar ao ligar o carro
+- [ ] Assistir um canal ao vivo (ou um filme até a metade), desligar o carro com ele tocando. Ao ligar e abrir o Fermata no Android Auto: abre no IPTV e o canal volta a tocar sozinho; o filme volta de onde parou.
+- [ ] Se o último foi um vídeo do YouTube: abre o YouTube como antes (o vídeo do site não retoma por aqui).
+- [ ] Configurações → Reprodução → "Retomar ao ligar o carro" desligado: abre como antes, sem tocar nada.

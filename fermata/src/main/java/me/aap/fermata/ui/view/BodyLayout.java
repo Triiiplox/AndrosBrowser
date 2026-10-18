@@ -174,13 +174,18 @@ public class BodyLayout extends SplitLayout
 	}
 
 	public void playItem(MediaLib.PlayableItem i) {
+		playItem(i, -1);
+	}
+
+	/** At pos, or where the item was if pos is -1. */
+	public void playItem(MediaLib.PlayableItem i, long pos) {
 		startingPlayback.cancel();
 		MainActivityDelegate a = getActivity();
 
 		if (i.isVideo() && !getVideoView().isSurfaceCreated() &&
 				!a.getMediaSessionCallback().hasCustomEngineProvider()) {
 			setMode(BodyLayout.Mode.VIDEO);
-			getVideoView().onSurfaceCreated(() -> playItem(i));
+			getVideoView().onSurfaceCreated(() -> playItem(i, pos));
 			return;
 		}
 
@@ -188,7 +193,7 @@ public class BodyLayout extends SplitLayout
 		MediaLib.PlayableItem cur = b.getCurrentItem();
 		startingPlayback = new Promise<Void>().thenRun(() -> startingPlayback = completedVoid());
 		a.setContentLoading(startingPlayback);
-		b.playItem(i);
+		b.playItem(i, pos);
 		MediaEngine eng = b.getCurrentEngine();
 		if (i.equals(cur) && (eng != null) && eng.isVideoModeRequired())
 			setMode(BodyLayout.Mode.VIDEO);

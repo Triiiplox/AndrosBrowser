@@ -73,6 +73,7 @@ public abstract class NavigationTest {
 		MainActivityDelegate d;
 		View root;
 		int fails;
+		XtreamPlayable channel;
 
 		Run(String size) {
 			this.size = size;
@@ -95,6 +96,7 @@ public abstract class NavigationTest {
 				step(this::steeringWheel, "Volante: três toques no ⏯");
 				step(this::folders, "Pastas");
 				step(this::settings, "Configurações");
+				step(this::resume, "Retomar ao ligar o carro");
 			} finally {
 				write();
 			}
@@ -197,6 +199,7 @@ public abstract class NavigationTest {
 			List<com.triiiplox.iptv.model.Entry> sameCat = new ArrayList<>();
 			for (com.triiiplox.iptv.model.Entry e : live) if (e.categoryId.equals(ch.categoryId)) sameCat.add(e);
 			XtreamPlayable p = tvRoot.playable(acc, snap, ch);
+			channel = p;
 			me.aap.fermata.media.lib.MediaLib.PlayableItem next = get(p.getNextPlayable());
 			check((next != null) && next.getName().equals(sameCat.get(1).name),
 					"⏭ num canal toca o próximo da categoria (" + ch.name + " → " +
@@ -293,6 +296,62 @@ public abstract class NavigationTest {
 			Screens.settle();
 			content = ((ViewGroup) d.getActiveFragment().requireView()).getChildAt(0);
 			check(first(content, v -> v instanceof EditText) != null, "volta ao chat com chave");
+		}
+
+		// --- Resume when the car starts: the channel of the last drive plays again ---
+
+		void resume() throws Exception {
+			check(channel != null, "um canal do IPTV para tocar");
+			if (channel == null) return;
+			me.aap.fermata.media.service.FermataServiceUiBinder b = d.getMediaServiceBinder();
+			b.playItem(channel);
+			Screens.waitReal(2);
+			check(channel.equals(get(d.getLib().getLastPlayedItem())), "o canal fica como o último tocado");
+			b.stop();
+			Screens.waitReal(1);
+			d.showFragment(R.id.folders_fragment);
+			Screens.settle();
+			// The car: what defaultIntent() does when the car's screen opens with nothing on it
+			Field mirror = FermataApplication.class.getDeclaredField("mirroringMode");
+			mirror.setAccessible(true);
+			mirror.setInt(FermataApplication.get(), 1);
+			try {
+				check(d.isCarActivity(), "modo carro");
+				// No video decoder here: the play request is what tells, not the playing
+				List<Integer> states = new ArrayList<>();
+				me.aap.fermata.media.service.MediaSessionCallback.Listener l = new me.aap.fermata.media.service.MediaSessionCallback.Listener() {
+					@Override
+					public void onPlaybackStateChanged(me.aap.fermata.media.service.MediaSessionCallback cb,
+																						 android.support.v4.media.session.PlaybackStateCompat s) {
+						states.add(s.getState());
+					}
+				};
+				b.getMediaSessionCallback().addBroadcastListener(l);
+				java.lang.reflect.Method m = MainActivityDelegate.class.getDeclaredMethod("resumeInCar");
+				m.setAccessible(true);
+				check((Boolean) m.invoke(d), "ao abrir no carro, retoma o último item");
+				Screens.waitReal(3);
+				ActivityFragment f = d.getActiveFragment();
+				check(f instanceof XtreamFragment, "abre na tela do IPTV (tela: " + name(f) + ")");
+				me.aap.fermata.ui.view.BodyLayout body = d.getBody();
+				check(body.isVideoMode(), "a tela de vídeo fica aberta à espera da imagem (modo: " +
+						body.getMode() + ")");
+				// The surface Android would create for the visible video view
+				if (field(body.getVideoView(), "createSurface") instanceof me.aap.utils.async.Promise<?> s) {
+					s.complete(null);
+				}
+				Screens.waitReal(2);
+				b.getMediaSessionCallback().removeBroadcastListener(l);
+				check(states.contains(android.support.v4.media.session.PlaybackStateCompat.STATE_CONNECTING)
+								&& channel.equals(get(d.getLib().getLastPlayedItem())),
+						"o canal é pedido para tocar de novo (estados: " + states + ", modo: " +
+								d.getBody().getMode() + ", atual: " + b.getCurrentItem() + ")");
+				Screens.save(root, size + "-nav-resume");
+				b.stop();
+				Screens.waitReal(1);
+			} finally {
+				mirror.setInt(FermataApplication.get(), 0);
+			}
 		}
 
 		// --- Steering wheel: three presses of play/pause open ChatGPT's voice mode ---

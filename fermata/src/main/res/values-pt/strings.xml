@@ -118,6 +118,8 @@
     <string name="action_none">Nenhuma</string>
 
     <string name="play_next_on_completion">Reproduzir o próximo ao terminar</string>
+    <string name="resume_in_car">Retomar ao ligar o carro</string>
+    <string name="resume_in_car_sub">O carro abre no que estava tocando, de onde parou. Vídeo do YouTube não: abre o YouTube</string>
     <string name="nothing_to_resume">Nada para retomar</string>
 
     <string name="rw_ff_click">RW/FF - clique</string>

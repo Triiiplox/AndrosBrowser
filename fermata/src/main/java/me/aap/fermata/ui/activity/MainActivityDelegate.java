@@ -338,7 +338,34 @@ public class MainActivityDelegate extends ActivityDelegate
 			checkUpdates();
 			return;
 		}
+		if (!resumeInCar()) startScreen();
+	}
 
+	// The car's screen opens where the last drive stopped: the item it played, playing again.
+	// A web video can't be resumed from here, so YouTube (or the start screen) opens as before.
+	private boolean resumeInCar() {
+		if (!isCarActivity() || !getPrefs().getResumeInCarPref()) return false;
+		FermataServiceUiBinder b = getMediaServiceBinder();
+		if (b.getMediaSessionCallback().isPlaying() || !hasCurrent()) return false;
+		PlayableItem cur = b.getCurrentItem();
+		FutureSupplier<PlayableItem> last = ((cur != null) && !cur.isExternal()) ? completed(cur) :
+				getLib().getLastPlayedItem();
+		setContentLoading(last.main().onCompletion((i, err) -> {
+			if (err != null) Log.e(err, "Last played item not found");
+			if ((i == null) || i.isExternal() || !goToItem(i)) {
+				startScreen();
+				return;
+			}
+			long pos = getLib().getLastPlayedPosition(i);
+			Log.i("Resuming in the car: ", i, " at ", pos);
+			// After the screen's change is told: with no engine yet it hides the video view
+			post(() -> getBody().playItem(i, pos));
+			checkUpdates();
+		}));
+		return true;
+	}
+
+	private void startScreen() {
 		String showAddon = getPrefs().getShowAddonOnStartPref();
 		if (showAddon != null) {
 			FermataAddon addon = AddonManager.get().getAddon(showAddon);

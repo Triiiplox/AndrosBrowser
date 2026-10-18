@@ -117,6 +117,8 @@
     <string name="action_none">None</string>
 
     <string name="play_next_on_completion">Play next on completion</string>
+    <string name="resume_in_car">Resume when the car starts</string>
+    <string name="resume_in_car_sub">The car opens on what was playing, where it stopped. Not a YouTube video: YouTube opens instead</string>
     <string name="nothing_to_resume">Nothing to resume</string>
 
     <string name="rw_ff_click">RW/FF - click</string>
