@@ -132,6 +132,8 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 
 ## 6. Visual
 
+- [ ] ChatGPT, tela de chat: vazia mostra "Como posso ajudar?"; campo embaixo com microfone (vira "enviar" ao digitar); sua mensagem em balão à direita, resposta em texto à esquerda, "•••" enquanto espera. Sem chave: aviso em português com botão "Abrir o app do ChatGPT", e a mensagem não entra na lista.
+
 - [ ] Celular: o botão redondo (voltar/menu) não aparece mais por cima do conteúdo, só em Pastas para adicionar pasta. No carro continua.
 - [ ] Configurações: cada seção com uma linha dizendo o que tem dentro.
 - [ ] ChatGPT: botão "abrir app" na barra de cima do chat e em Configurações → Complementos → ChatGPT → "Abrir o app do ChatGPT" (abre o app oficial ou a loja).

@@ -7,4 +7,13 @@
     <string name="openai_model_other_hint">Model id, if it is not in the list</string>
     <string name="open_chatgpt_app">Open the ChatGPT app</string>
     <string name="open_chatgpt_app_sub">Voice mode with your ChatGPT plan, no key and no tokens to pay. In the car, through Fermata\'s mirroring</string>
+    <string name="chat_empty_title">How can I help?</string>
+    <string name="chat_empty_text">Type below, or tap the microphone and talk.</string>
+    <string name="chat_hint">Ask anything</string>
+    <string name="chat_speak">Speak</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_failed">Could not talk to ChatGPT: %s</string>
+    <string name="chat_no_key_title">No OpenAI key</string>
+    <string name="chat_no_key">To chat here, put your OpenAI key in Settings → Addons → ChatGPT. Or use the ChatGPT app with your account, no key needed.</string>
+    <string name="chat_tts_failed">Could not speak the answer: %s</string>
 </resources>

@@ -7,4 +7,13 @@
     <string name="openai_model_other_hint">Id do modelo, se não estiver na lista</string>
     <string name="open_chatgpt_app">Abrir o app do ChatGPT</string>
     <string name="open_chatgpt_app_sub">Modo voz com o seu plano do ChatGPT, sem chave e sem pagar tokens. No carro, pelo espelhamento do Fermata</string>
+    <string name="chat_empty_title">Como posso ajudar?</string>
+    <string name="chat_empty_text">Escreva embaixo, ou toque no microfone e fale.</string>
+    <string name="chat_hint">Pergunte alguma coisa</string>
+    <string name="chat_speak">Falar</string>
+    <string name="chat_send">Enviar</string>
+    <string name="chat_failed">Não foi possível falar com o ChatGPT: %s</string>
+    <string name="chat_no_key_title">Sem chave da OpenAI</string>
+    <string name="chat_no_key">Para conversar aqui, coloque a sua chave da OpenAI em Configurações → Complementos → ChatGPT. Ou use o app do ChatGPT com a sua conta, sem chave.</string>
+    <string name="chat_tts_failed">Não foi possível falar a resposta: %s</string>
 </resources>
