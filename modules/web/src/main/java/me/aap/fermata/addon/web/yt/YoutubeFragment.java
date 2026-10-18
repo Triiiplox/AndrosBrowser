@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
@@ -45,6 +46,8 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 	private static final Set<String> DEFAULT_URLS = new HashSet<>(Arrays.asList(DEFAULT_URL, DEFAULT_URL + '/'));
 	private static final Pref<LongSupplier> RESUME_POS = YoutubeAddon.YT_RESUME_POS;
 	private boolean playOnResume;
+	@Nullable
+	private YoutubeMiniPlayer mini;
 
 	@Override
 	public int getFragmentId() {
@@ -79,6 +82,8 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 			YoutubeWebClient webClient = new YoutubeWebClient();
 			YoutubeChromeClient chromeClient = new YoutubeChromeClient(webView, videoView);
 			webView.init(addon, webClient, chromeClient);
+			mini = new YoutubeMiniPlayer((FrameLayout) view, webView);
+			chromeClient.setFullScreenListener(mini::update);
 			registerListeners(a);
 			webView.loadUrl(DEFAULT_URL);
 			if (!DEFAULT_URL.equals(url)) a.post(() -> webView.loadUrl(url));
@@ -116,6 +121,7 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 
 	@Override
 	public boolean onBackPressed() {
+		if ((mini != null) && mini.onBackPressed()) return true;
 		if (super.onBackPressed()) return true;
 		// A video opened on start (autoplay) or from Android Auto has no feed in the history:
 		// Back goes to the feed instead of leaving the app
@@ -131,6 +137,7 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 	// home feed (or its top, when it is already shown) from a video or any other page
 	@Override
 	public void navBarItemReselected(int itemId) {
+		if ((mini != null) && mini.home()) return;
 		FermataWebView v = getWebView();
 		if (v == null) return;
 		FermataChromeClient chrome = v.getWebChromeClient();
@@ -168,6 +175,8 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 
 	@Override
 	public void onDestroyView() {
+		if (mini != null) mini.destroy();
+		mini = null;
 		unregisterListeners(MainActivityDelegate.get(requireContext()));
 		super.onDestroyView();
 	}
@@ -248,6 +257,8 @@ public class YoutubeFragment extends WebBrowserFragment implements FermataServic
 			FermataChromeClient chrome = v.getWebChromeClient();
 			if (chrome == null) return;
 
+			// In the mini player the video stays in its corner
+			if ((mini != null) && mini.isMini()) return;
 			if (!DEFAULT_URLS.contains(getUrl())) {
 				Log.i("YouTube playback started: requesting full screen");
 				chrome.enterFullScreen();

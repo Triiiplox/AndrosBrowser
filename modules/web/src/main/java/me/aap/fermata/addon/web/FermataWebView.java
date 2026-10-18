@@ -217,7 +217,12 @@ public class FermataWebView extends WebView
 		if ((VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) &&
 				(WebViewFeature.isFeatureSupported(ALGORITHMIC_DARKENING))) {
 			boolean dark = a.isForceDark() || (isDarkPhoneTheme() && a.isAutoDark());
-			WebSettingsCompat.setAlgorithmicDarkeningAllowed(getSettings(), dark);
+			// A WebView may claim the feature and lack it: the page stays light, nothing breaks
+			try {
+				WebSettingsCompat.setAlgorithmicDarkeningAllowed(getSettings(), dark);
+			} catch (UnsupportedOperationException ex) {
+				Log.w("Algorithmic darkening not supported: ", ex.getMessage());
+			}
 			if (reload) reload();
 		} else if (WebViewFeature.isFeatureSupported(FORCE_DARK)) {
 			int force;

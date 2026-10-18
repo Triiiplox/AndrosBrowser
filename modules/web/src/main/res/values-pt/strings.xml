@@ -30,4 +30,10 @@
     <string name="sponsorblock_cat_music_offtopic">Trechos sem música</string>
     <string name="sponsorblock_cat_filler">Enrolação</string>
     <string name="sponsorblock_cat_filler_sub">Categoria agressiva; desativada por padrão.</string>
+    <string name="yt_minimize">▾ Minimizar</string>
+    <string name="yt_home">Início</string>
+    <string name="yt_subscriptions">Inscrições</string>
+    <string name="yt_you">Você</string>
+    <string name="yt_expand">Voltar ao vídeo</string>
+    <string name="yt_close_mini">Fechar o vídeo</string>
 </resources>

@@ -32,4 +32,10 @@
     <string name="sponsorblock_cat_music_offtopic">Non-music sections</string>
     <string name="sponsorblock_cat_filler">Filler</string>
     <string name="sponsorblock_cat_filler_sub">Aggressive category; disabled by default.</string>
+    <string name="yt_minimize">▾ Minimize</string>
+    <string name="yt_home">Home</string>
+    <string name="yt_subscriptions">Subscriptions</string>
+    <string name="yt_you">You</string>
+    <string name="yt_expand">Back to the video</string>
+    <string name="yt_close_mini">Close the video</string>
 </resources>

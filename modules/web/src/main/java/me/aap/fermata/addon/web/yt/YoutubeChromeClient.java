@@ -1,5 +1,7 @@
 package me.aap.fermata.addon.web.yt;
 
+import androidx.annotation.Nullable;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,8 +23,16 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
  */
 public class YoutubeChromeClient extends FermataChromeClient {
 
+	@Nullable
+	private Runnable fullScreenListener;
+
 	public YoutubeChromeClient(FermataWebView web, VideoView videoView) {
 		super(web, videoView);
+	}
+
+	/** Told when the video enters or leaves the full screen, e.g. to hide the mini player's bar. */
+	void setFullScreenListener(@Nullable Runnable l) {
+		fullScreenListener = l;
 	}
 
 	@Override
@@ -50,6 +60,13 @@ public class YoutubeChromeClient extends FermataChromeClient {
 	public void onShowCustomView(View view, CustomViewCallback callback) {
 		getWebView().setVisibility(GONE);
 		super.onShowCustomView(view, callback);
+		if (fullScreenListener != null) fullScreenListener.run();
+	}
+
+	@Override
+	public void onHideCustomView() {
+		super.onHideCustomView();
+		if (fullScreenListener != null) fullScreenListener.run();
 	}
 
 	@Override

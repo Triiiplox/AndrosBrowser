@@ -14,6 +14,7 @@ import android.util.AttributeSet;
 import android.webkit.CookieManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONTokener;
@@ -45,6 +46,8 @@ public class YoutubeWebView extends FermataWebView {
 					"  window.__fermataQ = null;\n" +
 					"}\n";
 	private YoutubeJsInterface js;
+	@Nullable
+	private java.util.function.Consumer<String> urlListener;
 
 	public YoutubeWebView(Context context) {
 		super(context);
@@ -102,8 +105,14 @@ public class YoutubeWebView extends FermataWebView {
 		super.onActivityEvent(a, e);
 	}
 
+	/** Told each page of the player, e.g. to show the mini player's bar on a video's page. */
+	void setUrlListener(@Nullable java.util.function.Consumer<String> l) {
+		urlListener = l;
+	}
+
 	@Override
 	protected void urlChanged(String url) {
+		if (urlListener != null) urlListener.accept(url);
 		// Leaving the video within the page (e.g. YouTube's own back button) leaves it like goBack(),
 		// even though YouTube keeps playing it as a muted preview
 		String path = Uri.parse(url).getPath();
@@ -130,27 +139,8 @@ public class YoutubeWebView extends FermataWebView {
 		injectContinueWatching();
 		injectTapFullScreen();
 		addFocusHighlight();
-		injectCompactLayout();
 		CookieManager.getInstance().flush();
 	}
-
-	/*
-	 * On a short screen (the car, about 336dp under the nav bar) the page's own tab bar (Home,
-	 * Shorts, You) takes 56dp and covers a result: Fermata's nav bar already goes home. A phone held
-	 * upright keeps it, as in the YouTube app. The sign-in stays reachable from the top bar.
-	 */
-	private void injectCompactLayout() {
-		evaluateJavascript(COMPACT_LAYOUT_JS, null);
-	}
-
-	static final String COMPACT_LAYOUT_CSS = "@media (max-height: 479px) {" +
-			"ytm-pivot-bar-renderer {display: none !important;}" +
-			"ytm-app {padding-bottom: 0 !important;}}";
-	private static final String COMPACT_LAYOUT_JS = "(function() {" +
-			"if (document.getElementById('fermata-compact')) return;" +
-			"var s = document.createElement('style'); s.id = 'fermata-compact';" +
-			"s.textContent = '" + COMPACT_LAYOUT_CSS + "';" +
-			"document.head.appendChild(s);})()";
 
 	protected void submitForm() {
 		if (!me.aap.fermata.BuildConfig.AUTO) return;
