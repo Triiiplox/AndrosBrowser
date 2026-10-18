@@ -86,4 +86,14 @@
     <string name="xtream_seasons">%d temporadas</string>
     <string name="xtream_play_episode">Assistir T%1$d E%2$d</string>
     <string name="xtream_resume_episode">Continuar T%1$d E%2$d</string>
+    <string name="xtream_watch_live">Assistir ao vivo</string>
+    <string name="xtream_catchup">Assistir de novo</string>
+    <string name="xtream_catchup_none">Nada gravado para assistir de novo ainda</string>
+    <string name="xtream_today">Hoje</string>
+    <string name="xtream_yesterday">Ontem</string>
+    <plurals name="xtream_catchup_days">
+        <item quantity="one">%d dia para assistir de novo</item>
+        <item quantity="other">%d dias para assistir de novo</item>
+    </plurals>
+    <string name="xtream_catchup_failed">Não foi possível abrir a gravação: o painel não respondeu</string>
 </resources>

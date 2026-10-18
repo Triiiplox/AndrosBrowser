@@ -197,6 +197,26 @@ final class FakeXtreamServer implements AutoCloseable {
 				}
 				return e.append("}}").toString();
 			}
+			// Two days of programs of two hours, the past ones recorded, the start by the panel's clock
+			case "get_simple_data_table" -> {
+				java.text.SimpleDateFormat f = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+						java.util.Locale.ROOT);
+				f.setTimeZone(java.util.TimeZone.getTimeZone("America/Sao_Paulo"));
+				String[] shows = {"Jornal da Manhã", "Futebol: Corinthians x Palmeiras", "Novela das Seis",
+						"Globo Repórter", "Esporte Espetacular", "Filme da Tarde"};
+				long first = now - (now % 7200) - 48 * 3600;
+				StringBuilder e = new StringBuilder("{\"epg_listings\":[");
+				for (int i = 0; i < 26; i++) {
+					long start = first + i * 7200L;
+					if (i > 0) e.append(',');
+					e.append("{\"title\":\"").append(b64(shows[i % shows.length])).append("\",\"description\":\"")
+							.append(b64("Programa " + (i + 1))).append("\",\"start\":\"")
+							.append(f.format(new java.util.Date(start * 1000))).append("\",\"start_timestamp\":\"")
+							.append(start).append("\",\"stop_timestamp\":\"").append(start + 7200)
+							.append("\",\"has_archive\":").append((start + 7200 <= now) ? 1 : 0).append('}');
+				}
+				return e.append("]}").toString();
+			}
 			case "get_short_epg" -> {
 				String now1 = b64("Jornal da Manhã"), next = b64("Futebol: Corinthians x Palmeiras");
 				return "{\"epg_listings\":[{\"title\":\"" + now1 + "\",\"description\":\"" + b64("Notícias") +

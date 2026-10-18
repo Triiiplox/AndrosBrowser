@@ -41,6 +41,8 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 	// The programme on air and the next one, for a live channel
 	@Nullable
 	private volatile String nowNext;
+	// A past program of the channel, from the panel's recording: it has an end, and can be seeked
+	private boolean catchup;
 
 	XtreamPlayable(String id, BrowsableItem parent, String url, String accountId, Kind kind,
 								 String streamId, String title, String subtitle, @Nullable String image,
@@ -66,6 +68,15 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 
 	public Kind getKind() {
 		return kind;
+	}
+
+	public boolean isCatchup() {
+		return catchup;
+	}
+
+	XtreamPlayable setCatchup() {
+		catchup = true;
+		return this;
 	}
 
 	public String getStreamId() {
@@ -129,12 +140,12 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 
 	@Override
 	public boolean isStream() {
-		return kind == Kind.LIVE;
+		return (kind == Kind.LIVE) && !catchup;
 	}
 
 	@Override
 	public boolean isSeekable() {
-		return kind != Kind.LIVE;
+		return (kind != Kind.LIVE) || catchup;
 	}
 
 	@Nullable

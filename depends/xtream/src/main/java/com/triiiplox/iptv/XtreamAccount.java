@@ -1,5 +1,7 @@
 package com.triiiplox.iptv;
 
+import com.triiiplox.iptv.model.Program;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -139,6 +141,32 @@ public final class XtreamAccount {
 	public String timeshiftUrl(String streamId, String start, int minutes) {
 		return server + "/timeshift/" + enc(user) + '/' + enc(password) + '/' + minutes + '/' + start +
 				'/' + streamId + ".ts";
+	}
+
+	/**
+	 * The catch-up URL of a past program of a live channel.
+	 *
+	 * @param timezone the panel's, for a program the panel gave no start of its own
+	 */
+	public String catchupUrl(String streamId, Program p, String timezone) {
+		return timeshiftUrl(streamId, timeshiftStart(p, timezone), catchupMinutes(p));
+	}
+
+	public static int catchupMinutes(Program p) {
+		return (int) Math.max(1, (p.end - p.start + 59) / 60);
+	}
+
+	/** The panel serves its recordings by its own clock: its start, else the epoch in its zone. */
+	public static String timeshiftStart(Program p, String timezone) {
+		String s = p.panelStart;
+		if ((s != null) && (s.length() >= 16) && (s.charAt(4) == '-') && (s.charAt(10) == ' ') &&
+				(s.charAt(13) == ':')) {
+			return s.substring(0, 10) + ':' + s.substring(11, 13) + '-' + s.substring(14, 16);
+		}
+		java.text.SimpleDateFormat f = new java.text.SimpleDateFormat("yyyy-MM-dd:HH-mm",
+				java.util.Locale.ROOT);
+		f.setTimeZone(java.util.TimeZone.getTimeZone((timezone != null) ? timezone : "UTC"));
+		return f.format(new java.util.Date(p.start * 1000));
 	}
 
 	private String streamUrl(String kind, String id, String ext) {

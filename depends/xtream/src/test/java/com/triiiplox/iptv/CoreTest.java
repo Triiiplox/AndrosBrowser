@@ -292,6 +292,13 @@ public class CoreTest {
 		Home.Page live = Home.of(Kind.LIVE, s, lib, "acc");
 		assertNull(live.hero);
 		assertEquals("Abertos", live.rows.get(0).category.name);
+
+		lib.played(rec(Kind.LIVE, "102", null, 0, 0, 3));
+		lib.toggleFavorite(rec(Kind.LIVE, "101", null, 0, 0, 4));
+		live = Home.of(Kind.LIVE, s, lib, "acc");
+		assertEquals("the favorite channels on top", Home.Row.Type.MY_LIST, live.rows.get(0).type);
+		assertEquals("101", live.rows.get(0).records.get(0).id);
+		assertEquals(Home.Row.Type.RECENT_CHANNELS, live.rows.get(1).type);
 	}
 
 	// --- User library ---

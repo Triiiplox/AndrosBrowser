@@ -60,4 +60,17 @@
         android:paddingEnd="2dp"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="13sp" />
+
+    <!-- What is on now, once the guide answers -->
+    <TextView
+        android:id="@+id/xtream_card_sub"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingStart="2dp"
+        android:paddingEnd="2dp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="11sp"
+        android:visibility="gone" />
 </LinearLayout>

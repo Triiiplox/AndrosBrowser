@@ -56,6 +56,8 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 	private enum Tab {HOME, LIVE, MOVIES, SERIES}
 
 	private final List<Object> overlays = new ArrayList<>();
+	@Nullable
+	private XtreamGuide guide;
 	private XtreamRepo repo;
 	private Tab tab = Tab.HOME;
 	@Nullable
@@ -181,7 +183,25 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 				a.getMediaServiceBinder().removeBroadcastListener(this));
 		for (Object o : overlays) if (o instanceof XtreamSearch s) s.close();
 		overlays.clear();
+		closeGuide();
 		super.onDestroyView();
+	}
+
+	@Nullable
+	@Override
+	public XtreamGuide guide() {
+		Account acc = account;
+		if ((acc == null) || acc.isPlaylist()) return null;
+		if ((guide == null) || (guide.getAccount() != acc)) {
+			closeGuide();
+			guide = new XtreamGuide(repo, acc);
+		}
+		return guide;
+	}
+
+	private void closeGuide() {
+		if (guide != null) guide.close();
+		guide = null;
 	}
 
 	@Override
@@ -393,6 +413,14 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 		if (acc == null) return;
 		UserLibrary.Record rec = (r != null) ? r : (e != null) ? record(acc, e) : null;
 		if ((rec == null) || (rec.kind == Kind.EPISODE)) return;
+		// A channel: its page, with my list, now and next and what can be watched again
+		if (rec.kind == Kind.LIVE) {
+			Entry ch = (e != null) ? e : (snapshot != null) ? snapshot.get(Kind.LIVE, rec.id) : null;
+			if (ch != null) {
+				openDetails(ch);
+				return;
+			}
+		}
 		boolean fav = repo.getLibrary().toggleFavorite(rec);
 		Toast.makeText(requireContext(), fav ? R.string.xtream_added_to_list :
 				R.string.xtream_removed_from_list, Toast.LENGTH_SHORT).show();
@@ -429,6 +457,31 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 	}
 
 	@Override
+	public void playLive(Entry channel) {
+		playEntry(channel);
+	}
+
+	@Override
+	public void playCatchup(Entry channel, Program p) {
+		Account acc = account;
+		Snapshot s = snapshot;
+		if ((acc == null) || (s == null)) return;
+		repo.run(() -> repo.catalog(acc).catchupStart(p)).main().onCompletion((start, err) -> {
+			if ((err != null) || (start == null) || !isAdded()) {
+				if (err != null) {
+					Log.e(err, "Xtream: no catch-up start for ", p.title);
+					if (isAdded()) Toast.makeText(requireContext(), R.string.xtream_catchup_failed,
+							Toast.LENGTH_LONG).show();
+				}
+				return;
+			}
+			XtreamPlayable i = root().catchup(acc, s, channel, start,
+					com.triiiplox.iptv.XtreamAccount.catchupMinutes(p), p.title);
+			if (i != null) play(i);
+		});
+	}
+
+	@Override
 	public void playMovie(Entry movie, @Nullable Details d, boolean fromStart) {
 		if ((account == null) || (snapshot == null)) return;
 		XtreamPlayable i = root().playable(account, snapshot, movie);
@@ -459,7 +512,9 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 		Log.i("Xtream: play ", i.getId(), " (engine ", i.getPrefs().getVideoEnginePref(), ")");
 		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
 		a.getBody().playItem(i);
-		if ((i instanceof XtreamPlayable xp) && (xp.getKind() == Kind.LIVE)) loadNowNext(xp);
+		if ((i instanceof XtreamPlayable xp) && (xp.getKind() == Kind.LIVE) && !xp.isCatchup()) {
+			loadNowNext(xp);
+		}
 	}
 
 	/**

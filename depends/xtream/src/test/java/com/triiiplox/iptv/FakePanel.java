@@ -59,6 +59,12 @@ final class FakePanel implements Transport {
 				"\"1\":[{\"id\":\"401b\",\"episode_num\":\"2\",\"title\":\"S1E2\",\"container_extension\":\"mkv\",\"info\":[]}," +
 				"{\"id\":401,\"episode_num\":1,\"title\":\"S1E1\",\"container_extension\":\"mkv\",\"info\":{\"duration\":\"00:44:10\"," +
 				"\"movie_image\":\"http://img/e1.jpg\"}}]}}");
+		responses.put("get_simple_data_table", "{\"epg_listings\":[" +
+				"{\"title\":\"" + b64("Futebol") + "\",\"description\":\"" + b64("Final") + "\"," +
+				"\"start\":\"2026-10-17 21:30:00\",\"end\":\"2026-10-17 23:20:00\"," +
+				"\"start_timestamp\":\"1792283400\",\"stop_timestamp\":\"1792290000\",\"has_archive\":1}," +
+				"{\"title\":\"" + b64("Sem gravação") + "\",\"start_timestamp\":\"1792290000\"," +
+				"\"stop_timestamp\":\"1792293600\",\"has_archive\":\"0\"}]}");
 		responses.put("get_short_epg", "{\"epg_listings\":[" +
 				"{\"title\":\"" + b64("Jornal Nacional") + "\",\"description\":\"" + b64("Notícias") + "\"," +
 				"\"start_timestamp\":\"2000\",\"stop_timestamp\":\"3000\",\"has_archive\":0}," +

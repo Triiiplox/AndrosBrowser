@@ -125,7 +125,8 @@ public class XtreamAddon implements MediaLibAddon, FermataActivityAddon {
 		}
 
 		private void save(XtreamPlayable i, long pos) {
-			if (repo == null) return;
+			// A past program would show in the recent channels under its own title
+			if ((repo == null) || i.isCatchup()) return;
 			i.getMediaData().onCompletion((md, err) -> {
 				long dur = (md != null) ? md.getLong(MediaMetadataCompat.METADATA_KEY_DURATION) : 0;
 				long p = (i.getKind() == Kind.LIVE) ? 0 : Math.max(0, pos);

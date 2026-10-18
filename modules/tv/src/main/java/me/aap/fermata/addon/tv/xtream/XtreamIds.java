@@ -49,6 +49,11 @@ final class XtreamIds {
 		return join("e", acc, seriesId, String.valueOf(season), id, (ext == null) ? "" : ext);
 	}
 
+	/** A past program of a channel: its start by the panel's clock, its length in minutes. */
+	static String catchup(String acc, String streamId, String start, int minutes) {
+		return join("t", acc, streamId, start, String.valueOf(minutes));
+	}
+
 	/** The parts after the scheme: [type, acc, ...], or null if not an Xtream id. */
 	@Nullable
 	static String[] parse(String id) {

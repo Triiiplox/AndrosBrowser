@@ -93,6 +93,32 @@ public final class XtreamRootItem extends BrowsableItemBase implements XtreamIte
 						e.image, dur, null, 0, 0, ext));
 	}
 
+	/**
+	 * A past program of a channel, played from the panel's recording.
+	 *
+	 * @param start by the panel's clock, as {@link com.triiiplox.iptv.Catalog#catchupStart} gives it
+	 */
+	@Nullable
+	public XtreamPlayable catchup(Account a, Snapshot s, Entry channel, String start, int minutes,
+																@Nullable String title) {
+		if (a.xtream == null) return null;
+		String url = a.xtream.timeshiftUrl(channel.id, start, minutes);
+		BrowsableItem parent = parentOf(a, s, channel);
+		String name = ((title != null) && !title.trim().isEmpty()) ? title : channel.name;
+		String sub = channel.name + " · " + shortStart(start);
+		return ((XtreamPlayable) lib.getOrCreateCachedItem(
+				XtreamIds.catchup(a.id, channel.id, start, minutes),
+				id -> new XtreamPlayable(id, parent, url, a.id, Kind.LIVE, channel.id, name, sub,
+						channel.image, minutes * 60_000L, null, 0, 0, null).setCatchup())).setCatchup();
+	}
+
+	// 2026-10-17:21-30 → 17/10 21:30
+	private static String shortStart(String start) {
+		if (start.length() < 16) return start;
+		return start.substring(8, 10) + '/' + start.substring(5, 7) + ' ' + start.substring(11, 13) +
+				':' + start.substring(14, 16);
+	}
+
 	private long knownDuration(Account a, Kind kind, String id, long fallback) {
 		UserLibrary.Record r = repo.getLibrary().get(a.id, kind, id);
 		return ((r != null) && (r.duration > 0)) ? r.duration : fallback;
@@ -256,6 +282,19 @@ public final class XtreamRootItem extends BrowsableItemBase implements XtreamIte
 						return fromLibrary(a, Kind.EPISODE, epId, p);
 					});
 				}).ifFail(err -> fromLibrary(a, Kind.EPISODE, epId, p));
+			}
+			case "t": {
+				if (p.length < 5) return completedNull();
+				int minutes;
+				try {
+					minutes = Integer.parseInt(p[4]);
+				} catch (NumberFormatException ex) {
+					return completedNull();
+				}
+				return repo.snapshot(a).main().map(s -> {
+					Entry e = s.get(Kind.LIVE, p[2]);
+					return (e != null) ? catchup(a, s, e, p[3], minutes, null) : null;
+				});
 			}
 			default:
 				return completedNull();

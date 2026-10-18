@@ -283,9 +283,21 @@ public final class XtreamClient {
 
 	/** Now and next of a channel: get_short_epg, titles and descriptions are base64. */
 	public List<Program> shortEpg(String streamId, int limit) throws IOException {
+		return listings(account.apiUrl("get_short_epg", "stream_id", streamId, "limit",
+				String.valueOf(limit)));
+	}
+
+	/**
+	 * The whole guide the panel has of a channel, the past days included: get_simple_data_table.
+	 * The programs it keeps for catch-up say so (has_archive).
+	 */
+	public List<Program> fullEpg(String streamId) throws IOException {
+		return listings(account.apiUrl("get_simple_data_table", "stream_id", streamId));
+	}
+
+	private List<Program> listings(String url) throws IOException {
 		List<Program> list = new ArrayList<>();
-		try (JsonReader r = open(account.apiUrl("get_short_epg", "stream_id", streamId, "limit",
-				String.valueOf(limit)))) {
+		try (JsonReader r = open(url)) {
 			if (r.peek() != JsonToken.BEGIN_OBJECT) {
 				r.skipValue();
 				return list;
@@ -301,7 +313,7 @@ public final class XtreamClient {
 						r.skipValue();
 						continue;
 					}
-					String title = null, desc = null;
+					String title = null, desc = null, panelStart = null;
 					long start = 0, end = 0;
 					boolean archive = false;
 					r.beginObject();
@@ -312,11 +324,14 @@ public final class XtreamClient {
 							case "start_timestamp" -> start = toLong(r.nextStringOrNull());
 							case "stop_timestamp" -> end = toLong(r.nextStringOrNull());
 							case "has_archive" -> archive = "1".equals(r.nextStringOrNull());
+							case "start" -> panelStart = r.nextStringOrNull();
 							default -> r.skipValue();
 						}
 					}
 					r.endObject();
-					if ((title != null) && (end > start)) list.add(new Program(title, desc, start, end, archive));
+					if ((title != null) && (end > start)) {
+						list.add(new Program(title, desc, start, end, archive, panelStart));
+					}
 				}
 				endList(r);
 			}

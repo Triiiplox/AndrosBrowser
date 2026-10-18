@@ -122,6 +122,20 @@ public final class Catalog {
 		return isPlaylist() ? Collections.emptyList() : client.shortEpg(streamId, limit);
 	}
 
+	/** The guide with the past days, for catch-up: empty for a playlist. */
+	public List<Program> archive(String streamId) throws IOException {
+		return isPlaylist() ? Collections.emptyList() : client.fullEpg(streamId);
+	}
+
+	/**
+	 * The start of a past program for its catch-up URL (yyyy-MM-dd:HH-mm, the panel's clock).
+	 * Blocking: may ask the panel its time zone.
+	 */
+	public String catchupStart(Program p) throws IOException {
+		String tz = (p.panelStart != null) ? null : client.accountInfo().timezone;
+		return XtreamAccount.timeshiftStart(p, tz);
+	}
+
 	public void clearCache() {
 		cache.clear();
 		snapshot = null;

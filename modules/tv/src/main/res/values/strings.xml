@@ -94,4 +94,14 @@
     <string name="xtream_seasons">%d seasons</string>
     <string name="xtream_play_episode">Play S%1$d E%2$d</string>
     <string name="xtream_resume_episode">Resume S%1$d E%2$d</string>
+    <string name="xtream_watch_live">Watch live</string>
+    <string name="xtream_catchup">Watch again</string>
+    <string name="xtream_catchup_none">Nothing recorded to watch again yet</string>
+    <string name="xtream_today">Today</string>
+    <string name="xtream_yesterday">Yesterday</string>
+    <plurals name="xtream_catchup_days">
+        <item quantity="one">%d day to watch again</item>
+        <item quantity="other">%d days to watch again</item>
+    </plurals>
+    <string name="xtream_catchup_failed">The recording could not be opened: the panel did not answer</string>
 </resources>

@@ -78,11 +78,13 @@ final class XtreamCards extends RecyclerView.Adapter<XtreamCards.Holder> {
 
 	@Override
 	public void onBindViewHolder(@NonNull Holder h, int position) {
+		h.guideId = null;
 		if (!entries.isEmpty()) {
 			Entry e = entries.get(position);
 			h.entry = e;
 			h.record = null;
 			bind(h, e.name, null, e.image, null);
+			if (e.kind == Kind.LIVE) showNow(h, e.id);
 		} else {
 			UserLibrary.Record r = records.get(position);
 			h.entry = null;
@@ -91,7 +93,24 @@ final class XtreamCards extends RecyclerView.Adapter<XtreamCards.Holder> {
 			String sub = (r.kind == Kind.EPISODE) ? r.subtitle : XtreamUi.left(h.itemView.getContext(), r);
 			if (wideRecords && (r.kind == Kind.MOVIE)) sub = XtreamUi.left(h.itemView.getContext(), r);
 			bind(h, name, sub, r.image, r);
+			if (r.kind == Kind.LIVE) showNow(h, r.id);
 		}
+	}
+
+	// The program on air under the channel name, when the guide of the account answers
+	private void showNow(Holder h, String streamId) {
+		XtreamGuide g = listener.guide();
+		if ((g == null) || (h.sub == null)) return;
+		h.guideId = streamId;
+		// The line is kept while the guide answers: the row must not grow under the finger
+		TextView sub = h.sub;
+		sub.setText(null);
+		sub.setVisibility(View.INVISIBLE);
+		g.now(streamId, title -> {
+			if (!streamId.equals(h.guideId)) return;
+			sub.setText(title);
+			sub.setVisibility(title.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+		});
 	}
 
 	private static void bind(Holder h, String name, @Nullable String sub, @Nullable String image,
@@ -111,6 +130,12 @@ final class XtreamCards extends RecyclerView.Adapter<XtreamCards.Holder> {
 
 		/** A long press: e.g. add to my list. */
 		void onLongPress(@Nullable Entry e, @Nullable UserLibrary.Record r);
+
+		/** What is on now on the channels, or null without a guide (a playlist). */
+		@Nullable
+		default XtreamGuide guide() {
+			return null;
+		}
 	}
 
 	final class Holder extends RecyclerView.ViewHolder {
@@ -124,6 +149,9 @@ final class XtreamCards extends RecyclerView.Adapter<XtreamCards.Holder> {
 		final ProgressBar progress;
 		Entry entry;
 		UserLibrary.Record record;
+		// The channel whose program is asked for this card
+		@Nullable
+		String guideId;
 
 		Holder(View v) {
 			super(v);

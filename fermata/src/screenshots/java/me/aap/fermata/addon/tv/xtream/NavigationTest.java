@@ -92,6 +92,7 @@ public abstract class NavigationTest {
 				Screens.settle();
 				step(this::navBar, "barra de navegação");
 				step(this::iptv, "IPTV");
+				step(this::iptvChannel, "IPTV: canal, minha lista e assistir de novo");
 				step(this::chat, "ChatGPT");
 				step(this::steeringWheel, "Volante: três toques no ⏯");
 				step(this::folders, "Pastas");
@@ -217,6 +218,117 @@ public abstract class NavigationTest {
 			d.onBackPressed();
 			Screens.waitReal(1);
 			check(overlays.isEmpty(), "Voltar fecha a busca");
+		}
+
+		// --- A channel: what is on now, its page, my list on top, a past program again ---
+
+		void iptvChannel() throws Exception {
+			int tvId = me.aap.fermata.addon.tv.R.id.xtream_card_sub;
+			d.showFragment(R.id.xtream_fragment);
+			XtreamFragment f = (XtreamFragment) d.getActiveFragment();
+			Screens.waitFor(() -> field(f, "snapshot") != null, 20);
+			ViewGroup tabs = (ViewGroup) field(f, "tabs");
+			tabs.getChildAt(1).performClick();
+			Screens.waitReal(4);
+			RecyclerView page = (RecyclerView) field(f, "page");
+			View now = first(page, v -> (v.getId() == tvId) && v.isShown() &&
+					(((android.widget.TextView) v).length() > 0));
+			check((now != null) && "Jornal da Manhã".contentEquals(((android.widget.TextView) now).getText()),
+					"o card do canal mostra o que passa agora (" +
+							((now == null) ? "nada" : ((android.widget.TextView) now).getText()) + ")");
+			Screens.save(root, size + "-nav-iptv-live-now");
+
+			// The first channel is the one the fake panel records
+			View card = first(page, v -> v.hasOnClickListeners() && (first(v, t ->
+					(t instanceof android.widget.TextView tv) && "Globo SP HD".contentEquals(tv.getText()) &&
+							(t.getId() != me.aap.fermata.addon.tv.R.id.xtream_card_title)) != null) &&
+					(v.findViewById(me.aap.fermata.addon.tv.R.id.xtream_card_image) != null));
+			check(card != null, "o card do Globo SP HD");
+			if (card == null) return;
+			card.performLongClick();
+			Screens.waitReal(3);
+			List<?> overlays = (List<?>) field(f, "overlays");
+			check((overlays.size() == 1) && (overlays.get(0) instanceof XtreamDetails),
+					"toque longo no canal abre a página dele");
+			check(text("Assistir ao vivo") != null, "botão Assistir ao vivo");
+			check(text("Assistir de novo") != null, "lista Assistir de novo (catch-up)");
+			check((text("Hoje") != null) && (text("Ontem") != null), "os dias gravados: Hoje, Ontem…");
+			check(text("Agora: Jornal da Manhã", true) != null, "agora e a seguir na página do canal");
+			Screens.save(root, size + "-nav-iptv-channel");
+
+			root.findViewById(me.aap.fermata.addon.tv.R.id.xtream_details_list).performClick();
+			Screens.settle();
+			XtreamRepo repo = XtreamRepo.get(a);
+			String acc = repo.getActiveAccount().id;
+			check(repo.getLibrary().isFavorite(acc, com.triiiplox.iptv.model.Entry.Kind.LIVE, "100") &&
+					(text("Na minha lista") != null), "♥ põe o canal na minha lista");
+
+			// A program of yesterday, from the panel's recording
+			text("Ontem").performClick();
+			Screens.settle();
+			RecyclerView detailsList = (RecyclerView) ((XtreamDetails) overlays.get(0)).getView();
+			detailsList.scrollBy(0, 10_000);
+			Screens.settle();
+			Screens.save(root, size + "-nav-iptv-catchup");
+			View program = first(root, v -> (v.getId() == me.aap.fermata.addon.tv.R.id.xtream_episode_title) &&
+					v.isShown());
+			check(program != null, "um programa de ontem");
+			if (program == null) return;
+			for (View p = program; p != null; p = (p.getParent() instanceof View pv) ? pv : null) {
+				if (p.hasOnClickListeners()) {
+					p.performClick();
+					break;
+				}
+			}
+			Screens.waitReal(2);
+			me.aap.fermata.ui.view.BodyLayout body = d.getBody();
+			if (field(body.getVideoView(), "createSurface") instanceof me.aap.utils.async.Promise<?> s) {
+				s.complete(null);
+			}
+			Screens.waitReal(2);
+			me.aap.fermata.media.lib.MediaLib.PlayableItem last = get(d.getLib().getLastPlayedItem());
+			String url = (last == null) ? "" : last.getResource().getRid().toString();
+			check((last instanceof XtreamPlayable xp) && xp.isCatchup() && xp.isSeekable() &&
+							url.contains("/timeshift/andro/senha/120/") && url.endsWith("/100.ts"),
+					"toca a gravação pela URL de catch-up do painel (" + url + ")");
+			check(!repo.getLibrary().recentChannels(acc, 10).stream()
+					.anyMatch(r -> r.title.equals(((last == null) ? "" : last.getName()))),
+					"o programa não entra nos canais recentes com o próprio nome");
+			d.getMediaServiceBinder().stop();
+			Screens.waitReal(1);
+			// What Android does when the video view goes away: its surface is destroyed
+			Field surface = me.aap.fermata.ui.view.VideoView.class.getDeclaredField("createSurface");
+			surface.setAccessible(true);
+			surface.set(body.getVideoView(), new me.aap.utils.async.Promise<Void>());
+			d.showFragment(R.id.folders_fragment);
+			Screens.settle();
+
+			d.showFragment(R.id.xtream_fragment);
+			Screens.waitReal(1);
+			while (!overlays.isEmpty()) f.closeDetails();
+			tabs.getChildAt(1).performClick();
+			Screens.waitReal(2);
+			View firstRow = first(page, v -> (v.getId() == me.aap.fermata.addon.tv.R.id.xtream_row_title) &&
+					v.isShown());
+			check((firstRow != null) && "Minha lista".contentEquals(((android.widget.TextView) firstRow).getText()),
+					"no Ao vivo, a minha lista vem primeiro (" + ((firstRow == null) ? "nada" :
+							((android.widget.TextView) firstRow).getText()) + ")");
+			Screens.save(root, size + "-nav-iptv-my-list-first");
+			repo.getLibrary().toggleFavorite(new com.triiiplox.iptv.UserLibrary.Record(acc,
+					com.triiiplox.iptv.model.Entry.Kind.LIVE, "100", "Globo SP HD", null, null, null, null,
+					0, 0, 0, 0, System.currentTimeMillis()));
+		}
+
+		@androidx.annotation.Nullable
+		android.widget.TextView text(String t) {
+			return text(t, false);
+		}
+
+		@androidx.annotation.Nullable
+		android.widget.TextView text(String t, boolean prefix) {
+			View v = first(root, x -> (x instanceof android.widget.TextView tv) && x.isShown() &&
+					(prefix ? tv.getText().toString().startsWith(t) : t.contentEquals(tv.getText())));
+			return (android.widget.TextView) v;
 		}
 
 		// --- ChatGPT: no key, the voice mode and its buttons, Back ---

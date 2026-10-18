@@ -38,8 +38,9 @@ public final class Home {
 	public static Page of(Kind kind, Snapshot s, UserLibrary lib, String account) {
 		List<Row> rows = new ArrayList<>();
 		if (kind == Kind.LIVE) {
-			addRecords(rows, Row.Type.RECENT_CHANNELS, lib.recentChannels(account, ROW_LIMIT));
+			// The favorite channels first: the ones to find at once in the car
 			addRecords(rows, Row.Type.MY_LIST, lib.favorites(account, Kind.LIVE));
+			addRecords(rows, Row.Type.RECENT_CHANNELS, lib.recentChannels(account, ROW_LIMIT));
 		} else {
 			List<UserLibrary.Record> cont = new ArrayList<>();
 			for (UserLibrary.Record r : lib.continueWatching(account, ROW_LIMIT)) {

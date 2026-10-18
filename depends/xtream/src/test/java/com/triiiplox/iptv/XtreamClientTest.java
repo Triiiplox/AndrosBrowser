@@ -138,6 +138,29 @@ public class XtreamClientTest {
 	}
 
 	@Test
+	public void fullEpgKeepsThePanelStartForCatchUp() throws Exception {
+		List<Program> l = client.fullEpg("101");
+		assertEquals(2, l.size());
+		Program game = l.get(0);
+		assertEquals("Futebol", game.title);
+		assertEquals("2026-10-17 21:30:00", game.panelStart);
+		assertTrue(game.canCatchUp(1792290000));
+		assertFalse("not over yet", game.canCatchUp(1792285000));
+		assertFalse("not kept by the panel", l.get(1).canCatchUp(1792300000));
+		assertTrue(panel.requests.get(panel.requests.size() - 1)
+				.contains("action=get_simple_data_table&stream_id=101"));
+
+		// By the panel's clock: its own start, 110 minutes
+		assertEquals("http://panel.test:8080/timeshift/user/p%40ss%20word/110/2026-10-17:21-30/101.ts",
+				FakePanel.account().catchupUrl("101", game, null));
+		// No start of its own: the epoch in the panel's time zone (00:30 UTC is 21:30 in São Paulo)
+		Program bare = new Program("x", null, game.start, game.end, true);
+		assertEquals("http://panel.test:8080/timeshift/user/p%40ss%20word/110/2026-10-17:21-30/101.ts",
+				FakePanel.account().catchupUrl("101", bare, "America/Sao_Paulo"));
+		assertEquals("2026-10-18:00-30", XtreamAccount.timeshiftStart(bare, null));
+	}
+
+	@Test
 	public void unexpectedShapesAreEmptyNotErrors() throws Exception {
 		panel.responses.put("get_vod_streams", "{\"user_info\":{\"auth\":0}}");
 		panel.responses.put("get_live_streams", "null");
