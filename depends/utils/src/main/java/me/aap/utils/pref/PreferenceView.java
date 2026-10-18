@@ -606,8 +606,8 @@ public class PreferenceView extends ConstraintLayout {
 		}
 
 		float scale = ActivityDelegate.get(getContext()).getTextIconSize();
-		setTextAppearance(ctx, titleView, titleTextAppearance, scale);
-		setTextAppearance(ctx, subtitleView, subtitleTextAppearance, scale);
+		setTextAppearance(ctx, titleView, titleTextAppearance, scale, titleTint);
+		setTextAppearance(ctx, subtitleView, subtitleTextAppearance, scale, textTint);
 		setFooterTextAppearance(ctx, scale);
 
 		if (opts.visibility != null) {
