@@ -53,6 +53,7 @@ import java.util.Locale;
 import java.util.concurrent.CancellationException;
 import java.util.regex.Pattern;
 
+import me.aap.fermata.FermataApplication;
 import me.aap.fermata.addon.AddonManager;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
 import me.aap.fermata.ui.activity.MainActivityPrefs;
@@ -85,6 +86,9 @@ public class ChatFragment extends MainActivityFragment
 	private boolean muted;
 	@Nullable
 	private Cancellable voiceInterrupt;
+	// The chatgpt.com site, in the account mode; null in the API key mode
+	@Nullable
+	private ChatSite site;
 
 	@Override
 	public int getFragmentId() {
@@ -96,23 +100,49 @@ public class ChatFragment extends MainActivityFragment
 	@Override
 	public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
 													 @Nullable Bundle savedInstanceState) {
-		return new ChatScreen(requireContext(), this);
+		FrameLayout root = new FrameLayout(requireContext());
+		fill(root);
+		return root;
+	}
+
+	// The chat with a key, or the site with the account: the mode can change while it is shown
+	private void fill(ViewGroup root) {
+		if (site != null) site.destroy();
+		site = null;
+		root.removeAllViews();
+		ChatAddon addon = AddonManager.get().getAddon(ChatAddon.class);
+		View content;
+		if ((addon != null) && addon.isAccountMode()) content = site = new ChatSite(root.getContext());
+		else content = new ChatScreen(root.getContext(), this);
+		root.addView(content, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+	}
+
+	boolean isSite() {
+		return site != null;
 	}
 
 	@Override
 	public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 		MainActivityDelegate.get(requireContext()).getPrefs().addBroadcastListener(this);
+		FermataApplication.get().getPreferenceStore().addBroadcastListener(this);
 	}
 
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
 		MainActivityDelegate.get(requireContext()).getPrefs().removeBroadcastListener(this);
+		FermataApplication.get().getPreferenceStore().removeBroadcastListener(this);
+		if (site != null) site.destroy();
+		site = null;
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
+		if (site != null) {
+			site.resume();
+			return;
+		}
 		ChatGpt gpt = ChatGpt.getInstance();
 		List<ChatGpt.Message> messages = gpt.getMessages();
 		gpt.addBroadcastListener(this);
@@ -123,6 +153,7 @@ public class ChatFragment extends MainActivityFragment
 	@Override
 	public void onPause() {
 		super.onPause();
+		if (site != null) site.pause();
 		closeVoiceMode();
 		if (recognizer != null) recognizer.destroy();
 		recognizer = null;
@@ -134,6 +165,7 @@ public class ChatFragment extends MainActivityFragment
 
 	@Override
 	public void messageAdded(ChatGpt.Message msg, int index) {
+		if (site != null) return;
 		ChatListView.ChatListAdapter a = getList().getAdapter();
 		if (a != null) a.messageAdded(index);
 		getScreen().updateEmpty();
@@ -151,6 +183,11 @@ public class ChatFragment extends MainActivityFragment
 
 	@Override
 	public void onPreferenceChanged(PreferenceStore store, List<PreferenceStore.Pref<?>> prefs) {
+		if (prefs.contains(ChatAddon.MODE)) {
+			if (getView() instanceof ViewGroup root) fill(root);
+			return;
+		}
+		if (site != null) return;
 		MainActivityDelegate.getActivityDelegate(requireContext()).onSuccess(a -> {
 			if (MainActivityPrefs.hasTextIconSizePref(a, prefs)) {
 				getList().scale(a.getTextIconSize());
@@ -158,8 +195,16 @@ public class ChatFragment extends MainActivityFragment
 		});
 	}
 
+	/** The voice mode: from the steering wheel, a voice command or the round button. */
 	@Override
 	public boolean startVoiceAssistant() {
+		// The site has its own voice button: showing it is all that can be done
+		if (site == null) openVoiceMode();
+		return true;
+	}
+
+	/** One question by voice, answered aloud: "open" opens the link of the last answer. */
+	boolean askOnce() {
 		ChatAddon a = AddonManager.get().getAddon(ChatAddon.class);
 		if (a == null) return false;
 		if (tts != null) tts.stop();
@@ -204,11 +249,13 @@ public class ChatFragment extends MainActivityFragment
 
 	@Override
 	public void voiceCommand(VoiceCommand cmd) {
+		if (site != null) return;
 		sendRequest(cmd.getQuery(), true);
 	}
 
 	@Override
 	public boolean onBackPressed() {
+		if ((site != null) && site.back()) return true;
 		if (voiceMode) {
 			closeVoiceMode();
 			return true;
@@ -219,6 +266,7 @@ public class ChatFragment extends MainActivityFragment
 	// --- Voice mode ---
 
 	void openVoiceMode() {
+		if (site != null) return;
 		ChatAddon addon = AddonManager.get().getAddon(ChatAddon.class);
 		if ((addon == null) || (addon.getAuthorization() == null)) {
 			showNoKey();
@@ -383,8 +431,9 @@ public class ChatFragment extends MainActivityFragment
 
 	// --- Screen ---
 
+	// The chat with a key, inside the root: only in the API key mode
 	private ChatScreen getScreen() {
-		return (ChatScreen) requireView();
+		return (ChatScreen) ((ViewGroup) requireView()).getChildAt(0);
 	}
 
 	private ChatListView getList() {
@@ -665,10 +714,11 @@ public class ChatFragment extends MainActivityFragment
 		public void enable(FloatingButton b, ActivityFragment f) {
 			b.setImageResource(me.aap.fermata.R.drawable.record_voice);
 			b.setOnClickListener(v -> ((ChatFragment) f).openVoiceMode());
-			b.setOnLongClickListener(v -> ((ChatFragment) f).startVoiceAssistant());
+			b.setOnLongClickListener(v -> ((ChatFragment) f).askOnce());
 			// On the phone the microphone is in the message field; in the car the big round button
 			// stays, easier to hit
-			b.setSuppressed(!MainActivityDelegate.get(b.getContext()).isCarActivity());
+			b.setSuppressed(!MainActivityDelegate.get(b.getContext()).isCarActivity() ||
+					((ChatFragment) f).isSite());
 		}
 	}
 }

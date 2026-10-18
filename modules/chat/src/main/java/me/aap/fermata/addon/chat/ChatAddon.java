@@ -63,6 +63,10 @@ public class ChatAddon implements FermataFragmentAddon {
 			"audio|realtime|tts|transcribe|image|embedding|search|moderation|instruct|codex|dall-e|" +
 					"whisper|-\\d{4}-\\d{2}-\\d{2}$");
 	private static final Pref<Supplier<String>> MODEL_OTHER = Pref.s("MODEL_OTHER", "");
+	/** How to talk to ChatGPT: the API with a key (billed per token), or the site with the account. */
+	static final int MODE_API_KEY = 0;
+	static final int MODE_ACCOUNT = 1;
+	static final Pref<IntSupplier> MODE = Pref.i("CHAT_MODE", MODE_API_KEY);
 	private static final Pref<Supplier<String>> CHAT_LANG =
 			Pref.s("CHAT_LANG", () -> Locale.getDefault().toLanguageTag());
 
@@ -126,6 +130,11 @@ public class ChatAddon implements FermataFragmentAddon {
 		return (i >= 0) && (i < MODELS.length) ? MODELS[i] : DEFAULT_MODEL;
 	}
 
+	/** The chatgpt.com site, signed in with the user's own account: their plan, no tokens. */
+	public boolean isAccountMode() {
+		return FermataApplication.get().getPreferenceStore().getIntPref(MODE) == MODE_ACCOUNT;
+	}
+
 	public String getGetChatLang() {
 		return FermataApplication.get().getPreferenceStore().getStringPref(CHAT_LANG);
 	}
@@ -133,6 +142,14 @@ public class ChatAddon implements FermataFragmentAddon {
 	@Override
 	public void contributeSettings(Context ctx, PreferenceStore store, PreferenceSet set,
 																 ChangeableCondition visibility) {
+		set.addListPref(o -> {
+			o.store = store;
+			o.pref = MODE;
+			o.title = R.string.chat_mode;
+			o.subtitle = me.aap.fermata.R.string.string_format;
+			o.values = new int[]{R.string.chat_mode_api_key, R.string.chat_mode_account};
+			o.formatSubtitle = true;
+		});
 		set.addButton(o -> {
 			o.title = R.string.open_chatgpt_app;
 			o.subtitle = R.string.open_chatgpt_app_sub;

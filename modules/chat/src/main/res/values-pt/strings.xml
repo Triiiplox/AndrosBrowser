@@ -24,4 +24,9 @@
     <string name="chat_dictate">Ditar</string>
     <string name="chat_voice_mode">Modo voz</string>
     <string name="chat_new">Nova conversa</string>
+    <string name="chat_mode">ChatGPT com</string>
+    <string name="chat_mode_api_key">Uma chave da OpenAI (a API, paga por uso)</string>
+    <string name="chat_mode_account">Minha conta do ChatGPT (o site, meu plano)</string>
+    <string name="chat_site_check">O site do ChatGPT está verificando este navegador. Se não passar, use o app do ChatGPT com a mesma conta.</string>
+    <string name="chat_site_failed">Não foi possível abrir o site do ChatGPT: %s</string>
 </resources>
