@@ -40,6 +40,7 @@ import me.aap.fermata.media.lib.MediaLib.PlayableItem;
 import me.aap.fermata.media.service.FermataServiceUiBinder;
 import me.aap.fermata.ui.activity.MainActivityDelegate;
 import me.aap.fermata.ui.fragment.MainActivityFragment;
+import me.aap.fermata.ui.view.BodyLayout;
 import me.aap.fermata.ui.view.LogoLoadingDrawable;
 import me.aap.utils.log.Log;
 import me.aap.utils.ui.view.ToolBarView;
@@ -99,6 +100,13 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 
 	@Override
 	public boolean onBackPressed() {
+		// Back from the video comes back to this screen, as in the library: the screen the video
+		// was opened from, not the start section
+		BodyLayout body = MainActivityDelegate.get(requireContext()).getBody();
+		if (body.isVideoMode()) {
+			body.setMode(BodyLayout.Mode.BOTH);
+			return true;
+		}
 		if (!overlays.isEmpty()) {
 			popOverlay();
 			return true;

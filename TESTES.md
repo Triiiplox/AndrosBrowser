@@ -118,6 +118,8 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Uma lista M3U simples que já estava no TV aparece sozinha nas contas do IPTV.
 - [ ] Link errado ou página de login: aviso "O link não trouxe uma lista M3U", e o formulário volta preenchido.
 
+- [ ] Vendo um canal ou filme do IPTV em tela cheia, Voltar volta para a tela do IPTV (com o vídeo no alto), não para o YouTube.
+
 ## 5. Vídeo + Waze (atração)
 
 - [ ] Espelhamento do Fermata em paisagem + tela dividida do celular (Waze | YouTube).
