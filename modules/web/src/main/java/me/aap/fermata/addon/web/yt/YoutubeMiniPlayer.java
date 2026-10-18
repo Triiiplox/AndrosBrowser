@@ -32,10 +32,12 @@ import me.aap.utils.log.Log;
  * subscriptions or to the library while the video keeps playing in a corner. The site has no such
  * thing (leaving the video's page unloads it), so the video's page stays where it is, made small,
  * and the browsing is a second page over it, signed in with the same cookies. A video tapped
- * there plays in the player; a tap on the corner brings the player back.
+ * there plays in the player; a tap on the corner brings the player back. Shorts, as in the app,
+ * leave the video for the Shorts player.
  */
 final class YoutubeMiniPlayer {
 	static final String HOME = "https://m.youtube.com/";
+	private static final String SHORTS = "https://m.youtube.com/shorts";
 	private static final String SUBSCRIPTIONS = "https://m.youtube.com/feed/subscriptions";
 	private static final String YOU = "https://m.youtube.com/feed/you";
 	private final FrameLayout root;
@@ -202,6 +204,7 @@ final class YoutubeMiniPlayer {
 		l.setElevation(toIntPx(ctx, 8));
 		l.addView(button(ctx, R.string.yt_minimize, () -> minimize(null)), weight());
 		l.addView(button(ctx, R.string.yt_home, () -> minimize(HOME)), weight());
+		l.addView(button(ctx, R.string.yt_shorts, () -> player.loadUrl(SHORTS)), weight());
 		l.addView(button(ctx, R.string.yt_subscriptions, () -> minimize(SUBSCRIPTIONS)), weight());
 		l.addView(button(ctx, R.string.yt_you, () -> minimize(YOU)), weight());
 		return l;

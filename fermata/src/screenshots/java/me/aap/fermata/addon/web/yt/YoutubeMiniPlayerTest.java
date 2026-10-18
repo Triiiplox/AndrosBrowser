@@ -99,6 +99,12 @@ public abstract class YoutubeMiniPlayerTest {
 		cover.performClick();
 		Screens.settle();
 		assertTrue("a tap on the corner brings the player back", isFull(player));
+
+		// Shorts, as in the app: the video's page leaves for the Shorts player, full size
+		text(root, "Shorts").performClick();
+		Screens.settle();
+		assertEquals("https://m.youtube.com/shorts", shadowOf(player).getLastLoadedUrl());
+		assertTrue(isFull(player));
 	}
 
 	// What the layout is asked: Robolectric's WebView does not measure again after a change
