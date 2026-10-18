@@ -56,6 +56,11 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 		fireBroadcastEvent(l -> l.messageAdded(msg, idx));
 	}
 
+	/** Starts a new conversation. */
+	public void clear() {
+		messages.clear();
+	}
+
 	public List<Message> getMessages() {
 		return messages;
 	}
@@ -89,7 +94,7 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 					}
 					JSONObject json = new JSONObject();
 					json.put("model", addon.getModel());
-					json.put("temperature", 0.4f);
+					// No temperature: the reasoning models (o*, gpt-5 and later) refuse any but their own
 					json.put("messages", new JSONArray(jsonMessages));
 					Log.d("Request: ", json.toString());
 					return b.build(ByteBuffer.wrap(json.toString().getBytes(UTF_8)));
@@ -103,9 +108,22 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 				p.completeExceptionally(err);
 				return failed(err);
 			} else if (resp.getStatusCode() != HttpStatusCode.OK) {
-				err = new IOException("Request failed: " + resp.getReason());
-				p.completeExceptionally(err);
-				return failed(err);
+				// OpenAI says why in the body: a wrong key, no credit, an unknown model
+				String reason = String.valueOf(resp.getReason());
+				return resp.getPayload((bb, perr) -> {
+					String msg = reason;
+					if (perr == null) {
+						try {
+							bb = IoUtils.getFrom(bb);
+							String body = new String(bb.array(), bb.arrayOffset(), bb.remaining(), UTF_8);
+							Log.d("Response: ", body);
+							msg = new JSONObject(body).getJSONObject("error").optString("message", reason);
+						} catch (Exception ignore) {
+						}
+					}
+					p.completeExceptionally(new IOException(msg));
+					return completedVoid();
+				});
 			}
 
 			return resp.getPayload((bb, perr) -> {

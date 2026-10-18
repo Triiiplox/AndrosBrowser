@@ -1,8 +1,6 @@
 package me.aap.fermata.addon.chat;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static me.aap.fermata.util.Utils.openUrl;
-import static me.aap.utils.async.Completed.completedVoid;
 
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -17,6 +15,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,13 +31,8 @@ import me.aap.fermata.addon.FermataAddon;
 import me.aap.fermata.addon.FermataFragmentAddon;
 import me.aap.utils.app.App;
 import me.aap.utils.function.IntSupplier;
-import me.aap.utils.io.IoUtils;
-import me.aap.utils.log.Log;
-import me.aap.utils.net.http.HttpConnection;
-import me.aap.utils.net.http.HttpHeader;
-import me.aap.utils.net.http.HttpMethod;
-import me.aap.utils.net.http.HttpStatusCode;
 import me.aap.utils.function.Supplier;
+import me.aap.utils.log.Log;
 import me.aap.utils.misc.ChangeableCondition;
 import me.aap.utils.pref.PreferenceSet;
 import me.aap.utils.pref.PreferenceStore;
@@ -54,6 +51,10 @@ public class ChatAddon implements FermataFragmentAddon {
 	// account itself (OpenAI's /v1/models), so it does not get old
 	private static final String[] MODELS =
 			new String[]{"gpt-4o", "chatgpt-4o-latest", "gpt-4o-mini", "o1", "o1-mini", "o1-preview"};
+	// Shown only until the account answers, or if it cannot be reached
+	private static final String[] CURRENT_MODELS =
+			new String[]{"gpt-6.1-sol", "gpt-6-sol", "gpt-6-luna", "gpt-5.5", "gpt-5-mini"};
+	private static final String DEFAULT_MODEL = "gpt-5-mini";
 	private static final Pref<IntSupplier> MODEL = Pref.i("MODEL", 2);
 	private static final Pref<Supplier<String>> MODEL_ID = Pref.s("MODEL_ID", "");
 	private static final Pref<Supplier<String[]>> MODELS_FOUND =
@@ -119,9 +120,10 @@ public class ChatAddon implements FermataFragmentAddon {
 		if (!other.isEmpty()) return other;
 		var id = ps.getStringPref(MODEL_ID).trim();
 		if (!id.isEmpty()) return id;
+		// A choice of an old build stays; without any, a current model, cheap and quick
+		if (!ps.hasPref(MODEL)) return DEFAULT_MODEL;
 		int i = ps.getIntPref(MODEL);
-		return (i >= 0) && (i < MODELS.length) ? MODELS[i] :
-				MODELS[MODEL.getDefaultValue().getAsInt()];
+		return (i >= 0) && (i < MODELS.length) ? MODELS[i] : DEFAULT_MODEL;
 	}
 
 	public String getGetChatLang() {
@@ -147,6 +149,10 @@ public class ChatAddon implements FermataFragmentAddon {
 		});
 		set.addListPref(o -> {
 			o.setStringValues(store, MODEL_ID, modelChoices(store));
+			o.initList = l -> {
+				l.setStringValues(store, MODEL_ID, modelChoices(store));
+				if (store.getStringArrayPref(MODELS_FOUND).length == 0) refreshModels(store);
+			};
 			o.title = R.string.openai_model;
 			o.subtitle = me.aap.fermata.R.string.string_format;
 			o.formatSubtitle = true;
@@ -170,7 +176,7 @@ public class ChatAddon implements FermataFragmentAddon {
 	/** The models of the account, newest first, with the one in use on top if it is not there. */
 	private List<Pair<String, String>> modelChoices(PreferenceStore store) {
 		List<String> ids = new ArrayList<>(Arrays.asList(store.getStringArrayPref(MODELS_FOUND)));
-		if (ids.isEmpty()) ids.addAll(Arrays.asList(MODELS));
+		if (ids.isEmpty()) ids.addAll(Arrays.asList(CURRENT_MODELS));
 		String cur = getModel();
 		if (!ids.contains(cur)) ids.add(0, cur);
 		List<Pair<String, String>> l = new ArrayList<>(ids.size());
@@ -179,50 +185,54 @@ public class ChatAddon implements FermataFragmentAddon {
 	}
 
 	/**
-	 * Asks OpenAI for the models the key can use and keeps the chat ones, newest first. The list
-	 * of the settings shows them the next time it opens.
+	 * Asks OpenAI for the models the key can use and keeps the chat ones, newest first. Runs in the
+	 * background; the list of the settings reads them each time it opens.
 	 */
 	private void refreshModels(PreferenceStore store) {
 		String key = getOpenaiKey();
 		if ((key == null) || (key = key.trim()).isEmpty()) return;
 		String k = key;
-		HttpConnection.connect(o -> {
-			o.url("https://api.openai.com/v1/models");
-			o.method = HttpMethod.GET;
-			o.builder = b -> {
-				b.addHeader(HttpHeader.ACCEPT);
-				b.addHeader(HttpHeader.AUTHORIZATION, "Bearer " + k);
-				return b.build();
-			};
-		}, (resp, err) -> {
-			if ((err != null) || (resp.getStatusCode() != HttpStatusCode.OK)) {
-				Log.w("ChatGPT: the list of models was not loaded: ",
-						(err != null) ? err.getMessage() : resp.getReason());
-				return completedVoid();
-			}
-			return resp.getPayload((bb, perr) -> {
-				if (perr != null) return completedVoid();
-				try {
-					bb = IoUtils.getFrom(bb);
-					JSONArray data = new JSONObject(new String(bb.array(), bb.arrayOffset(),
-							bb.remaining(), UTF_8)).getJSONArray("data");
-					List<JSONObject> models = new ArrayList<>(data.length());
-					for (int i = 0; i < data.length(); i++) {
-						JSONObject m = data.getJSONObject(i);
-						String id = m.optString("id");
-						boolean chat = id.startsWith("gpt-") || id.startsWith("chatgpt-") ||
-								id.matches("o\\d.*");
-						if (chat && !NOT_CHAT.matcher(id).find()) models.add(m);
-					}
-					models.sort((a, b) -> Long.compare(b.optLong("created"), a.optLong("created")));
-					String[] ids = new String[models.size()];
-					for (int i = 0; i < ids.length; i++) ids[i] = models.get(i).optString("id");
-					if (ids.length > 0) App.get().run(() -> store.applyStringArrayPref(MODELS_FOUND, ids));
-				} catch (JSONException ex) {
-					Log.w("ChatGPT: unexpected list of models: ", ex.getMessage());
+		App.get().execute(() -> {
+			HttpURLConnection c = (HttpURLConnection) new URL("https://api.openai.com/v1/models")
+					.openConnection();
+			try {
+				c.setConnectTimeout(15000);
+				c.setReadTimeout(30000);
+				c.setRequestProperty("Authorization", "Bearer " + k);
+				c.setRequestProperty("Accept", "application/json");
+				int code = c.getResponseCode();
+				if (code != HttpURLConnection.HTTP_OK) {
+					Log.w("ChatGPT: the list of models was not loaded: HTTP ", code);
+					return;
 				}
-				return completedVoid();
-			});
-		});
+				String json;
+				try (InputStream in = c.getInputStream()) {
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					byte[] buf = new byte[8192];
+					for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+					json = out.toString("UTF-8");
+				}
+				String[] ids = chatModels(json);
+				Log.i("ChatGPT: ", ids.length, " chat models in the account");
+				if (ids.length > 0) App.get().run(() -> store.applyStringArrayPref(MODELS_FOUND, ids));
+			} finally {
+				c.disconnect();
+			}
+		}).onFailure(err -> Log.w("ChatGPT: the list of models was not loaded: ", err.getMessage()));
+	}
+
+	static String[] chatModels(String json) throws JSONException {
+		JSONArray data = new JSONObject(json).getJSONArray("data");
+		List<JSONObject> models = new ArrayList<>(data.length());
+		for (int i = 0; i < data.length(); i++) {
+			JSONObject m = data.getJSONObject(i);
+			String id = m.optString("id");
+			boolean chat = id.startsWith("gpt-") || id.startsWith("chatgpt-") || id.matches("o\\d.*");
+			if (chat && !NOT_CHAT.matcher(id).find()) models.add(m);
+		}
+		models.sort((a, b) -> Long.compare(b.optLong("created"), a.optLong("created")));
+		String[] ids = new String[models.size()];
+		for (int i = 0; i < ids.length; i++) ids[i] = models.get(i).optString("id");
+		return ids;
 	}
 }

@@ -1,5 +1,6 @@
 package me.aap.fermata.addon.chat;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static android.view.KeyEvent.KEYCODE_ENTER;
 import static android.view.KeyEvent.KEYCODE_NUMPAD_ENTER;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -8,10 +9,18 @@ import static androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.RIG
 import static java.util.Objects.requireNonNull;
 import static me.aap.fermata.addon.chat.ChatListView.URL_PATTERN;
 import static me.aap.fermata.util.Utils.dynCtx;
+import static me.aap.utils.async.Completed.completed;
 import static me.aap.utils.text.TextUtils.isBlank;
 import static me.aap.utils.ui.UiUtils.toIntPx;
 
 import android.content.Context;
+import android.speech.SpeechRecognizer;
+import android.speech.RecognizerIntent;
+import android.speech.RecognitionListener;
+import android.graphics.Color;
+import android.content.res.ColorStateList;
+import android.content.Intent;
+import android.Manifest;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -50,7 +59,9 @@ import me.aap.fermata.ui.activity.MainActivityPrefs;
 import me.aap.fermata.ui.activity.VoiceCommand;
 import me.aap.fermata.ui.fragment.MainActivityFragment;
 import me.aap.fermata.util.Utils;
+import me.aap.utils.async.FutureSupplier;
 import me.aap.utils.function.Cancellable;
+import me.aap.utils.log.Log;
 import me.aap.utils.pref.PreferenceStore;
 import me.aap.utils.ui.UiUtils;
 import me.aap.utils.ui.fragment.ActivityFragment;
@@ -68,6 +79,12 @@ public class ChatFragment extends MainActivityFragment
 	private String chatLang;
 	private Pattern openPattern;
 	private AudioFocusRequestCompat audioFocusReq;
+	// The voice mode: listen, answer aloud, listen again, until closed
+	private SpeechRecognizer recognizer;
+	private boolean voiceMode;
+	private boolean muted;
+	@Nullable
+	private Cancellable voiceInterrupt;
 
 	@Override
 	public int getFragmentId() {
@@ -106,6 +123,9 @@ public class ChatFragment extends MainActivityFragment
 	@Override
 	public void onPause() {
 		super.onPause();
+		closeVoiceMode();
+		if (recognizer != null) recognizer.destroy();
+		recognizer = null;
 		ChatGpt.getInstance().removeBroadcastListener(this);
 		if (tts != null) tts.close();
 		tts = null;
@@ -187,6 +207,182 @@ public class ChatFragment extends MainActivityFragment
 		sendRequest(cmd.getQuery(), true);
 	}
 
+	@Override
+	public boolean onBackPressed() {
+		if (voiceMode) {
+			closeVoiceMode();
+			return true;
+		}
+		return super.onBackPressed();
+	}
+
+	// --- Voice mode ---
+
+	void openVoiceMode() {
+		ChatAddon addon = AddonManager.get().getAddon(ChatAddon.class);
+		if ((addon == null) || (addon.getAuthorization() == null)) {
+			showNoKey();
+			return;
+		}
+		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
+		FutureSupplier<int[]> check = a.isCarActivityNotMirror() ?
+				completed(new int[]{PERMISSION_GRANTED}) :
+				a.getAppActivity().checkPermissions(Manifest.permission.RECORD_AUDIO);
+		check.main().onSuccess(r -> {
+			if (!isAdded()) return;
+			if (r[0] != PERMISSION_GRANTED) {
+				UiUtils.showAlert(requireContext(), me.aap.fermata.R.string.err_no_audio_record_perm);
+				return;
+			}
+			if (tts != null) tts.stop();
+			voiceMode = true;
+			muted = false;
+			if (voiceInterrupt == null) voiceInterrupt = a.interruptPlayback();
+			getScreen().voice.show();
+			listen();
+		});
+	}
+
+	void closeVoiceMode() {
+		if (!voiceMode) return;
+		voiceMode = false;
+		if (recognizer != null) recognizer.cancel();
+		if (tts != null) tts.stop();
+		if (getView() != null) getScreen().voice.hide();
+		Cancellable c = voiceInterrupt;
+		voiceInterrupt = null;
+		if (c != null) c.cancel();
+	}
+
+	private void toggleMute() {
+		if (!voiceMode) return;
+		muted = !muted;
+		if (muted) {
+			if (recognizer != null) recognizer.cancel();
+			if (tts != null) tts.stop();
+			getScreen().voice.setState(VoiceOverlay.State.PAUSED);
+		} else {
+			listen();
+		}
+	}
+
+	private void listen() {
+		if (!voiceMode || muted || (getView() == null)) return;
+		ChatAddon addon = AddonManager.get().getAddon(ChatAddon.class);
+		if (addon == null) return;
+		if (recognizer == null) {
+			recognizer = SpeechRecognizer.createSpeechRecognizer(requireContext());
+			recognizer.setRecognitionListener(new VoiceListener());
+		}
+		Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+		i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+		i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, addon.getGetChatLang());
+		i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+		getScreen().voice.setState(VoiceOverlay.State.LISTENING);
+		recognizer.startListening(i);
+	}
+
+	private void voicePaused() {
+		muted = true;
+		if (getView() != null) getScreen().voice.setState(VoiceOverlay.State.PAUSED);
+	}
+
+	private final class VoiceListener implements RecognitionListener {
+		@Override
+		public void onReadyForSpeech(Bundle params) {
+		}
+
+		@Override
+		public void onBeginningOfSpeech() {
+		}
+
+		@Override
+		public void onRmsChanged(float rmsdB) {
+			if (voiceMode && (getView() != null)) getScreen().voice.setLevel(rmsdB);
+		}
+
+		@Override
+		public void onBufferReceived(byte[] buffer) {
+		}
+
+		@Override
+		public void onEndOfSpeech() {
+		}
+
+		@Override
+		public void onError(int error) {
+			if (!voiceMode || muted) return;
+			// Silence: keep listening. Anything else: wait for a tap on the microphone
+			if ((error == SpeechRecognizer.ERROR_NO_MATCH) ||
+					(error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT)) {
+				listen();
+			} else {
+				Log.w("ChatGPT voice: recognition error ", error);
+				voicePaused();
+			}
+		}
+
+		@Override
+		public void onResults(Bundle results) {
+			if (!voiceMode || (getView() == null)) return;
+			List<String> r = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+			String text = ((r == null) || r.isEmpty()) ? null : r.get(0);
+			if ((text == null) || isBlank(text)) {
+				listen();
+				return;
+			}
+			VoiceOverlay v = getScreen().voice;
+			v.setState(VoiceOverlay.State.THINKING);
+			v.setCaption(text);
+			sendRequest(text, true);
+		}
+
+		@Override
+		public void onPartialResults(Bundle partial) {
+			if (!voiceMode || (getView() == null)) return;
+			List<String> r = partial.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+			if ((r != null) && !r.isEmpty() && !isBlank(r.get(0))) getScreen().voice.setCaption(r.get(0));
+		}
+
+		@Override
+		public void onEvent(int eventType, Bundle params) {
+		}
+	}
+
+	/** Writes what is said in the field, to read it before sending. */
+	void dictate(EditText field) {
+		ChatAddon addon = AddonManager.get().getAddon(ChatAddon.class);
+		if (addon == null) return;
+		MainActivityDelegate.get(requireContext()).startSpeechRecognizer(addon.getGetChatLang(), true)
+				.onSuccess(q -> {
+					if (q.isEmpty()) return;
+					field.setText(q.get(0));
+					field.setSelection(field.length());
+				});
+	}
+
+	void showMoreMenu() {
+		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
+		a.getContextMenu().show(b -> {
+			b.addItem(R.id.chat_new, R.string.chat_new);
+			b.addItem(R.id.open_chatgpt_app, R.string.open_chatgpt_app);
+			b.setSelectionHandler(i -> {
+				if (i.getItemId() == R.id.chat_new) newConversation();
+				else ChatAddon.openChatGptApp(requireContext());
+				return true;
+			});
+		});
+	}
+
+	private void newConversation() {
+		ChatGpt.getInstance().clear();
+		ChatListView.ChatListAdapter a = getList().getAdapter();
+		if (a != null) a.notifyDataSetChanged();
+		getScreen().updateEmpty();
+	}
+
+	// --- Screen ---
+
 	private ChatScreen getScreen() {
 		return (ChatScreen) requireView();
 	}
@@ -211,6 +407,7 @@ public class ChatFragment extends MainActivityFragment
 			if (err != null) {
 				UiUtils.showAlert(requireContext(),
 						getString(R.string.chat_failed, String.valueOf(err.getMessage())));
+				if (voiceMode) voicePaused();
 			} else {
 				ChatGpt.getInstance().addMessage(resp, ChatGpt.Role.ASSISTANT);
 				if (!voice) return;
@@ -252,12 +449,19 @@ public class ChatFragment extends MainActivityFragment
 	private void speak(String text) {
 		assert tts != null;
 		requestAudioFocus();
-		Cancellable interrupt = getActivityDelegate().interruptPlayback();
+		// The voice mode holds the playback paused for all of its turns
+		Cancellable interrupt = voiceMode ? null : getActivityDelegate().interruptPlayback();
+		if (voiceMode && (getView() != null)) {
+			VoiceOverlay v = getScreen().voice;
+			v.setState(VoiceOverlay.State.SPEAKING);
+			v.setCaption(text);
+		}
 		tts.speak(text).onCompletion((r, err) -> {
 			releaseAudioFocus();
 			if ((err != null) && !(err instanceof CancellationException))
 				UiUtils.showAlert(requireContext(), getString(R.string.chat_tts_failed, String.valueOf(err)));
-			interrupt.cancel();
+			if (interrupt != null) interrupt.cancel();
+			if (voiceMode) listen();
 		});
 	}
 
@@ -302,22 +506,40 @@ public class ChatFragment extends MainActivityFragment
 		}
 	}
 
-	/** The screen: the conversation, an invitation while it is empty, and the message field. */
-	private static final class ChatScreen extends LinearLayout {
+	/**
+	 * The screen: the conversation, an invitation while it is empty, the message bar at the bottom,
+	 * and the voice mode over all of it.
+	 */
+	private static final class ChatScreen extends FrameLayout {
+		private static final int VOICE_BLUE = 0xFF3D6FF0;
 		final ChatListView list;
+		final VoiceOverlay voice;
 		private final View empty;
 
 		ChatScreen(Context ctx, ChatFragment f) {
 			super(ctx);
-			setOrientation(VERTICAL);
+			LinearLayout main = new LinearLayout(ctx);
+			main.setOrientation(LinearLayout.VERTICAL);
 			FrameLayout content = new FrameLayout(ctx);
 			list = new ChatListView(ctx);
-			content.addView(list, new FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+			content.addView(list, new LayoutParams(MATCH_PARENT, MATCH_PARENT));
 			empty = emptyView(ctx);
-			content.addView(empty, new FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT,
-					Gravity.CENTER));
-			addView(content, new LayoutParams(MATCH_PARENT, 0, 1));
-			addView(composer(ctx, f), new LayoutParams(MATCH_PARENT, WRAP_CONTENT));
+			content.addView(empty, new LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.CENTER));
+			main.addView(content, new LinearLayout.LayoutParams(MATCH_PARENT, 0, 1));
+			main.addView(messageBar(ctx, f), new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
+			addView(main, new LayoutParams(MATCH_PARENT, MATCH_PARENT));
+			voice = new VoiceOverlay(ctx, new VoiceOverlay.Listener() {
+				@Override
+				public void onMuteToggled() {
+					f.toggleMute();
+				}
+
+				@Override
+				public void onClose() {
+					f.closeVoiceMode();
+				}
+			});
+			addView(voice, new LayoutParams(MATCH_PARENT, MATCH_PARENT));
 		}
 
 		void updateEmpty() {
@@ -325,67 +547,77 @@ public class ChatFragment extends MainActivityFragment
 		}
 
 		private static View emptyView(Context ctx) {
-			LinearLayout l = new LinearLayout(ctx);
-			l.setOrientation(VERTICAL);
-			l.setGravity(Gravity.CENTER);
-			int pad = toIntPx(ctx, 24);
-			l.setPadding(pad, pad, pad, pad);
 			TextView title = new TextView(ctx);
 			title.setText(R.string.chat_empty_title);
 			title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 26);
 			title.setTypeface(Typeface.DEFAULT_BOLD);
 			title.setGravity(Gravity.CENTER);
-			TextView sub = new TextView(ctx);
-			sub.setText(R.string.chat_empty_text);
-			sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-			sub.setGravity(Gravity.CENTER);
-			sub.setPadding(0, toIntPx(ctx, 8), 0, 0);
-			l.addView(title);
-			l.addView(sub);
-			return l;
+			int pad = toIntPx(ctx, 24);
+			title.setPadding(pad, pad, pad, pad);
+			return title;
 		}
 
-		// A rounded field and one round button: the microphone while the field is empty, send
-		// once something is typed
-		private static View composer(Context ctx, ChatFragment f) {
-			LinearLayout row = new LinearLayout(ctx);
-			row.setOrientation(HORIZONTAL);
-			row.setGravity(Gravity.CENTER_VERTICAL);
-			int pad = toIntPx(ctx, 12);
-			row.setPadding(pad, toIntPx(ctx, 6), pad, toIntPx(ctx, 10));
+		/*
+		 * One pill, as in the ChatGPT app: "+" (new conversation, the ChatGPT app), the field, the
+		 * microphone that writes what is said, and a round blue button: the voice mode while the
+		 * field is empty, send once something is typed.
+		 */
+		private static View messageBar(Context ctx, ChatFragment f) {
+			LinearLayout outer = new LinearLayout(ctx);
+			int op = toIntPx(ctx, 12);
+			outer.setPadding(op, toIntPx(ctx, 6), op, toIntPx(ctx, 10));
 
+			LinearLayout pill = new LinearLayout(ctx);
+			pill.setOrientation(LinearLayout.HORIZONTAL);
+			pill.setGravity(Gravity.CENTER_VERTICAL);
+			pill.setMinimumHeight(toIntPx(ctx, 56));
+			int pp = toIntPx(ctx, 6);
+			pill.setPadding(pp, pp, pp, pp);
 			EditText text = new EditText(ctx);
+			int fg = text.getCurrentTextColor();
+			GradientDrawable bg = new GradientDrawable();
+			bg.setCornerRadius(toIntPx(ctx, 30));
+			bg.setColor((fg & 0x00FFFFFF) | 0x1A000000);
+			bg.setStroke(toIntPx(ctx, 1), (fg & 0x00FFFFFF) | 0x22000000);
+			pill.setBackground(bg);
+			outer.addView(pill, new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
+
+			ImageButton plus = iconButton(ctx, R.drawable.chat_add, R.string.chat_more);
+			plus.setOnClickListener(v -> f.showMoreMenu());
+			pill.addView(plus, new LinearLayout.LayoutParams(toIntPx(ctx, 44), toIntPx(ctx, 44)));
+
 			text.setHint(R.string.chat_hint);
 			text.setSingleLine(true);
 			text.setImeOptions(EditorInfo.IME_ACTION_SEND);
-			text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-			int fg = text.getCurrentTextColor();
-			GradientDrawable bg = new GradientDrawable();
-			bg.setCornerRadius(toIntPx(ctx, 26));
-			bg.setColor((fg & 0x00FFFFFF) | 0x1A000000);
-			text.setBackground(bg);
-			text.setPadding(toIntPx(ctx, 18), toIntPx(ctx, 12), toIntPx(ctx, 18), toIntPx(ctx, 12));
-			row.addView(text, new LayoutParams(0, WRAP_CONTENT, 1));
+			text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+			text.setBackground(null);
+			text.setPadding(toIntPx(ctx, 6), 0, toIntPx(ctx, 6), 0);
+			pill.addView(text, new LinearLayout.LayoutParams(0, WRAP_CONTENT, 1));
 
-			ImageButton button = new ImageButton(ctx);
-			int size = toIntPx(ctx, 48);
+			ImageButton dictate = iconButton(ctx, R.drawable.chat_mic, R.string.chat_dictate);
+			dictate.setOnClickListener(v -> f.dictate(text));
+			pill.addView(dictate, new LinearLayout.LayoutParams(toIntPx(ctx, 44), toIntPx(ctx, 44)));
+
+			ImageButton action = new ImageButton(ctx);
 			GradientDrawable round = new GradientDrawable();
 			round.setShape(GradientDrawable.OVAL);
-			round.setColor((fg & 0x00FFFFFF) | 0x26000000);
-			button.setBackground(round);
-			button.setImageResource(R.drawable.chat_mic);
-			button.setScaleType(ImageView.ScaleType.CENTER);
-			button.setContentDescription(ctx.getString(R.string.chat_speak));
-			LayoutParams blp = new LayoutParams(size, size);
-			blp.setMarginStart(toIntPx(ctx, 8));
-			row.addView(button, blp);
+			round.setColor(VOICE_BLUE);
+			action.setBackground(round);
+			action.setImageResource(R.drawable.chat_voice);
+			action.setImageTintList(ColorStateList.valueOf(Color.WHITE));
+			action.setScaleType(ImageView.ScaleType.CENTER);
+			action.setContentDescription(ctx.getString(R.string.chat_voice_mode));
+			int size = toIntPx(ctx, 44);
+			LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(size, size);
+			alp.setMarginStart(toIntPx(ctx, 4));
+			pill.addView(action, alp);
 
 			Runnable send = () -> {
 				f.sendRequest(text.getText().toString(), false);
 				text.setText("");
 			};
-			button.setOnClickListener(v -> {
-				if (isBlank(text.getText().toString())) f.startVoiceAssistant();
+			action.setOnClickListener(v -> {
+				if (isBlank(text.getText().toString())) f.openVoiceMode();
 				else send.run();
 			});
 			text.addTextChangedListener(new TextWatcher() {
@@ -396,9 +628,10 @@ public class ChatFragment extends MainActivityFragment
 				@Override
 				public void onTextChanged(CharSequence s, int start, int before, int count) {
 					boolean typed = !isBlank(s.toString());
-					button.setImageResource(typed ? R.drawable.send : R.drawable.chat_mic);
-					button.setContentDescription(ctx.getString(typed ? R.string.chat_send :
-							R.string.chat_speak));
+					action.setImageResource(typed ? R.drawable.chat_send_up : R.drawable.chat_voice);
+					action.setContentDescription(ctx.getString(typed ? R.string.chat_send :
+							R.string.chat_voice_mode));
+					dictate.setVisibility(typed ? GONE : VISIBLE);
 				}
 
 				@Override
@@ -412,7 +645,16 @@ public class ChatFragment extends MainActivityFragment
 				send.run();
 				return true;
 			});
-			return row;
+			return outer;
+		}
+
+		private static ImageButton iconButton(Context ctx, int icon, int description) {
+			ImageButton b = new ImageButton(ctx);
+			b.setBackground(null);
+			b.setImageResource(icon);
+			b.setScaleType(ImageView.ScaleType.CENTER);
+			b.setContentDescription(ctx.getString(description));
+			return b;
 		}
 	}
 
@@ -422,7 +664,7 @@ public class ChatFragment extends MainActivityFragment
 		@Override
 		public void enable(FloatingButton b, ActivityFragment f) {
 			b.setImageResource(me.aap.fermata.R.drawable.record_voice);
-			b.setOnClickListener(v -> ((ChatFragment) f).startVoiceAssistant());
+			b.setOnClickListener(v -> ((ChatFragment) f).openVoiceMode());
 			b.setOnLongClickListener(v -> ((ChatFragment) f).startVoiceAssistant());
 			// On the phone the microphone is in the message field; in the car the big round button
 			// stays, easier to hit
