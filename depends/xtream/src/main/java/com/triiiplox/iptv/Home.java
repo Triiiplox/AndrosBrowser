@@ -76,6 +76,11 @@ public final class Home {
 
 	private static Entry hero(Snapshot s, Kind kind) {
 		List<Entry> l = s.newest(kind, 60);
+		// A playlist has no dates: its first titles, in the order of the list
+		if (l.isEmpty()) {
+			List<Entry> all = s.entries(kind);
+			l = all.subList(0, Math.min(60, all.size()));
+		}
 		if (kind == Kind.SERIES) {
 			for (Entry e : l) if ((e instanceof Series se) && (se.backdrop != null)) return e;
 		}

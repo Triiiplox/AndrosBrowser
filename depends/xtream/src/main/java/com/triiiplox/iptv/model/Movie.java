@@ -6,7 +6,13 @@ public final class Movie extends Entry {
 
 	public Movie(String id, String name, String image, String categoryId, long added, float rating,
 							 String extension) {
-		super(Kind.MOVIE, id, name, image, categoryId, added, rating);
+		this(id, name, image, categoryId, added, rating, extension, null);
+	}
+
+	/** @param url the stream of a playlist movie, null for an Xtream one */
+	public Movie(String id, String name, String image, String categoryId, long added, float rating,
+							 String extension, String url) {
+		super(Kind.MOVIE, id, name, image, categoryId, added, rating, url);
 		this.extension = extension;
 	}
 }

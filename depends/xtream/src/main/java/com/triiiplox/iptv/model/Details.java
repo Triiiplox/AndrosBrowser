@@ -75,9 +75,17 @@ public final class Details {
 		/** Seconds, 0 if unknown. */
 		public final int duration;
 		public final String image;
+		/** The stream of a playlist episode, null for an Xtream one. */
+		public final String url;
 
 		public Episode(String id, int season, int number, String title, String extension, String plot,
 									 int duration, String image) {
+			this(id, season, number, title, extension, plot, duration, image, null);
+		}
+
+		public Episode(String id, int season, int number, String title, String extension, String plot,
+									 int duration, String image, String url) {
+			this.url = url;
 			this.id = id;
 			this.season = season;
 			this.number = number;

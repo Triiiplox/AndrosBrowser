@@ -113,6 +113,10 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Em ligação (WhatsApp ou normal), tocar num canal: aviso "o vídeo começa quando ela terminar"; ao desligar, o canal começa sozinho.
 - [ ] Primeira carga de um painel novo: anotar o tempo da linha "Xtream: catalog … loaded in" do log.
 
+- [ ] Lista M3U sem senha: IPTV → Contas → Adicionar conta → cole só o link (usuário e senha vazios). Aparece com canais, filmes e séries separados pelos grupos da lista; episódios "S01E02" viram uma série com temporadas.
+- [ ] Uma lista M3U simples que já estava no TV aparece sozinha nas contas do IPTV.
+- [ ] Link errado ou página de login: aviso "O link não trouxe uma lista M3U", e o formulário volta preenchido.
+
 ## 5. Vídeo + Waze (atração)
 
 - [ ] Espelhamento do Fermata em paisagem + tela dividida do celular (Waze | YouTube).

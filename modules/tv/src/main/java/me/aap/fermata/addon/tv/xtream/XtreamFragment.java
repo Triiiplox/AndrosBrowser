@@ -189,7 +189,7 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 			loadAccount();
 			return;
 		}
-		// The get.php lists of the TV become accounts here, nothing to type
+		// The lists of the TV, get.php panels and plain M3U playlists, become accounts here
 		repo.importTvSources(tv.getRootItem(lib)).onCompletion((n, err) -> {
 			if (err != null) Log.e(err, "Xtream: failed to import the TV sources");
 			loadAccount();
@@ -533,7 +533,7 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 	// The account status in a toast: a trial or a paid list expires, worth knowing before the trip
 	private void showExpiry() {
 		Account acc = account;
-		if (acc == null) return;
+		if ((acc == null) || acc.isPlaylist()) return; // A playlist has no account to expire
 		repo.run(() -> repo.catalog(acc).getClient().accountInfo()).main().onSuccess(info -> {
 			if (!isAdded() || (info.expires <= 0)) return;
 			String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)

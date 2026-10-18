@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import androidx.annotation.Nullable;
 
 import com.triiiplox.iptv.Catalog;
+import com.triiiplox.iptv.M3uPlaylist;
 import com.triiiplox.iptv.Snapshot;
 import com.triiiplox.iptv.UserLibrary;
 import com.triiiplox.iptv.XtreamAccount;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -101,7 +103,15 @@ public final class XtreamRepo {
 	}
 
 	public synchronized Account addAccount(XtreamAccount xa, String name) {
-		Account a = new Account(xa, name);
+		return add(new Account(xa, name));
+	}
+
+	/** Adds a plain M3U playlist: a link alone, no login. */
+	public synchronized Account addPlaylist(String url, String name) {
+		return add(Account.playlist(url, name));
+	}
+
+	private Account add(Account a) {
 		List<Account> l = new ArrayList<>(getAccounts());
 		l.removeIf(x -> x.id.equals(a.id));
 		l.add(a);
@@ -130,18 +140,21 @@ public final class XtreamRepo {
 	}
 
 	/**
-	 * Adds the accounts of the TV sources that are Xtream get.php links.
+	 * Adds the TV sources: the get.php links as Xtream accounts, the other web links as playlists.
 	 *
 	 * @return the number of accounts added
 	 */
 	public FutureSupplier<Integer> importTvSources(TvRootItem tv) {
-		return tv.getSourceUrls().main().map(urls -> {
+		return tv.getSources().main().map(sources -> {
 			int added = 0;
 			Set<String> dismissed = prefs.getStringSet(DISMISSED, Collections.emptySet());
-			for (String url : urls) {
+			for (Map.Entry<String, String> src : sources.entrySet()) {
+				String url = src.getKey();
 				XtreamAccount xa = XtreamAccount.fromM3uUrl(url);
-				if ((xa == null) || dismissed.contains(xa.id()) || (getAccount(xa.id()) != null)) continue;
-				addAccount(xa, xa.getHost());
+				String id = (xa != null) ? xa.id() : isWebLink(url) ? M3uPlaylist.accountId(url) : null;
+				if ((id == null) || dismissed.contains(id) || (getAccount(id) != null)) continue;
+				if (xa != null) addAccount(xa, xa.getHost());
+				else addPlaylist(url, src.getValue());
 				added++;
 			}
 			if (added > 0) Log.i("Xtream: imported ", added, " account(s) from the TV sources");
@@ -154,7 +167,8 @@ public final class XtreamRepo {
 			Catalog c = catalogs.get(a.id);
 			if (c == null) {
 				File dir = new File(ctx.getCacheDir(), "xtream/" + a.id);
-				c = new Catalog(a.xtream, new HttpTransport(), dir);
+				c = (a.xtream != null) ? new Catalog(a.xtream, new HttpTransport(), dir) :
+						Catalog.playlist(a.playlist, new HttpTransport(), dir);
 				catalogs.put(a.id, c);
 			}
 			return c;
@@ -198,6 +212,10 @@ public final class XtreamRepo {
 			JSONArray a = new JSONArray(json);
 			for (int i = 0; i < a.length(); i++) {
 				JSONObject o = a.getJSONObject(i);
+				if ("m3u".equals(o.optString("type"))) {
+					l.add(Account.playlist(o.getString("url"), o.optString("name", null)));
+					continue;
+				}
 				XtreamAccount xa = new XtreamAccount(o.getString("server"), o.getString("user"),
 						o.getString("password"), o.optString("format", "ts"));
 				l.add(new Account(xa, o.optString("name", xa.getHost())));
@@ -213,10 +231,15 @@ public final class XtreamRepo {
 		try {
 			for (Account acc : accounts) {
 				JSONObject o = new JSONObject();
-				o.put("server", acc.xtream.getServer());
-				o.put("user", acc.xtream.getUser());
-				o.put("password", acc.xtream.getPassword());
-				o.put("format", acc.xtream.getLiveFormat());
+				if (acc.xtream == null) {
+					o.put("type", "m3u");
+					o.put("url", acc.playlist);
+				} else {
+					o.put("server", acc.xtream.getServer());
+					o.put("user", acc.xtream.getUser());
+					o.put("password", acc.xtream.getPassword());
+					o.put("format", acc.xtream.getLiveFormat());
+				}
 				o.put("name", acc.name);
 				a.put(o);
 			}
@@ -226,15 +249,50 @@ public final class XtreamRepo {
 		prefs.edit().putString(ACCOUNTS, a.toString()).apply();
 	}
 
+	/** True for an http(s) link, the only playlists the app downloads. */
+	public static boolean isWebLink(String url) {
+		String u = url.trim().toLowerCase(Locale.ROOT);
+		return u.startsWith("http://") || u.startsWith("https://");
+	}
+
+	/** An Xtream account, or a plain M3U playlist: exactly one of xtream and playlist is set. */
 	public static final class Account {
 		public final String id;
 		public final String name;
+		@Nullable
 		public final XtreamAccount xtream;
+		/** The link of a playlist. Like the passwords, never logged nor shown. */
+		@Nullable
+		public final String playlist;
 
 		Account(XtreamAccount xtream, String name) {
+			this(xtream, null, xtream.id(), name, xtream.getHost());
+		}
+
+		private Account(@Nullable XtreamAccount xtream, @Nullable String playlist, String id,
+										@Nullable String name, String defaultName) {
 			this.xtream = xtream;
-			this.id = xtream.id();
-			this.name = ((name == null) || name.trim().isEmpty()) ? xtream.getHost() : name.trim();
+			this.playlist = playlist;
+			this.id = id;
+			this.name = ((name == null) || name.trim().isEmpty()) ? defaultName : name.trim();
+		}
+
+		static Account playlist(String url, @Nullable String name) {
+			String u = url.trim();
+			return new Account(null, u, M3uPlaylist.accountId(u), name, host(u));
+		}
+
+		public boolean isPlaylist() {
+			return playlist != null;
+		}
+
+		private static String host(String url) {
+			try {
+				String h = new java.net.URI(url).getHost();
+				return (h != null) ? h : "M3U";
+			} catch (Exception ex) {
+				return "M3U";
+			}
 		}
 
 		@Override

@@ -60,11 +60,11 @@
     <string name="xtream_error">Could not load the catalog: %s</string>
     <string name="xtream_retry">Try again</string>
     <string name="xtream_no_accounts_title">No IPTV account yet</string>
-    <string name="xtream_no_accounts_text">Add the server, user and password of your IPTV (Xtream Codes), or paste its get.php link.</string>
+    <string name="xtream_no_accounts_text">Paste the link of your M3U playlist, or the server, user and password of your IPTV (Xtream Codes).</string>
     <string name="xtream_add_account">Add account</string>
-    <string name="xtream_link">M3U link (get.php) or server</string>
-    <string name="xtream_user">User</string>
-    <string name="xtream_password">Password</string>
+    <string name="xtream_link">M3U playlist link, or server</string>
+    <string name="xtream_user">User (Xtream server only)</string>
+    <string name="xtream_password">Password (Xtream server only)</string>
     <string name="xtream_name">Name (optional)</string>
     <string name="xtream_accounts">Accounts</string>
     <string name="xtream_remove_account">Remove account</string>
@@ -73,7 +73,8 @@
     <string name="xtream_expires">Expires on %s</string>
     <string name="xtream_minutes">%d min</string>
     <string name="xtream_hours_minutes">%1$dh %2$02dmin</string>
-    <string name="xtream_invalid_account">Paste a get.php link, or a server with the user and password</string>
+    <string name="xtream_invalid_account">Paste the playlist link (http…), or a server with the user and password</string>
+    <string name="xtream_not_playlist">The link did not return an M3U playlist: %s</string>
     <string name="xtream_login_refused">The panel refused the login: %s</string>
     <string name="xtream_checking">Checking the account…</string>
     <string name="xtream_live_now">Now: %s</string>

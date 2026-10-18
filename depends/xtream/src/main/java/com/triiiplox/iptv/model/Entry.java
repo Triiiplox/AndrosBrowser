@@ -15,9 +15,20 @@ public class Entry {
 	public final long added;
 	/** 0..10, 0 if unknown. */
 	public final float rating;
+	/**
+	 * The stream of an entry of an M3U playlist, played as it is; null for an Xtream entry, whose
+	 * stream URL is made from the account.
+	 */
+	public final String url;
 
 	public Entry(Kind kind, String id, String name, String image, String categoryId, long added,
 							 float rating) {
+		this(kind, id, name, image, categoryId, added, rating, null);
+	}
+
+	public Entry(Kind kind, String id, String name, String image, String categoryId, long added,
+							 float rating, String url) {
+		this.url = url;
 		this.kind = kind;
 		this.id = id;
 		this.name = name;

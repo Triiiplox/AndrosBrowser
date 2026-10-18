@@ -82,7 +82,9 @@ public final class XtreamRootItem extends BrowsableItemBase implements XtreamIte
 	/** The playable of a channel or a movie. */
 	public XtreamPlayable playable(Account a, Snapshot s, Entry e) {
 		String ext = (e instanceof Movie m) ? m.extension : null;
-		String url = (e.kind == Kind.LIVE) ? a.xtream.liveUrl(e.id) : a.xtream.movieUrl(e.id, ext);
+		// A playlist entry has its own stream; an Xtream one is made from the account
+		String url = (e.url != null) ? e.url :
+				(e.kind == Kind.LIVE) ? a.xtream.liveUrl(e.id) : a.xtream.movieUrl(e.id, ext);
 		BrowsableItem parent = parentOf(a, s, e);
 		// The app resumes a video only when its duration is known: the one of the last playback
 		long dur = (e.kind == Kind.LIVE) ? 0 : knownDuration(a, e.kind, e.id, 0);
@@ -104,7 +106,7 @@ public final class XtreamRootItem extends BrowsableItemBase implements XtreamIte
 
 	private XtreamPlayable episode(Account a, BrowsableItem parent, String seriesName,
 																 @Nullable String seriesImage, Details.Episode ep) {
-		String url = a.xtream.episodeUrl(ep.id, ep.extension);
+		String url = (ep.url != null) ? ep.url : a.xtream.episodeUrl(ep.id, ep.extension);
 		String title = episodeTitle(ep);
 		String sub = seriesName + " · " + lib.getContext().getString(R.string.xtream_season_episode,
 				ep.season, ep.number);
@@ -263,7 +265,8 @@ public final class XtreamRootItem extends BrowsableItemBase implements XtreamIte
 	// Without the catalog (offline, cache cleared): from what the user library remembers
 	@Nullable
 	private XtreamPlayable fromLibrary(Account a, Kind kind, String streamId, String[] p) {
-		if (kind == null) return null;
+		// The stream of a playlist entry is only in the list
+		if ((kind == null) || (a.xtream == null)) return null;
 		UserLibrary.Record r = repo.getLibrary().get(a.id, kind, streamId);
 		if (r == null) return null;
 		String ext = r.extension;

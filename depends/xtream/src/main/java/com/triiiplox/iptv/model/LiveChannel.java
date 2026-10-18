@@ -10,7 +10,13 @@ public final class LiveChannel extends Entry {
 
 	public LiveChannel(String id, String name, String image, String categoryId, long added,
 										 String epgId, int number, int archiveDays) {
-		super(Kind.LIVE, id, name, image, categoryId, added, 0f);
+		this(id, name, image, categoryId, added, epgId, number, archiveDays, null);
+	}
+
+	/** @param url the stream of a playlist channel, null for an Xtream one */
+	public LiveChannel(String id, String name, String image, String categoryId, long added,
+										 String epgId, int number, int archiveDays, String url) {
+		super(Kind.LIVE, id, name, image, categoryId, added, 0f, url);
 		this.epgId = epgId;
 		this.number = number;
 		this.archiveDays = archiveDays;

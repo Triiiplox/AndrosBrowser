@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import me.aap.fermata.addon.tv.m3u.TvM3uEpgItem;
 import me.aap.fermata.addon.tv.m3u.TvM3uFile;
@@ -132,19 +133,35 @@ public class TvRootItem extends ItemContainer<TvM3uItem> implements TvItem {
 	 * big IPTV panel would not survive in memory.
 	 */
 	public FutureSupplier<List<String>> getSourceUrls() {
+		return getSources().map(m -> new ArrayList<>(m.keySet()));
+	}
+
+	/**
+	 * The URLs of the M3U sources with their names, in the order of the sources. Read from the
+	 * preferences and the cached files, without parsing the lists.
+	 */
+	public FutureSupplier<Map<String, String>> getSources() {
 		int[] ids = getIntArrayPref(SOURCE_IDS);
 		List<Integer> idList = new ArrayList<>(ids.length);
 		for (int i : ids) idList.add(i);
-		List<String> urls = java.util.Collections.synchronizedList(new ArrayList<>(ids.length));
+		String[] urls = new String[ids.length];
+		String[] names = new String[ids.length];
 		TvM3uFileSystem fs = TvM3uFileSystem.getInstance();
+		int[] next = {0};
 		return forEach(id -> {
+			int idx = next[0]++;
 			String m3uId = getStringPref(Pref.s("M3UID#" + id));
 			if (m3uId == null) return completedVoid();
 			return fs.getResource(fs.toRid(m3uId)).onSuccess(f -> {
-				String url = (f != null) ? f.getUrl() : null;
-				if (url != null) urls.add(url);
+				if (f == null) return;
+				urls[idx] = f.getUrl();
+				names[idx] = f.getName();
 			}).ifFail(err -> null);
-		}, idList).map(v -> new ArrayList<>(urls));
+		}, idList).map(v -> {
+			Map<String, String> m = new java.util.LinkedHashMap<>();
+			for (int i = 0; i < urls.length; i++) if (urls[i] != null) m.put(urls[i], names[i]);
+			return m;
+		});
 	}
 
 	@Override
