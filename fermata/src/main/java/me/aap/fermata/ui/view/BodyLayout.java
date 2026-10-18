@@ -6,6 +6,7 @@ import static me.aap.fermata.ui.activity.MainActivityPrefs.P_SPLIT_PERCENT;
 import static me.aap.utils.async.Completed.completedVoid;
 
 import android.content.Context;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.content.res.Configuration;
 import android.util.AttributeSet;
 import android.view.View;
@@ -40,6 +41,7 @@ import me.aap.utils.ui.fragment.ActivityFragment;
 public class BodyLayout extends SplitLayout
 		implements SwipeRefreshLayout.OnRefreshListener, SwipeRefreshLayout.OnChildScrollUpCallback,
 		MainActivityListener, FermataServiceUiBinder.Listener, MediaSessionCallback.Listener {
+	private static final long STARTING_MAX = 20_000;
 	private Mode mode;
 	private FutureSupplier<?> startingPlayback = completedVoid();
 
@@ -191,8 +193,11 @@ public class BodyLayout extends SplitLayout
 
 		FermataServiceUiBinder b = a.getMediaServiceBinder();
 		MediaLib.PlayableItem cur = b.getCurrentItem();
-		startingPlayback = new Promise<Void>().thenRun(() -> startingPlayback = completedVoid());
-		a.setContentLoading(startingPlayback);
+		FutureSupplier<?> starting = new Promise<Void>().thenRun(() -> startingPlayback = completedVoid());
+		startingPlayback = starting;
+		a.setContentLoading(starting);
+		// The same item played again changes no item: the emblem would stay over the video for good
+		postDelayed(starting::cancel, STARTING_MAX);
 		b.playItem(i, pos);
 		MediaEngine eng = b.getCurrentEngine();
 		if (i.equals(cur) && (eng != null) && eng.isVideoModeRequired())
@@ -218,6 +223,16 @@ public class BodyLayout extends SplitLayout
 
 		if ((eng != null) && (newItem != null) && !newItem.isVideo() && (getMode() == Mode.FRAME)) {
 			eng.selectSubtitleStream();
+		}
+	}
+
+	// Playing, paused, stopped or failed: the loading emblem has nothing left to wait for
+	@Override
+	public void onPlaybackStateChanged(MediaSessionCallback cb, PlaybackStateCompat state) {
+		switch (state.getState()) {
+			case PlaybackStateCompat.STATE_CONNECTING, PlaybackStateCompat.STATE_BUFFERING -> {
+			}
+			default -> startingPlayback.cancel();
 		}
 	}
 

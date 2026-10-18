@@ -109,9 +109,17 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 	public boolean onBackPressed() {
 		// Back from the video comes back to this screen, as in the library: the screen the video
 		// was opened from, not the start section
-		BodyLayout body = MainActivityDelegate.get(requireContext()).getBody();
+		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
+		BodyLayout body = a.getBody();
 		if (body.isVideoMode()) {
 			body.setMode(BodyLayout.Mode.BOTH);
+			return true;
+		}
+		// Then out of the split: the video ends (a movie keeps its position) and IPTV has the screen
+		if (body.isBothMode()) {
+			Log.i("Xtream: Back ends the video of the split screen");
+			a.getMediaServiceBinder().stop();
+			body.setMode(BodyLayout.Mode.FRAME);
 			return true;
 		}
 		if (!overlays.isEmpty()) {

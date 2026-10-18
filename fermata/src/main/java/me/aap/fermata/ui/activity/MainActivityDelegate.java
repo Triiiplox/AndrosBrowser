@@ -401,8 +401,31 @@ public class MainActivityDelegate extends ActivityDelegate
 
 	@Override
 	protected void setUncaughtExceptionHandler() {
-		if (!AUTO || getAppActivity().isCarActivity()) return;
-		super.setUncaughtExceptionHandler();
+		if (!AUTO) return;
+		if (!getAppActivity().isCarActivity()) {
+			super.setUncaughtExceptionHandler();
+			return;
+		}
+		// In the car no crash report can be sent, but the log must say why the app went away
+		Thread.UncaughtExceptionHandler prev = Thread.getDefaultUncaughtExceptionHandler();
+		if (prev instanceof CarCrashLog) return;
+		Thread.setDefaultUncaughtExceptionHandler(new CarCrashLog(prev));
+	}
+
+	private static final class CarCrashLog implements Thread.UncaughtExceptionHandler {
+		@Nullable
+		private final Thread.UncaughtExceptionHandler next;
+
+		CarCrashLog(@Nullable Thread.UncaughtExceptionHandler next) {
+			this.next = next;
+		}
+
+		@Override
+		public void uncaughtException(@NonNull Thread t, @NonNull Throwable err) {
+			Log.e(err, "Crash in the car, thread ", t);
+			Log.flush();
+			if (next != null) next.uncaughtException(t, err);
+		}
 	}
 
 	@Override

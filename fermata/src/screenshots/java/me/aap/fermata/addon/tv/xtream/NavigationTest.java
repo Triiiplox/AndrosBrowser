@@ -99,6 +99,7 @@ public abstract class NavigationTest {
 				step(this::folders, "Pastas");
 				step(this::settings, "Configurações");
 				step(this::resume, "Retomar ao ligar o carro");
+				step(this::carVideoKeys, "Carro: vídeo do IPTV, Menu e Voltar");
 			} finally {
 				write();
 			}
@@ -492,6 +493,69 @@ public abstract class NavigationTest {
 		static String excerpt(String s, String at) {
 			int i = s.indexOf(at);
 			return (i < 0) ? "nada" : s.substring(i, Math.min(s.length(), i + 120));
+		}
+
+		// --- The car, an IPTV video on the screen: Menu twice, Back until out ---
+
+		void carVideoKeys() throws Exception {
+			Field mirror = FermataApplication.class.getDeclaredField("mirroringMode");
+			mirror.setAccessible(true);
+			mirror.setInt(FermataApplication.get(), 1);
+			me.aap.fermata.ui.view.BodyLayout body = d.getBody();
+			Field surface = me.aap.fermata.ui.view.VideoView.class.getDeclaredField("createSurface");
+			surface.setAccessible(true);
+			try {
+				surface.set(body.getVideoView(), me.aap.utils.async.Completed.completedNull());
+				d.showFragment(R.id.xtream_fragment);
+				Screens.waitReal(1);
+				d.getBody().playItem(channel);
+				Screens.waitReal(2);
+				// The same channel again: no item changes, the loading emblem must still go away
+				d.getBody().playItem(channel);
+				Screens.waitReal(3);
+				View loading = a.findViewById(R.id.content_loading_progress);
+				check(!loading.isShown(), "o emblema de carregamento some ao tocar o mesmo canal de novo");
+				body.setMode(me.aap.fermata.ui.view.BodyLayout.Mode.VIDEO);
+				Screens.settle();
+				key(android.view.KeyEvent.KEYCODE_MENU);
+				key(android.view.KeyEvent.KEYCODE_MENU);
+				Screens.waitReal(2);
+				Screens.save(root, size + "-nav-car-video-menu");
+				OverlayMenu nav = a.findViewById(R.id.nav_menu_view);
+				check(((View) nav).isShown(), "Menu no vídeo abre o menu");
+				key(android.view.KeyEvent.KEYCODE_BACK);
+				Screens.settle();
+				check(!((View) nav).isShown(), "Voltar fecha o menu (aberto: " + ((View) nav).isShown() + ")");
+				nav.hide();
+				body.setMode(me.aap.fermata.ui.view.BodyLayout.Mode.VIDEO);
+				Screens.settle();
+				key(android.view.KeyEvent.KEYCODE_BACK);
+				Screens.settle();
+				me.aap.fermata.ui.view.BodyLayout.Mode m1 = body.getMode();
+				key(android.view.KeyEvent.KEYCODE_BACK);
+				Screens.settle();
+				me.aap.fermata.ui.view.BodyLayout.Mode m2 = body.getMode();
+				Screens.save(root, size + "-nav-car-video-back");
+				check(m2 == me.aap.fermata.ui.view.BodyLayout.Mode.FRAME,
+						"Voltar sai do vídeo: tela cheia → " + m1 + " → " + m2 + " (tela: " +
+								name(d.getActiveFragment()) + ")");
+			} finally {
+				mirror.setInt(FermataApplication.get(), 0);
+				surface.set(body.getVideoView(), new me.aap.utils.async.Promise<Void>());
+				d.getMediaServiceBinder().stop();
+				Screens.waitReal(1);
+			}
+		}
+
+		void key(int code) throws Exception {
+			long t = android.os.SystemClock.uptimeMillis();
+			for (int action : new int[]{android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.ACTION_UP}) {
+				android.view.KeyEvent e = new android.view.KeyEvent(t, t, action, code, 0);
+				if (action == android.view.KeyEvent.ACTION_DOWN) a.onKeyDown(code, e);
+				else a.onKeyUp(code, e);
+				ShadowWait.ms(60);
+			}
+			ShadowWait.ms(700);
 		}
 
 		// --- Resume when the car starts: the channel of the last drive plays again ---
