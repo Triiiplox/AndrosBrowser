@@ -86,6 +86,8 @@ import me.aap.utils.vfs.local.LocalFileSystem;
  */
 public class PreferenceView extends ConstraintLayout {
 	private final ColorStateList textTint;
+	@Nullable
+	private final ColorStateList titleTint;
 	@StyleRes
 	private final int titleTextAppearance;
 	@StyleRes
@@ -109,27 +111,34 @@ public class PreferenceView extends ConstraintLayout {
 		subtitleTextAppearance = ta.getResourceId(R.styleable.PreferenceView_subtitleTextAppearance,
 				0);
 		ta.recycle();
+		// The title in the main text color, the line under it in the secondary one: the two read
+		// apart at a glance
+		ta = ctx.obtainStyledAttributes(new int[]{android.R.attr.textColorPrimary});
+		ColorStateList primary = ta.getColorStateList(0);
+		ta.recycle();
+		titleTint = (primary != null) ? primary : textTint;
 	}
 
 	void setSize(Context ctx, float scale) {
-		setTextAppearance(ctx, getTitleView(), titleTextAppearance, scale);
-		setTextAppearance(ctx, getSubtitleView(), subtitleTextAppearance, scale);
+		setTextAppearance(ctx, getTitleView(), titleTextAppearance, scale, titleTint);
+		setTextAppearance(ctx, getSubtitleView(), subtitleTextAppearance, scale, textTint);
 		setFooterTextAppearance(ctx, scale);
 	}
 
-	private void setTextAppearance(Context ctx, TextView v, @StyleRes int res, float scale) {
+	private void setTextAppearance(Context ctx, TextView v, @StyleRes int res, float scale,
+																 ColorStateList color) {
 		v.setTextAppearance(res);
 		TypedArray ta = ctx.obtainStyledAttributes(res, new int[]{android.R.attr.textSize});
 		v.setTextSize(COMPLEX_UNIT_PX, ta.getDimensionPixelSize(0, 0) * scale);
 		ta.recycle();
-		v.setTextColor(textTint);
+		v.setTextColor(color);
 	}
 
 	private void setFooterTextAppearance(Context ctx, float scale) {
 		for (int i = 2, n = getChildCount(); i < n; i++) {
 			View v = getChildAt(i);
 			if (v instanceof TextView)
-				setTextAppearance(ctx, (TextView) v, subtitleTextAppearance, scale);
+				setTextAppearance(ctx, (TextView) v, subtitleTextAppearance, scale, textTint);
 		}
 	}
 

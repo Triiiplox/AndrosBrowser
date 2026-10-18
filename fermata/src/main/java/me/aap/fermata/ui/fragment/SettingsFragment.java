@@ -83,6 +83,7 @@ import me.aap.utils.pref.PreferenceSet;
 import me.aap.utils.pref.PreferenceStore;
 import me.aap.utils.pref.PreferenceStore.Pref;
 import me.aap.utils.pref.PreferenceView;
+import me.aap.utils.pref.PreferenceGroupDecoration;
 import me.aap.utils.pref.PreferenceViewAdapter;
 import me.aap.utils.ui.UiUtils;
 import me.aap.utils.ui.fragment.FilePickerFragment;
@@ -135,6 +136,9 @@ public class SettingsFragment extends MainActivityFragment
 			RecyclerView listView = view.findViewById(me.aap.utils.R.id.prefs_list_view);
 			listView.setHasFixedSize(true);
 			listView.setLayoutManager(new LinearLayoutManager(getContext()));
+			// Flat rows in one rounded group, instead of a box around each row
+			adapter.setRowStyle(me.aap.utils.R.drawable.focusable_shape_transparent, 16, 12, 0);
+			listView.addItemDecoration(new PreferenceGroupDecoration(listView.getContext()));
 			listView.setAdapter(adapter);
 
 			if (state != null) {

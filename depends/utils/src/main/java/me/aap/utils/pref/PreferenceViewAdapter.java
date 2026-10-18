@@ -21,9 +21,24 @@ import me.aap.utils.ui.UiUtils;
 public class PreferenceViewAdapter extends RecyclerView.Adapter<PreferenceViewAdapter.PrefViewHolder> {
 	private PreferenceSet set;
 	private RecyclerView recyclerView;
+	private int rowBackground = R.drawable.box_secondary;
+	private int rowPaddingH = 5;
+	private int rowPaddingV = 5;
+	private int rowMargin = 1;
 
 	public PreferenceViewAdapter(PreferenceSet set) {
 		this.set = set;
+	}
+
+	/**
+	 * The look of the rows: their background, padding and margin (dp). The default is a card per
+	 * row; a grouped list gives the rows a transparent background and draws the group itself.
+	 */
+	public void setRowStyle(int background, int paddingH, int paddingV, int margin) {
+		rowBackground = background;
+		rowPaddingH = paddingH;
+		rowPaddingV = paddingV;
+		rowMargin = margin;
 	}
 
 	@Override
@@ -37,13 +52,14 @@ public class PreferenceViewAdapter extends RecyclerView.Adapter<PreferenceViewAd
 		Context ctx = parent.getContext();
 		PreferenceView v = new PreferenceView(ctx);
 		RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT);
-		int margin = (int) UiUtils.toPx(ctx, 1);
-		int padding = (int) UiUtils.toPx(ctx, 5);
+		int margin = (int) UiUtils.toPx(ctx, rowMargin);
+		int padH = (int) UiUtils.toPx(ctx, rowPaddingH);
+		int padV = (int) UiUtils.toPx(ctx, rowPaddingV);
 		v.setLayoutParams(lp);
 		lp.setMargins(margin, margin, margin, margin);
-		v.setPadding(padding, padding, padding, padding);
+		v.setPadding(padH, padV, padH, padV);
 		v.setFocusable(true);
-		v.setBackgroundResource(R.drawable.box_secondary);
+		v.setBackgroundResource(rowBackground);
 		return new PrefViewHolder(v);
 	}
 
