@@ -10,6 +10,8 @@ import androidx.annotation.Nullable;
 import com.triiiplox.iptv.model.Entry.Kind;
 import com.triiiplox.iptv.net.HttpTransport;
 
+import java.util.Objects;
+
 import me.aap.fermata.media.engine.MetadataBuilder;
 import me.aap.fermata.media.lib.MediaLib.BrowsableItem;
 import me.aap.fermata.media.lib.PlayableItemBase;
@@ -36,6 +38,9 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 	private final int episode;
 	@Nullable
 	private final String extension;
+	// The programme on air and the next one, for a live channel
+	@Nullable
+	private volatile String nowNext;
 
 	XtreamPlayable(String id, BrowsableItem parent, String url, String accountId, Kind kind,
 								 String streamId, String title, String subtitle, @Nullable String image,
@@ -100,6 +105,23 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 		return extension;
 	}
 
+	/**
+	 * Shows the programme on air and the next one under the channel name, in the player and on the
+	 * car screen, in place of the category.
+	 */
+	void setNowNext(@Nullable String text) {
+		if (Objects.equals(nowNext, text)) return;
+		nowNext = text;
+		setMeta(buildMeta(new MetadataBuilder()));
+		updateTitles();
+	}
+
+	@Nullable
+	private String shownSubtitle() {
+		String nn = nowNext;
+		return (nn != null) ? nn : subtitle;
+	}
+
 	@Override
 	public boolean isVideo() {
 		return true;
@@ -146,7 +168,8 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 	@Override
 	protected FutureSupplier<MediaMetadataCompat> buildMeta(MetadataBuilder meta) {
 		meta.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
-		if (subtitle != null) meta.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subtitle);
+		String sub = shownSubtitle();
+		if (sub != null) meta.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, sub);
 		if (durationMs > 0) meta.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs);
 		if (image != null) meta.setImageUri(image);
 		return completed(meta.build());
@@ -154,6 +177,7 @@ public final class XtreamPlayable extends PlayableItemBase implements XtreamItem
 
 	@Override
 	protected FutureSupplier<String> buildSubtitle() {
-		return completed((subtitle == null) ? "" : subtitle);
+		String sub = shownSubtitle();
+		return completed((sub == null) ? "" : sub);
 	}
 }

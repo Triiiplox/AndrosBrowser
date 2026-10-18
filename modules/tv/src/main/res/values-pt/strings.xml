@@ -74,6 +74,7 @@
     <string name="xtream_kind_playlist">lista M3U</string>
     <string name="xtream_login_refused">O painel recusou o login: %s</string>
     <string name="xtream_checking">Verificando a conta…</string>
+    <string name="xtream_now_next">Agora: %1$s · A seguir: %2$s</string>
     <string name="xtream_live_now">Agora: %s</string>
     <string name="xtream_items">%d títulos</string>
     <string name="xtream_more_info">Mais informações</string>

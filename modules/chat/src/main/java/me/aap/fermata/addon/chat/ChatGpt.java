@@ -67,12 +67,9 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 	}
 
 	public FutureSupplier<String> sendRequest(List<Message> messages) {
-		var key = addon.getOpenaiKey();
-		if ((key == null) || (key = key.trim()).isBlank()) {
-			return failed(new IllegalStateException("OpenAI key is not specified"));
-		}
+		var auth = addon.getAuthorization();
+		if (auth == null) return failed(new IllegalStateException("OpenAI key is not specified"));
 
-		var k = key;
 		var p = new Promise<String>();
 		HttpConnection.connect(o -> {
 			o.url("https://api.openai.com/v1/chat/completions");
@@ -80,7 +77,7 @@ class ChatGpt implements EventBroadcaster<ChatGpt.Listener> {
 			o.builder = b -> {
 				b.addHeader(HttpHeader.ACCEPT);
 				b.addHeader(HttpHeader.CONTENT_TYPE, "application/json");
-				b.addHeader(HttpHeader.AUTHORIZATION, "Bearer " + k);
+				b.addHeader(HttpHeader.AUTHORIZATION, auth);
 
 				try {
 					JSONObject[] jsonMessages = new JSONObject[messages.size()];

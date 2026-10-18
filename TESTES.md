@@ -123,12 +123,18 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Canal ou filme em tela cheia no celular em pé: imagem na proporção certa (faixas pretas em cima e embaixo), não esticada.
 - [ ] Botão de perfil do IPTV: contas com "painel" ou "lista M3U"; Editar conta (formulário preenchido), Atualizar catálogo, Remover (pede confirmação).
 
+- [ ] Canal ao vivo de painel: depois de alguns segundos, sob o nome do canal aparece "Agora: programa (hh:mm–hh:mm) · A seguir: próximo" (no player e no card do carro, na próxima mudança de estado se não aparecer na hora).
+
 ## 5. Vídeo + Waze (atração)
 
 - [ ] Espelhamento do Fermata em paisagem + tela dividida do celular (Waze | YouTube).
 - [ ] Toque nas duas metades cai no lugar certo (#796).
 
 ## 6. Visual
+
+- [ ] Celular: o botão redondo (voltar/menu) não aparece mais por cima do conteúdo, só em Pastas para adicionar pasta. No carro continua.
+- [ ] Configurações: cada seção com uma linha dizendo o que tem dentro.
+- [ ] ChatGPT: botão "abrir app" na barra de cima do chat e em Configurações → Complementos → ChatGPT → "Abrir o app do ChatGPT" (abre o app oficial ou a loja).
 
 - [ ] Configurações → Complementos: cada um com "Ativado/Desativado · o que faz", nomes em português (Gerador de legendas, Radares e limites).
 - [ ] ChatGPT ativado: o botão aparece na barra (depois de Pastas). Modelo: a lista vem da sua conta da OpenAI (abra as configurações do ChatGPT duas vezes depois de colocar a chave).

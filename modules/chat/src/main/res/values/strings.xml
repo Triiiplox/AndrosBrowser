@@ -5,4 +5,6 @@
     <string name="openai_model">Model</string>
     <string name="openai_model_other">Other model</string>
     <string name="openai_model_other_hint">Model id, if it is not in the list</string>
+    <string name="open_chatgpt_app">Open the ChatGPT app</string>
+    <string name="open_chatgpt_app_sub">Voice mode with your ChatGPT plan, no key and no tokens to pay. In the car, through Fermata\'s mirroring</string>
 </resources>

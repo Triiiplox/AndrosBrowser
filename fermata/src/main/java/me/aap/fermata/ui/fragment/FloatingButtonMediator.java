@@ -25,6 +25,17 @@ import me.aap.utils.ui.view.ToolBarView;
 public class FloatingButtonMediator implements BackMenu {
 	public static final FloatingButtonMediator instance = new FloatingButtonMediator();
 
+	/**
+	 * On the phone the button only repeated the system Back and the nav bar's Menu, over the
+	 * content: it shows there only to add a folder. In the car it is the only Back on the screen.
+	 */
+	@Override
+	public void enable(FloatingButton fb, ActivityFragment f) {
+		BackMenu.super.enable(fb, f);
+		MainActivityDelegate a = MainActivityDelegate.get(fb.getContext());
+		fb.setSuppressed(!a.isCarActivity() && !isAddFolderEnabled(f));
+	}
+
 	@Override
 	public int getIcon(FloatingButton fb) {
 		MainActivityDelegate a = MainActivityDelegate.get(fb.getContext());

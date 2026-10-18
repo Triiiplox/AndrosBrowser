@@ -24,6 +24,7 @@ import com.triiiplox.iptv.UserLibrary;
 import com.triiiplox.iptv.model.Details;
 import com.triiiplox.iptv.model.Entry;
 import com.triiiplox.iptv.model.Entry.Kind;
+import com.triiiplox.iptv.model.Program;
 import com.triiiplox.iptv.model.Series;
 
 import java.text.DateFormat;
@@ -458,6 +459,42 @@ public class XtreamFragment extends MainActivityFragment implements XtreamPageAd
 		Log.i("Xtream: play ", i.getId(), " (engine ", i.getPrefs().getVideoEnginePref(), ")");
 		MainActivityDelegate a = MainActivityDelegate.get(requireContext());
 		a.getBody().playItem(i);
+		if ((i instanceof XtreamPlayable xp) && (xp.getKind() == Kind.LIVE)) loadNowNext(xp);
+	}
+
+	/**
+	 * The guide of a live channel, asked while the stream starts: one short request to the panel
+	 * (cached for minutes), not the whole XMLTV. A playlist has no guide of its own.
+	 */
+	private void loadNowNext(XtreamPlayable xp) {
+		Account acc = repo.getAccount(xp.getAccountId());
+		if ((acc == null) || acc.isPlaylist()) return;
+		Context ctx = requireContext().getApplicationContext();
+		repo.run(() -> repo.catalog(acc).epg(xp.getStreamId(), 4)).main().onCompletion((l, err) -> {
+			if (err != null) {
+				Log.d("Xtream: no guide for the channel: ", err.getMessage());
+				return;
+			}
+			String text = nowNext(ctx, l, System.currentTimeMillis() / 1000);
+			if (text != null) xp.setNowNext(text);
+		});
+	}
+
+	@Nullable
+	static String nowNext(Context ctx, @Nullable List<Program> programs, long now) {
+		if ((programs == null) || programs.isEmpty()) return null;
+		Program cur = null;
+		Program next = null;
+		for (Program p : programs) {
+			if ((cur == null) && (p.start <= now) && (now < p.end)) cur = p;
+			else if ((p.start >= now) && ((next == null) || (p.start < next.start))) next = p;
+		}
+		if (cur == null) return null;
+		java.text.DateFormat t = android.text.format.DateFormat.getTimeFormat(ctx);
+		String on = cur.title + " (" + t.format(new Date(cur.start * 1000)) + "–" +
+				t.format(new Date(cur.end * 1000)) + ")";
+		return (next == null) ? ctx.getString(R.string.xtream_live_now, on) :
+				ctx.getString(R.string.xtream_now_next, on, next.title);
 	}
 
 	private XtreamRootItem root() {

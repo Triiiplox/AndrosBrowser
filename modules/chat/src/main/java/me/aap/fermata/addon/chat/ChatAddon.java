@@ -4,7 +4,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static me.aap.fermata.util.Utils.openUrl;
 import static me.aap.utils.async.Completed.completedVoid;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Pair;
 
 import androidx.annotation.Keep;
@@ -80,6 +82,33 @@ public class ChatAddon implements FermataFragmentAddon {
 		return new ChatFragment();
 	}
 
+	/** The official ChatGPT app, for its voice mode on the user's own plan. */
+	public static final String CHATGPT_APP = "com.openai.chatgpt";
+
+	/**
+	 * Opens the ChatGPT app, or its store page when it is not installed. Starting another app needs
+	 * no package visibility, so nothing is declared for it.
+	 */
+	public static void openChatGptApp(Context ctx) {
+		Intent i = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+				.setPackage(CHATGPT_APP).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		try {
+			ctx.startActivity(i);
+		} catch (ActivityNotFoundException ex) {
+			openUrl(ctx, "https://play.google.com/store/apps/details?id=" + CHATGPT_APP);
+		}
+	}
+
+	/**
+	 * The authorization of the requests: the user's API key. A sign-in with the ChatGPT account
+	 * (OAuth, billed to the user's plan) would give its access token here, once OpenAI hands
+	 * this app a client id.
+	 */
+	String getAuthorization() {
+		String key = getOpenaiKey();
+		return ((key == null) || (key = key.trim()).isEmpty()) ? null : "Bearer " + key;
+	}
+
 	public String getOpenaiKey() {
 		return FermataApplication.get().getPreferenceStore().getStringPref(OPENAI_KEY);
 	}
@@ -102,6 +131,11 @@ public class ChatAddon implements FermataFragmentAddon {
 	@Override
 	public void contributeSettings(Context ctx, PreferenceStore store, PreferenceSet set,
 																 ChangeableCondition visibility) {
+		set.addButton(o -> {
+			o.title = R.string.open_chatgpt_app;
+			o.subtitle = R.string.open_chatgpt_app_sub;
+			o.onClick = () -> openChatGptApp(ctx);
+		});
 		set.addStringPref(o -> {
 			String keyUrl = "https://platform.openai.com/api-keys";
 			String sub = App.get().getString(R.string.openai_key_sub, keyUrl);

@@ -82,6 +82,7 @@
     <string name="xtream_kind_playlist">M3U playlist</string>
     <string name="xtream_login_refused">The panel refused the login: %s</string>
     <string name="xtream_checking">Checking the account…</string>
+    <string name="xtream_now_next">Now: %1$s · Next: %2$s</string>
     <string name="xtream_live_now">Now: %s</string>
     <string name="xtream_items">%d titles</string>
     <string name="xtream_more_info">More info</string>

@@ -264,6 +264,8 @@ public class ChatFragment extends MainActivityFragment
 			addView(tb, t, R.id.send_text, LEFT);
 			addButton(tb, R.drawable.send, v -> send(cf, tb.findViewById(R.id.send_text)),
 					R.id.send_button, RIGHT);
+			addButton(tb, R.drawable.chatgpt_app, v -> ChatAddon.openChatGptApp(v.getContext()),
+					R.id.open_chatgpt_app, RIGHT);
 			ToolBarView.Mediator.super.enable(tb, f);
 		}
 

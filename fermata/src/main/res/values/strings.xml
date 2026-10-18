@@ -418,4 +418,14 @@
     <string name="err_failed_to_download">Failed to download %1$s</string>
     <string name="err_no_audio_record_perm">Audio recording permission is not granted</string>
     <string name="err_failed_start_service">Failed to start service: %s</string>
+    <string name="settings_desc_interface_prefs">Theme, nav bar, text size, language</string>
+    <string name="settings_desc_key_bindings">Steering wheel, remote and keyboard buttons</string>
+    <string name="settings_desc_playback_settings">What plays next when a video ends</string>
+    <string name="settings_desc_playback_control">Skip and long press of the buttons</string>
+    <string name="settings_desc_voice_control">Commands by voice</string>
+    <string name="settings_desc_engine_prefs">VLC, ExoPlayer or the Android player</string>
+    <string name="settings_desc_video_settings">Picture scaling, hardware decoding, clock</string>
+    <string name="settings_desc_subtitles">Size, color and language of subtitles</string>
+    <string name="settings_desc_other">Backup of the settings, log, updates</string>
+    <string name="settings_desc_addons">IPTV, YouTube, ChatGPT and other features</string>
 </resources>

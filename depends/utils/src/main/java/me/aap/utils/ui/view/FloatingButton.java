@@ -40,6 +40,7 @@ public class FloatingButton extends FloatingActionButton implements ActivityList
 	@Px
 	private float borderWidth;
 	private float scale = 1f;
+	private boolean suppressed;
 
 	public FloatingButton(Context context, AttributeSet attrs) {
 		this(context, attrs, com.google.android.material.R.attr.floatingActionButtonStyle);
@@ -66,6 +67,22 @@ public class FloatingButton extends FloatingActionButton implements ActivityList
 
 	protected void setMediator(Mediator mediator) {
 		this.mediator = mediator;
+		setSuppressed(false);
+	}
+
+	/**
+	 * Keeps the button hidden, whatever shows it later, until the next screen sets its mediator: a
+	 * mediator can tell the button is not needed (e.g. a Back the device already has).
+	 */
+	public void setSuppressed(boolean suppressed) {
+		if (this.suppressed == suppressed) return;
+		this.suppressed = suppressed;
+		super.setVisibility(suppressed ? GONE : VISIBLE);
+	}
+
+	@Override
+	public void setVisibility(int visibility) {
+		super.setVisibility(suppressed ? GONE : visibility);
 	}
 
 	protected boolean setMediator(ActivityFragment f) {
