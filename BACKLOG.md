@@ -152,5 +152,9 @@ mini-player 56dp, botões do topo 38dp, aleatório/repetir/velocidade/timer como
   gera PNG de Pastas, Configurações, IPTV (painel falso local) e ChatGPT em `build/screenshots`.
   Não cobre WebView (YouTube), vídeo nem a tela do Android Auto em si (é a activity do celular no
   tamanho do carro).
+- Navegação por toques: `--tests '*NavigationTest*'` toca barra, abas, cards, Voltar, modo voz,
+  "+", adicionar pasta e configurações, e grava `build/screenshots/<tamanho>-navigation.txt`.
+- YouTube no Chromium (mesmo motor da WebView): `node tools/screens/youtube-flow.js <pasta>`
+  (início, busca, abrir vídeo, Voltar; o vídeo não toca no navegador de teste).
 - Abas "Ao vivo" cortadas no Robolectric: provável diferença de medida de fonte do teste; confirmar
   com print do aparelho antes de mexer.

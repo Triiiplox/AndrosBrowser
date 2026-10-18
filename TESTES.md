@@ -173,3 +173,4 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] IPTV no carro, detalhes de filme/série: o botão ← fica visível, acima da capa.
 - [ ] Modo voz no carro: bola menor, frase em até 2 linhas acima dos botões; mudo à esquerda, X à direita, nada sobreposto.
 - [ ] Abas do IPTV: "Ao vivo" inteiro? (nos prints do Robolectric a última letra sai cortada; confirmar no aparelho)
+- [ ] YouTube no carro: sem a barra Início/Shorts/Você do site (a barra do Fermata já leva ao início); mais resultados na tela. No celular em pé ela continua.
