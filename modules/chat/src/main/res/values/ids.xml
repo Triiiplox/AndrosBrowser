@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item name="send_text" type="id" />
+    <item name="send_button" type="id" />
     <item name="open_chatgpt_app" type="id" />
 </resources>
