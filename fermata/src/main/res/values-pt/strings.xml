@@ -411,6 +411,7 @@
     <string name="audio_focus_after_call">Uma ligação está usando o áudio: o vídeo começa quando ela terminar.</string>
     <string name="err_playlist_exists">A playlist já existe: %1$s</string>
     <string name="err_invalid_playlist_name">Nome de playlist inválido: %1$s</string>
+    <string name="folder_not_added">A pasta não foi adicionada: ela já está na lista, ou não pode ser lida. Permita ao Fermata acessar todos os arquivos nas configurações do Android, ou adicione pela opção Conteúdo.</string>
     <string name="err_failed_add_folder">Falha ao adicionar a pasta: %1$s</string>
     <string name="err_failed_open_url">Falha ao abrir a URL: %1$s</string>
     <string name="err_failed_install_module">Falha ao instalar o módulo: %1$s</string>

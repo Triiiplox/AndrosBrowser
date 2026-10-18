@@ -412,6 +412,7 @@
     <string name="audio_focus_after_call">A call is using the audio: the video starts when it ends.</string>
     <string name="err_playlist_exists">Playlist already exists: %1$s</string>
     <string name="err_invalid_playlist_name">Invalid playlist name: %1$s</string>
+    <string name="folder_not_added">The folder was not added: it is already in the list, or it cannot be read. Allow Fermata to access all files in the Android settings, or add it with Content.</string>
     <string name="err_failed_add_folder">Failed to add folder: %1$s</string>
     <string name="err_failed_open_url">Failed to open URL: %1$s</string>
     <string name="err_failed_install_module">Failed to install module: %1$s</string>

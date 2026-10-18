@@ -240,19 +240,42 @@ public class FoldersFragment extends MediaLibFragment {
 		getMainActivityDelegate().onSuccess(a -> {
 			a.getContext().getContentResolver()
 					.takePersistableUriPermission(uri, FLAG_GRANT_READ_URI_PERMISSION);
-			Folders folders = getLib().getFolders();
-			folders.addItem(uri).main().thenRun(() -> getAdapter().setParent(folders));
+			addToFolders(a, uri);
 		});
 	}
 
 	private void addFolderResult(VirtualResource r) {
 		getMainActivityDelegate().onSuccess(a -> {
-			if (r != null) {
-				Folders folders = a.getLib().getFolders();
-				folders.addItem(r.getRid().toAndroidUri()).main()
-						.thenRun(() -> getAdapter().setParent(folders));
-			}
+			// Back to the folders first: the list shown then is the one to refresh
 			a.showFragment(getFragmentId());
+			if (r == null) Log.i("Folder picker closed without a folder");
+			else addToFolders(a, r.getRid().toAndroidUri());
+		});
+	}
+
+	/*
+	 * Adds the folder and refreshes the folders on the screen, whichever instance shows them by
+	 * then: the picker in between may have replaced this one. A folder that is not added is said,
+	 * not just left out.
+	 */
+	private static void addToFolders(MainActivityDelegate a, Uri uri) {
+		Log.i("Adding folder ", uri);
+		Folders folders = a.getLib().getFolders();
+		folders.addItem(uri).main().onCompletion((item, err) -> {
+			if (err != null) {
+				Log.e(err, "Failed to add folder ", uri);
+				String msg = err.getLocalizedMessage();
+				UiUtils.showAlert(a.getContext(), a.getContext().getString(
+						R.string.err_failed_add_folder, (msg != null) ? msg : err.toString()));
+			} else if (item == null) {
+				Log.w("Folder not added, already there or not readable: ", uri);
+				UiUtils.showAlert(a.getContext(), R.string.folder_not_added);
+			} else {
+				Log.i("Folder added: ", item.getName());
+			}
+			if (a.getActiveFragment() instanceof FoldersFragment f) {
+				f.getAdapter().setParent(folders);
+			}
 		});
 	}
 
