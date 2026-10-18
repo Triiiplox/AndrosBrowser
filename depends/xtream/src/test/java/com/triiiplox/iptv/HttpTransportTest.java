@@ -48,6 +48,19 @@ public class HttpTransportTest {
 	}
 
 	@Test
+	public void loginInTheUrlIsSentAsBasicAuth() throws Exception {
+		String url = serve(req -> response(200, "", "#EXTM3U".getBytes()));
+		String withLogin = HttpTransport.withLogin(url, "us@er", "p:ss+word");
+		assertTrue("the login is encoded", withLogin.contains("us%40er:p%3Ass%2Bword@127.0.0.1"));
+		assertEquals("#EXTM3U", read(transport(1).open(withLogin)));
+		String req = requests.get(0);
+		String expected = java.util.Base64.getEncoder()
+				.encodeToString("us@er:p:ss+word".getBytes(StandardCharsets.UTF_8));
+		assertTrue(req.contains("Authorization: Basic " + expected));
+		assertTrue("no login in the request line", req.startsWith("GET /"));
+	}
+
+	@Test
 	public void forbiddenIsNotRetried() throws Exception {
 		String url = serve(req -> response(403, "", "<html>no</html>".getBytes()));
 		try {

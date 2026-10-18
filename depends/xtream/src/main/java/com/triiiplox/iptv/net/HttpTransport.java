@@ -1,17 +1,21 @@
 package com.triiiplox.iptv.net;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 
 /**
  * HTTP GET with the habits of a media player, which IPTV panels expect: a player User-Agent, an
  * Accept header and gzip. Transient failures (429, 5xx, timeouts, dropped connections) are
- * retried with a growing pause, honoring a short Retry-After.
+ * retried with a growing pause, honoring a short Retry-After. A login in the URL
+ * (http://user:password@host/...) is sent as HTTP Basic authentication, as a player does.
  */
 public final class HttpTransport implements Transport {
 	public static final String PLAYER_AGENT = "VLC/3.0.20 LibVLC/3.0.20";
@@ -57,8 +61,25 @@ public final class HttpTransport implements Transport {
 		throw last;
 	}
 
+	/** The URL with a login for HTTP Basic authentication, encoded as the user info. */
+	public static String withLogin(String url, String user, String password) throws IOException {
+		URL u = new URL(url);
+		String login = encode(user) + ':' + encode(password) + '@';
+		String host = u.getHost() + ((u.getPort() >= 0) ? ":" + u.getPort() : "");
+		return u.getProtocol() + "://" + login + host + u.getFile() +
+				((u.getRef() != null) ? '#' + u.getRef() : "");
+	}
+
 	private InputStream connect(String url) throws IOException {
-		HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+		URL u = new URL(url);
+		String login = u.getUserInfo();
+		if (login != null) u = new URL(u.getProtocol(), u.getHost(), u.getPort(), u.getFile());
+		HttpURLConnection c = (HttpURLConnection) u.openConnection();
+		if (login != null) {
+			String plain = decode(login);
+			c.setRequestProperty("Authorization", "Basic " +
+					Base64.getEncoder().encodeToString(plain.getBytes(StandardCharsets.UTF_8)));
+		}
 		c.setConnectTimeout(connectTimeout);
 		c.setReadTimeout(readTimeout);
 		c.setInstanceFollowRedirects(true);
@@ -109,6 +130,42 @@ public final class HttpTransport implements Transport {
 		} catch (NumberFormatException ex) {
 			return 2000;
 		}
+	}
+
+	// Percent-encoding of the user info: unreserved characters as they are, everything else as %XX
+	private static String encode(String s) {
+		StringBuilder sb = new StringBuilder();
+		for (byte b : s.getBytes(StandardCharsets.UTF_8)) {
+			int c = b & 0xFF;
+			if (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) ||
+					(c == '-') || (c == '.') || (c == '_') || (c == '~')) {
+				sb.append((char) c);
+			} else {
+				sb.append('%').append(Character.toUpperCase(Character.forDigit(c >> 4, 16)))
+						.append(Character.toUpperCase(Character.forDigit(c & 0xF, 16)));
+			}
+		}
+		return sb.toString();
+	}
+
+	// Percent-decoding; unlike URLDecoder, a '+' stays a '+'
+	private static String decode(String s) {
+		ByteArrayOutputStream out = new ByteArrayOutputStream(s.length());
+		for (int i = 0, n = s.length(); i < n; i++) {
+			char c = s.charAt(i);
+			if ((c == '%') && (i + 2 < n)) {
+				int hi = Character.digit(s.charAt(i + 1), 16);
+				int lo = Character.digit(s.charAt(i + 2), 16);
+				if ((hi >= 0) && (lo >= 0)) {
+					out.write((hi << 4) | lo);
+					i += 2;
+					continue;
+				}
+			}
+			byte[] b = String.valueOf(c).getBytes(StandardCharsets.UTF_8);
+			out.write(b, 0, b.length);
+		}
+		return new String(out.toByteArray(), StandardCharsets.UTF_8);
 	}
 
 	public interface Sleeper {

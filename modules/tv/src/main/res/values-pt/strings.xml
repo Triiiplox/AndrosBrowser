@@ -52,11 +52,11 @@
     <string name="xtream_error">Não foi possível carregar o catálogo: %s</string>
     <string name="xtream_retry">Tentar de novo</string>
     <string name="xtream_no_accounts_title">Nenhuma conta IPTV ainda</string>
-    <string name="xtream_no_accounts_text">Cole o link da sua lista M3U, ou o servidor, o usuário e a senha do seu IPTV (Xtream Codes).</string>
+    <string name="xtream_no_accounts_text">Cole o link da sua lista M3U (com usuário e senha, se ela pedir), ou o servidor, o usuário e a senha do seu IPTV (Xtream Codes).</string>
     <string name="xtream_add_account">Adicionar conta</string>
     <string name="xtream_link">Link da lista M3U, ou servidor</string>
-    <string name="xtream_user">Usuário (só servidor Xtream)</string>
-    <string name="xtream_password">Senha (só servidor Xtream)</string>
+    <string name="xtream_user">Usuário (se pedir)</string>
+    <string name="xtream_password">Senha (se pedir)</string>
     <string name="xtream_name">Nome (opcional)</string>
     <string name="xtream_accounts">Contas</string>
     <string name="xtream_remove_account">Remover conta</string>

@@ -114,6 +114,7 @@ legendas, utilitários. Tudo o que envolve tela, toque e AA só se valida aqui.
 - [ ] Primeira carga de um painel novo: anotar o tempo da linha "Xtream: catalog … loaded in" do log.
 
 - [ ] Lista M3U sem senha: IPTV → Contas → Adicionar conta → cole só o link (usuário e senha vazios). Aparece com canais, filmes e séries separados pelos grupos da lista; episódios "S01E02" viram uma série com temporadas.
+- [ ] Lista M3U com usuário e senha (servidor que não é Xtream): link + usuário + senha. O app tenta o painel Xtream e, se não for, baixa a lista com o login.
 - [ ] Uma lista M3U simples que já estava no TV aparece sozinha nas contas do IPTV.
 - [ ] Link errado ou página de login: aviso "O link não trouxe uma lista M3U", e o formulário volta preenchido.
 

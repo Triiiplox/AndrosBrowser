@@ -60,11 +60,11 @@
     <string name="xtream_error">Could not load the catalog: %s</string>
     <string name="xtream_retry">Try again</string>
     <string name="xtream_no_accounts_title">No IPTV account yet</string>
-    <string name="xtream_no_accounts_text">Paste the link of your M3U playlist, or the server, user and password of your IPTV (Xtream Codes).</string>
+    <string name="xtream_no_accounts_text">Paste the link of your M3U playlist (with the user and password if it asks for them), or the server, user and password of your IPTV (Xtream Codes).</string>
     <string name="xtream_add_account">Add account</string>
     <string name="xtream_link">M3U playlist link, or server</string>
-    <string name="xtream_user">User (Xtream server only)</string>
-    <string name="xtream_password">Password (Xtream server only)</string>
+    <string name="xtream_user">User (if asked)</string>
+    <string name="xtream_password">Password (if asked)</string>
     <string name="xtream_name">Name (optional)</string>
     <string name="xtream_accounts">Accounts</string>
     <string name="xtream_remove_account">Remove account</string>

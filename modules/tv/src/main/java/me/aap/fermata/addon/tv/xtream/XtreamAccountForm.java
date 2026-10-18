@@ -13,6 +13,7 @@ import com.triiiplox.iptv.XtreamClient;
 import com.triiiplox.iptv.model.AccountInfo;
 import com.triiiplox.iptv.net.HttpTransport;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
@@ -57,12 +58,12 @@ final class XtreamAccountForm {
 					String p = passText.getText().toString();
 					String n = nameText.getText().toString().trim();
 					XtreamAccount xa = XtreamAccount.fromM3uUrl(l);
-					if ((xa == null) && !l.isEmpty() && !u.isEmpty() && !p.isEmpty()) {
-						xa = new XtreamAccount(l, u, p, "ts");
-					}
 					Runnable retry = () -> show(a, l, u, p, n, added);
 					if (xa != null) {
-						check(a, xa, n, retry, added);
+						check(a, xa, n, null, retry, added);
+					} else if (!l.isEmpty() && !u.isEmpty() && !p.isEmpty()) {
+						// A server with a login: an Xtream panel, else a playlist behind a login
+						check(a, new XtreamAccount(l, u, p, "ts"), n, playlistLogin(l, u, p), retry, added);
 					} else if (u.isEmpty() && p.isEmpty() && XtreamRepo.isWebLink(l)) {
 						checkPlaylist(a, l, n, retry, added);
 					} else {
@@ -72,12 +73,31 @@ final class XtreamAccountForm {
 				}).show();
 	}
 
+	@Nullable
+	private static String playlistLogin(String link, String user, String pass) {
+		if (!XtreamRepo.isWebLink(link)) return null;
+		try {
+			return HttpTransport.withLogin(link, user, pass);
+		} catch (IOException ex) {
+			return null;
+		}
+	}
+
+	/**
+	 * Checks the login with the panel. When the server is no Xtream panel, the link with the login
+	 * may still be a playlist protected by a password: that is tried before giving up.
+	 */
 	private static void check(MainActivityDelegate a, XtreamAccount xa, String name,
-														Runnable retry, Consumer<XtreamRepo.Account> added) {
+														@Nullable String playlistLogin, Runnable retry,
+														Consumer<XtreamRepo.Account> added) {
 		Context ctx = a.getContext();
 		XtreamRepo repo = XtreamRepo.get(ctx);
 		repo.run(() -> new XtreamClient(xa, new HttpTransport()).accountInfo()).main()
 				.onCompletion((info, err) -> {
+					if ((err != null) && (playlistLogin != null)) {
+						checkPlaylist(a, playlistLogin, name, retry, added);
+						return;
+					}
 					if ((err != null) || (info == null) || !info.isActive()) {
 						String why = (err != null) ? String.valueOf(err.getMessage()) :
 								(info != null) ? info.status : "?";
