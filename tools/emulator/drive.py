@@ -188,6 +188,31 @@ def video_shown():
     return find(rid="video_view") is not None
 
 
+# A picture on the screen, not black: the share of bright pixels in a raw screencap (RGBA, after
+# a header of 12 or 16 bytes)
+def lit():
+    raw = subprocess.run(["adb", "exec-out", "screencap"], capture_output=True, timeout=60).stdout
+    if len(raw) < 16:
+        return 0.0
+    w, h = int.from_bytes(raw[0:4], "little"), int.from_bytes(raw[4:8], "little")
+    px = raw[len(raw) - w * h * 4:]
+    n = bright = 0
+    for i in range(0, len(px) - 3, 4 * 97):
+        n += 1
+        if max(px[i], px[i + 1], px[i + 2]) > 60:
+            bright += 1
+    return bright / max(n, 1)
+
+
+def wait_picture(timeout=30):
+    end = time.time() + timeout
+    while time.time() < end:
+        if lit() > 0.3:
+            return True
+        time.sleep(0.5)
+    return False
+
+
 # --- Steps ---
 
 def setup():
@@ -265,11 +290,15 @@ def live_channel():
     if not check(ch is not None, "aba Ao vivo com os canais"):
         return
     shot("ao-vivo")
+    t0 = time.time()
     tap(ch)
     st = wait_state({PLAYING}, timeout=30)
-    time.sleep(4)
+    pic = wait_picture(timeout=30)
+    t = time.time() - t0
     shot("canal-tocando")
     check(st == PLAYING, "o canal toca (estado %s)" % st)
+    # The first video used to wait 8 s, black with the sound on, for VLC's font database
+    check(pic and t <= 5, "a imagem do canal aparece em %.1f s (até 5 s)" % t)
     check(not loading_shown(), "sem o emblema de carregamento por cima do vídeo")
     key("KEYCODE_BACK")
     shot("canal-voltar-1")
@@ -357,6 +386,9 @@ def collect():
     with open(os.path.join(OUT, "crash.txt"), "w") as f:
         f.write(crash)
     adb("pull", "/sdcard/Android/data/%s/files/Fermata.log" % pkg, OUT, timeout=60)
+    with open(os.path.join(OUT, "logcat.txt")) as f:
+        m = re.search(r"VLC warmed up in (\d+) ms", f.read())
+    check(m is not None, "VLC preparado ao abrir o app" + (" (%s ms)" % m.group(1) if m else ""))
     check(pkg not in crash, "o app não caiu" + ("" if pkg not in crash else
                                                 ": " + crash[crash.find(pkg) - 300:][:900]))
 

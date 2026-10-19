@@ -2,6 +2,7 @@ package me.aap.fermata.engine.vlc;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
@@ -9,12 +10,15 @@ import android.support.v4.media.MediaMetadataCompat;
 
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
+import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.interfaces.IMedia;
 
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import me.aap.fermata.BuildConfig;
 import me.aap.fermata.media.engine.MediaEngine;
@@ -36,6 +40,7 @@ import static org.videolan.libvlc.interfaces.IMedia.Parse.ParseNetwork;
  * @author Andrey Pavlenko
  */
 public class VlcEngineProvider implements MediaEngineProvider {
+	private static final long WARM_UP_MAX = 20000;
 	private LibVLC vlc;
 	private int audioSessionId;
 	private String artUri;
@@ -77,6 +82,37 @@ public class VlcEngineProvider implements MediaEngineProvider {
 		opts.add("--no-stats");
 
 		vlc = new LibVLC(ctx, opts);
+		warmUp(ctx);
+	}
+
+	// The first video of the process waits while the subtitle renderer builds its font database:
+	// 8 s on the emulator, with the sound on and the picture black. A tiny video played with no
+	// screen builds it at start, before the user plays a channel.
+	private void warmUp(Context ctx) {
+		new Thread(() -> {
+			long start = System.currentTimeMillis();
+			MediaPlayer mp = null;
+			try (AssetFileDescriptor afd = ctx.getAssets().openFd("vlc_warmup.mpg")) {
+				Media m = new Media(vlc, afd);
+				m.addOption(":no-audio");
+				CountDownLatch done = new CountDownLatch(1);
+				mp = new MediaPlayer(vlc);
+				mp.setEventListener(e -> {
+					if ((e.type == MediaPlayer.Event.Vout) || (e.type == MediaPlayer.Event.EndReached) ||
+							(e.type == MediaPlayer.Event.EncounteredError)) done.countDown();
+				});
+				mp.setMedia(m);
+				m.release();
+				mp.play();
+				done.await(WARM_UP_MAX, TimeUnit.MILLISECONDS);
+				mp.stop();
+				Log.i("VLC warmed up in ", System.currentTimeMillis() - start, " ms");
+			} catch (Throwable ex) {
+				Log.e(ex, "VLC warm up failed");
+			} finally {
+				if (mp != null) mp.release();
+			}
+		}, "VlcWarmUp").start();
 	}
 
 	@Override
