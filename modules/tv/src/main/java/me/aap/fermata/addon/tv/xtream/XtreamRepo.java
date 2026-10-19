@@ -187,8 +187,24 @@ public final class XtreamRepo {
 					" ms: ", snap.size(com.triiiplox.iptv.model.Entry.Kind.LIVE), " channels, ",
 					snap.size(com.triiiplox.iptv.model.Entry.Kind.MOVIE), " movies, ",
 					snap.size(com.triiiplox.iptv.model.Entry.Kind.SERIES), " series");
+			logGuide(snap);
 			return snap;
 		});
+	}
+
+	// What the panel offers beyond the streams, as the log tells it: the guide and the catch-up
+	private static void logGuide(Snapshot snap) {
+		int guide = 0, catchup = 0, maxDays = 0;
+		for (com.triiiplox.iptv.model.Entry e : snap.entries(com.triiiplox.iptv.model.Entry.Kind.LIVE)) {
+			if (!(e instanceof com.triiiplox.iptv.model.LiveChannel ch)) continue;
+			if ((ch.epgId != null) && !ch.epgId.isEmpty()) guide++;
+			if (ch.archiveDays > 0) {
+				catchup++;
+				maxDays = Math.max(maxDays, ch.archiveDays);
+			}
+		}
+		Log.i("Xtream: ", guide, " channels with a guide id, ", catchup,
+				" with catch-up (up to ", maxDays, " days)");
 	}
 
 	/** Runs a blocking task on the Xtream threads. */
