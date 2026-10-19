@@ -188,6 +188,11 @@ public class FermataApplication extends NetSplitCompatApp {
 		return mirroringMode;
 	}
 
+	/** Debug builds: the car's screen without Android Auto, for the emulator tests. */
+	public void setTestCarMode() {
+		if (BuildConfig.DEBUG && BuildConfig.AUTO) mirroringMode = 1;
+	}
+
 	public void setMirroringMode(int mirroringMode) {
 		if (!BuildConfig.AUTO) return;
 		this.mirroringMode = mirroringMode;

@@ -226,3 +226,81 @@ jobs:
           path: dist/arm/*.apk
           retention-days: 30
           if-no-files-found: error
+
+  # Fermata on a real Android emulator at the car's size (800x400 dp, density 1), driven as a
+  # finger and the steering wheel would: IPTV with real video from a fake panel, Back out of the
+  # video and the split screen, the same movie again, Menu, a channel's page, YouTube. The
+  # screenshots, Fermata.log and the logcat are an artifact; a crash or a failed step fails here.
+  # Android Auto itself can't run on an emulator: a debug-only flag turns on the car's screen.
+  emulator:
+    name: Emulator at the car's size
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build the debug APK for the emulator (x86_64)
+        env:
+          NO_GS: true
+        run: |
+          chmod +x gradlew
+          ./gradlew fermata:packageAutoDebugUniversalApk -PABI=x86_64 --build-cache
+          ls -la fermata/build/outputs/apk_from_bundle/autoDebug/
+
+      - name: Test videos and the fake IPTV panel
+        run: |
+          which ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+          mkdir -p build/media build/emulator
+          ffmpeg -loglevel error -f lavfi -i testsrc2=size=1280x720:rate=25 -f lavfi \
+            -i sine=frequency=440 -t 180 -c:v libx264 -preset ultrafast -pix_fmt yuv420p \
+            -c:a aac -shortest -movflags +faststart build/media/movie.mp4
+          ffmpeg -loglevel error -f lavfi -i testsrc=size=1280x720:rate=25 -f lavfi \
+            -i sine=frequency=660 -t 180 -c:v libx264 -preset ultrafast -pix_fmt yuv420p \
+            -c:a aac -shortest -f mpegts build/media/live.ts
+          ls -la build/media
+          nohup python3 tools/emulator/fake_panel.py 8080 build/media > build/emulator/panel.log 2>&1 &
+          sleep 2
+          curl -sf "http://127.0.0.1:8080/player_api.php?username=u&password=p" > /dev/null
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the app on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: python3 tools/emulator/drive.py "$(ls fermata/build/outputs/apk_from_bundle/autoDebug/*.apk | head -1)" build/emulator
+
+      - name: Upload the emulator run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-car
+          path: build/emulator/
+          retention-days: 14
+          if-no-files-found: ignore

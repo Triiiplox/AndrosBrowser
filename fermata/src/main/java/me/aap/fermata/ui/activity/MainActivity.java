@@ -65,6 +65,7 @@ import me.aap.utils.ui.activity.SplitCompatActivityBase;
 
 public class MainActivity extends SplitCompatActivityBase
 		implements FermataActivity, AddonManager.Listener {
+	static final String TEST_CAR_MODE = "fermata.test.car";
 	private static FermataMediaServiceConnection service;
 	private static MainActivity activeInstance;
 
@@ -103,6 +104,11 @@ public class MainActivity extends SplitCompatActivityBase
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		// Debug builds only: the car's screen on an emulator, which has no Android Auto
+		// (tools/emulator). Release builds ignore it.
+		if (BuildConfig.DEBUG && getIntent().getBooleanExtra(TEST_CAR_MODE, false)) {
+			FermataApplication.get().setTestCarMode();
+		}
 		MainActivityDelegate.setTheme(this,
 				isCarActivity() || FermataApplication.get().isMirroringMode());
 		AddonManager.get().addBroadcastListener(this);
