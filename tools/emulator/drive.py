@@ -119,6 +119,19 @@ def long_press(n):
     sh("input swipe %d %d %d %d 900" % (x, y, x, y))
 
 
+def keyboard_shown():
+    return "mInputShown=true" in sh("dumpsys input_method")
+
+
+# Back closes the keyboard; with no keyboard it would close the dialog
+def close_keyboard():
+    for _ in range(3):
+        if not keyboard_shown():
+            return
+        sh("input keyevent KEYCODE_BACK")
+        time.sleep(1)
+
+
 def key(name):
     sh("input keyevent " + name)
     time.sleep(1.5)
@@ -222,20 +235,18 @@ def add_account():
     edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
     if not check(len(edits) >= 3, "formulário da conta (%d campos)" % len(edits)):
         return False
-    # The on-screen keyboard covers the fields at 400 dp (in landscape it takes the whole
-    # screen): the first field is tapped, the next ones reached with Tab, and the keyboard
-    # closed with Back before OK
-    tap(edits[0])
-    time.sleep(1)
+    # The on-screen keyboard covers the dialog at 400 dp (in landscape it takes the whole
+    # screen, and Tab does not move to the next field): each field is found again and tapped
+    # with the keyboard closed, filled, and the keyboard closed with Back
     for i, value in enumerate([PANEL, "u", "p"]):
-        if i > 0:
-            sh("input keyevent KEYCODE_TAB")
-            time.sleep(0.5)
+        edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
+        tap(edits[i])
+        time.sleep(1)
         sh("input text '%s'" % value)
         time.sleep(0.5)
-    shot("conta")
-    sh("input keyevent KEYCODE_BACK")
-    time.sleep(1.5)
+        if i == 0:
+            shot("conta")
+        close_keyboard()
     edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
     typed = [e.get("text") for e in edits[:3]]
     shot("conta-preenchida")
