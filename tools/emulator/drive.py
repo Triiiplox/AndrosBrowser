@@ -222,12 +222,24 @@ def add_account():
     edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
     if not check(len(edits) >= 3, "formulário da conta (%d campos)" % len(edits)):
         return False
-    # Each field found again before it is filled: the dialog may have moved
+    # The on-screen keyboard covers the fields at 400 dp (in landscape it takes the whole
+    # screen): the first field is tapped, the next ones reached with Tab, and the keyboard
+    # closed with Back before OK
+    tap(edits[0])
+    time.sleep(1)
     for i, value in enumerate([PANEL, "u", "p"]):
-        edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
-        tap(edits[i])
+        if i > 0:
+            sh("input keyevent KEYCODE_TAB")
+            time.sleep(0.5)
         sh("input text '%s'" % value)
+        time.sleep(0.5)
     shot("conta")
+    sh("input keyevent KEYCODE_BACK")
+    time.sleep(1.5)
+    edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
+    typed = [e.get("text") for e in edits[:3]]
+    shot("conta-preenchida")
+    check(typed[:2] == [PANEL, "u"], "campos preenchidos: %s" % typed[:2])
     tap_text("OK", timeout=5)
     ch = wait_for(text="Canal Teste 1", timeout=40)
     shot("iptv-inicio")
