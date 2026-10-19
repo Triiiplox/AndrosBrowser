@@ -193,6 +193,10 @@ def setup():
         time.sleep(2)
     sh("wm size 800x400; wm density 160; settings put system screen_off_timeout 1800000;"
        " svc power stayon true; input keyevent 82")
+    # No on-screen keyboard: it covers the fields of a dialog at 400 dp, and its autocorrect
+    # changes what is typed. The text goes straight to the focused field.
+    for ime in sh("ime list -s").split():
+        sh("ime disable " + ime)
     log(adb("install", "-r", "-g", APK, timeout=300).strip().splitlines()[-1])
     pkg = [l.split(":")[1] for l in sh("pm list packages fermata").split() if "fermata" in l][0]
     log("Pacote: " + pkg)
@@ -218,11 +222,12 @@ def add_account():
     edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
     if not check(len(edits) >= 3, "formulário da conta (%d campos)" % len(edits)):
         return False
-    for n, value in zip(edits, [PANEL, "u", "p"]):
-        tap(n)
+    # Each field found again before it is filled: the dialog may have moved
+    for i, value in enumerate([PANEL, "u", "p"]):
+        edits = [n for n in nodes() if n.get("class") == "android.widget.EditText"]
+        tap(edits[i])
         sh("input text '%s'" % value)
     shot("conta")
-    sh("input keyevent 111")  # the keyboard away, OK in sight
     tap_text("OK", timeout=5)
     ch = wait_for(text="Canal Teste 1", timeout=40)
     shot("iptv-inicio")
