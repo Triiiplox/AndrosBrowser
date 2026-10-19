@@ -17,6 +17,13 @@ import xml.etree.ElementTree as ET
 APK = sys.argv[1]
 OUT = sys.argv[2]
 PANEL = "http://10.0.2.2:8080"
+# The nav bar of the car shows icons only: its buttons are found by the id of their screen
+NAV = {"IPTV": "xtream_fragment", "Youtube": "youtube_fragment", "Pastas": "folders_fragment"}
+# The words of the app in Portuguese, and in English should the locale not take
+WORDS = {"Adicionar conta": ["Add account"], "Ao vivo": ["Live"], "Filmes": ["Movies"],
+         "Assistir": ["Play"], "Continuar": ["Resume"], "Configurações": ["Settings"],
+         "Assistir ao vivo": ["Watch live"], "Assistir de novo": ["Watch again"],
+         "Reiniciar": ["Restart"], "OK": ["Ok"]}
 report = []
 fails = 0
 shots = 0
@@ -54,6 +61,10 @@ def shot(name):
     with open(path, "wb") as f:
         f.write(subprocess.run(["adb", "exec-out", "screencap", "-p"], capture_output=True,
                                timeout=60).stdout)
+    # What uiautomator saw, to tell a wrong selector from a wrong screen
+    sh("uiautomator dump /sdcard/ui.xml >/dev/null 2>&1")
+    with open(path[:-4] + ".xml", "w") as f:
+        f.write(adb("exec-out", "cat", "/sdcard/ui.xml"))
 
 
 # --- The screen, as uiautomator sees it ---
@@ -75,9 +86,10 @@ def center(n):
 
 
 def find(text=None, rid=None, desc=None, contains=False):
+    texts = None if text is None else [text] + WORDS.get(text, [])
     for n in nodes():
         t = n.get("text") or ""
-        if text is not None and not ((text in t) if contains else (t == text)):
+        if texts is not None and not any((w in t) if contains else (t == w) for w in texts):
             continue
         if rid is not None and not (n.get("resource-id") or "").endswith(":id/" + rid):
             continue
@@ -110,6 +122,13 @@ def long_press(n):
 def key(name):
     sh("input keyevent " + name)
     time.sleep(1.5)
+
+
+def tap_nav(name, timeout=20):
+    n = wait_for(timeout=timeout, rid=NAV[name])
+    if n is not None:
+        tap(n)
+    return n
 
 
 def tap_text(text, timeout=20, **kw):
@@ -185,11 +204,11 @@ def start():
     sh("am start -n %s --ez fermata.test.car true" % comp)
     time.sleep(10)
     shot("inicio")
-    check(find(text="IPTV") is not None, "abre no modo carro com a barra (IPTV na barra)")
+    check(find(rid=NAV["IPTV"]) is not None, "abre no modo carro com a barra (IPTV na barra)")
 
 
 def add_account():
-    tap_text("IPTV")
+    tap_nav("IPTV")
     time.sleep(3)
     add = wait_for(text="Adicionar conta", timeout=15)
     if not check(add is not None, "IPTV sem conta: botão Adicionar conta"):
@@ -297,10 +316,10 @@ def channel_page():
 
 
 def youtube():
-    tap_text("Youtube")
+    tap_nav("Youtube")
     time.sleep(15)
     shot("youtube")
-    check(find(text="IPTV") is not None, "YouTube abre e a barra continua")
+    check(find(rid=NAV["IPTV"]) is not None, "YouTube abre e a barra continua")
 
 
 def collect():

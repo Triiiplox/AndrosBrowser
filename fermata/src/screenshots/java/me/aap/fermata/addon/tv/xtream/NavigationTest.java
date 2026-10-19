@@ -254,7 +254,10 @@ public abstract class NavigationTest {
 					"toque longo no canal abre a página dele");
 			check(text("Assistir ao vivo") != null, "botão Assistir ao vivo");
 			check(text("Assistir de novo") != null, "lista Assistir de novo (catch-up)");
-			check((text("Hoje") != null) && (text("Ontem") != null), "os dias gravados: Hoje, Ontem…");
+			// "Today" only once a program of today has ended: right after midnight there is none yet
+			check((text("Ontem") != null) && (text("Hoje") != null ||
+							(System.currentTimeMillis() / 1000) % 86400 < 7200),
+					"os dias gravados: (Hoje,) Ontem…");
 			check(text("Agora: Jornal da Manhã", true) != null, "agora e a seguir na página do canal");
 			Screens.save(root, size + "-nav-iptv-channel");
 
